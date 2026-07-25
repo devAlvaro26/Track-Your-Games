@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "vite build",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
@@ -38,8 +38,12 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tsx": "^4.23.1",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "vite": "^8.1.5"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "*",
+    "@rolldown/binding-linux-x64-musl": "*"
   },
   "allowScripts": {
     "esbuild@0.28.1": true
