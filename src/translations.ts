@@ -82,8 +82,8 @@ export const translationTable = {
     en: "Logged out.",
   },
   guestMode: {
-    es: "Modo Local (Sin Base de Datos)",
-    en: "Local Mode (No Database)",
+    es: "Modo Local (Sin Conexión)",
+    en: "Local Mode (No Connection)",
   },
   databaseNotConnected: {
     es: "Base de datos no configurada",
@@ -114,8 +114,8 @@ export const translationTable = {
     en: "Saving temporarily in browser",
   },
   databaseWarningDesc: {
-    es: "Para sincronizar usuarios y juegos con tu base de datos real en Vercel, debes configurar las claves de la API.",
-    en: "To sync users and games with your real database on Vercel, you must set up the API keys.",
+    es: "Para sincronizar usuarios y juegos con tu base de datos, debes configurar las claves de la API.",
+    en: "To sync users and games with your database, you must set up the API keys.",
   },
   databaseNotConfiguredErr: {
     es: "La base de datos no está configurada aún con las variables necesarias de entorno.",
@@ -140,74 +140,6 @@ export const translationTable = {
   signingUp: {
     es: "Registrando...",
     en: "Signing up...",
-  },
-  databaseGuideTitle: {
-    es: "Guía de Configuración de la Base de Datos + Vercel",
-    en: "Database + Vercel Setup Guide",
-  },
-  databaseGuideSubtitle: {
-    es: "Instrucciones paso a paso para crear tu base de datos y conectar las credenciales",
-    en: "Step-by-step instructions to create your database and link credentials",
-  },
-  step1Title: {
-    es: "Crear un proyecto de base de datos",
-    en: "Create a database project",
-  },
-  step1Bullet1: {
-    es: "Accede a tu panel de base de datos y crea una nueva cuenta o inicia sesión.",
-    en: "Go to your database dashboard and create an account or sign in.",
-  },
-  step1Bullet2: {
-    es: "Crea un nuevo proyecto e indica un nombre y contraseña de la base de datos.",
-    en: "Create a new project, setting a name and database password.",
-  },
-  step1Bullet3: {
-    es: "En Vercel, también puedes ir a tu proyecto -> Integrations y conectar tu base de datos directamente.",
-    en: "In Vercel, you can go to your project -> Integrations and connect your database directly.",
-  },
-  step2Title: {
-    es: "Ejecutar el Script SQL de la Base de Datos",
-    en: "Execute the Database SQL Script",
-  },
-  step2Desc: {
-    es: "En el panel de tu base de datos, ve a 'SQL Editor' -> 'New Query', pega el siguiente código y pulsa 'Run':",
-    en: "In your database dashboard, go to 'SQL Editor' -> 'New Query', paste the code below and click 'Run':",
-  },
-  copySql: {
-    es: "Copiar SQL",
-    en: "Copy SQL",
-  },
-  copiedSql: {
-    es: "¡Copiado!",
-    en: "Copied!",
-  },
-  step3Title: {
-    es: "Desactivar la Verificación de Correo (Sin confirmación de email)",
-    en: "Disable Email Confirmation (No email verification)",
-  },
-  step3Desc: {
-    es: "Para que los usuarios puedan registrarse e iniciar sesión de inmediato sin tener que verificar su email:",
-    en: "To allow users to sign up and log in immediately without having to confirm their email:",
-  },
-  step3Bullet1: {
-    es: "En tu panel de base de datos, ve al menú lateral: Authentication -> Providers -> Email.",
-    en: "In your database dashboard, go to left menu: Authentication -> Providers -> Email.",
-  },
-  step3Bullet2: {
-    es: "Desmarca / Desactiva la opción 'Confirm email'.",
-    en: "Uncheck / Disable the 'Confirm email' setting.",
-  },
-  step3Bullet3: {
-    es: "Guarda los cambios ('Save').",
-    en: "Save changes.",
-  },
-  step4Title: {
-    es: "Añadir las Variables de Entorno en Vercel",
-    en: "Add Environment Variables in Vercel",
-  },
-  step4Desc: {
-    es: "En tu panel de base de datos, ve a Project Settings -> API. Copia la 'Project URL' y la 'anon public key'. Luego en Vercel -> Settings -> Environment Variables, añade:",
-    en: "In your database dashboard, go to Project Settings -> API. Copy the 'Project URL' and the 'anon public key'. Then in Vercel -> Settings -> Environment Variables, add:",
   },
 
   // --- SETTINGS MODAL ---
@@ -430,6 +362,74 @@ export const translationTable = {
   addGameTitle: {
     es: "Añadir Videojuego a la Biblioteca",
     en: "Add Video Game to Library",
+  },
+  addGameSubtitle: {
+    es: "Añade un nuevo título a tu biblioteca personal",
+    en: "Add a new title to your personal library",
+  },
+  titleRequired: {
+    es: "El título es obligatorio",
+    en: "Title is required",
+  },
+  autoImportIgdb: {
+    es: "Importar datos automáticamente",
+    en: "Import data automatically",
+  },
+  autoImportDesc: {
+    es: "Busca en la base de datos de IGDB los detalles oficiales y portada",
+    en: "Search IGDB database for official details and cover",
+  },
+  searchIgdb: {
+    es: "Buscar en IGDB",
+    en: "Search IGDB",
+  },
+  titlePlaceholder: {
+    es: "ej. The Legend of Zelda: Tears of the Kingdom",
+    en: "e.g. The Legend of Zelda: Tears of the Kingdom",
+  },
+  releaseDateLabel: {
+    es: "Fecha o Año de Lanzamiento",
+    en: "Release Date / Year",
+  },
+  ratingLabel: {
+    es: "Calificación (1-5)",
+    en: "Rating (1-5)",
+  },
+  notRated: {
+    es: "Sin calificar",
+    en: "Not rated",
+  },
+  playTimeLabel: {
+    es: "Horas de Juego",
+    en: "Play Time (Hours)",
+  },
+  coverCustomizer: {
+    es: "Personalización de Portada",
+    en: "Cover Customization",
+  },
+  coverImageUrl: {
+    es: "URL de la Portada (opcional)",
+    en: "Cover Image URL (optional)",
+  },
+  coverColorLabel: {
+    es: "Color de Portada",
+    en: "Cover Color",
+  },
+  coverSymbolLabel: {
+    es: "Icono de Portada",
+    en: "Cover Icon",
+  },
+  notesLabel: {
+    es: "Notas Personales",
+    en: "Personal Notes",
+  },
+  notesPlaceholder: {
+    es: "Notas de coleccionista, ubicación...",
+    en: "Collector notes, box location...",
+  },
+  cancelBtn: {
+    es: "Cancelar",
+    en: "Cancel",
   },
   igdbSearchTitle: {
     es: "Buscar en IGDB (Base de Datos Oficial)",
