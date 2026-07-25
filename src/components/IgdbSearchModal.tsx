@@ -29,7 +29,19 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
   // Check IGDB API status on mount
   useEffect(() => {
     fetch(`/api/igdb/status?lang=${language}`)
-      .then((res) => res.json())
+      .then(async (res) => {
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          return {
+            configured: false,
+            error: language === "es"
+              ? "Respuesta no válida del servidor local."
+              : "Invalid response from local server.",
+          };
+        }
+      })
       .then((data) => {
         setIsConfigured(Boolean(data.configured));
         if (data.error) {
@@ -59,10 +71,29 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         body: JSON.stringify({ query: q, limit: 10, lang: language }),
       });
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseErr) {
+        console.error("IGDB search returned non-JSON response:", responseText.slice(0, 100));
+        setError(
+          language === "es"
+            ? "Respuesta no válida del servidor (HTML). Por favor verifica que las claves de la API de IGDB/Twitch estén configuradas en .env."
+            : "Invalid response from server (HTML). Please verify IGDB/Twitch API credentials in .env."
+        );
+        setResults([]);
+        return;
+      }
 
       if (!res.ok || data.error) {
-        setError(data.error || t.igdbDefaultError);
+        let errMessage = data.error || t.igdbDefaultError;
+        if (typeof errMessage === "string" && (errMessage.includes("Unexpected token") || errMessage.includes("is not valid JSON"))) {
+          errMessage = language === "es"
+            ? "La API de IGDB no devolvió una respuesta JSON válida. Verifica las credenciales de Twitch/IGDB en .env."
+            : "IGDB API did not return a valid JSON response. Please check Twitch/IGDB credentials in .env.";
+        }
+        setError(errMessage);
         setResults([]);
         if (data.configured !== undefined) {
           setIsConfigured(data.configured);
@@ -86,7 +117,13 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
       }
     } catch (err: any) {
       console.error("Error searching IGDB:", err);
-      setError(err.message || t.aiConnectionError);
+      let errMsg = err?.message || t.aiConnectionError;
+      if (typeof errMsg === "string" && (errMsg.includes("Unexpected token") || errMsg.includes("is not valid JSON"))) {
+        errMsg = language === "es"
+          ? "No se pudo interpretar la respuesta del servidor."
+          : "Could not parse server response.";
+      }
+      setError(errMsg);
       setResults([]);
     } finally {
       setIsLoading(false);
