@@ -750,8 +750,12 @@ export const translationTable = {
 
   // --- GAME DETAIL MODAL ---
   editGameDetailsTitle: {
-    es: "Editar Detalles de",
-    en: "Edit Details of",
+    es: "Editar Detalles de Juego",
+    en: "Edit Game Details",
+  },
+  editGameSubtitle: {
+    es: "Modifica la información del título en tu biblioteca personal",
+    en: "Update game information in your personal library",
   },
   officialBarcodeTitle: {
     es: "Código de Barras Oficial",

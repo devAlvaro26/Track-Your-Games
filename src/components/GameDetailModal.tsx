@@ -15,6 +15,19 @@ interface GameDetailModalProps {
   language?: Language;
 }
 
+const COLOR_PRESETS = [
+  "#4F46E5", // Indigo
+  "#0284C7", // Sky
+  "#059669", // Emerald
+  "#D97706", // Amber
+  "#E11D48", // Rose
+  "#7C3AED", // Violet
+  "#2563EB", // Blue
+  "#0D9488", // Teal
+  "#171717", // Dark Neutral
+  "#475569", // Slate
+];
+
 export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose, onUpdate, onDelete, language = "en" }) => {
   const t = getTranslation(language);
 
@@ -501,22 +514,53 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
               /* ================= EDIT MODE ================= */
               <div className="flex flex-col flex-1 overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-white/5 flex-shrink-0">
-                  <h2 className="text-xl font-bold text-neutral-800 dark:text-white flex items-center gap-2">
-                    <Icons.Edit3 className="w-5 h-5 text-indigo-500" />
-                    <span>{t.editGameDetailsTitle}</span>
-                  </h2>
+                <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-white/10 bg-neutral-50/50 dark:bg-[#181818]/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                      <Icons.Edit3 className="w-6 h-6 stroke-[2]" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black uppercase text-neutral-900 dark:text-white">
+                        {t.editGameDetailsTitle || "Editar Detalles de Juego"}
+                      </h2>
+                      <p className="text-xs text-neutral-500 dark:text-gray-400">
+                        {t.editGameSubtitle || "Modifica la información del título en tu biblioteca personal"}
+                      </p>
+                    </div>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <Icons.X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Content Form */}
-                <form onSubmit={handleSaveFullEdit} className="p-6 overflow-y-auto flex-1 space-y-6">
+                <form onSubmit={handleSaveFullEdit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                  {/* Quick IGDB Search Banner */}
+                  <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Icons.Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                          {t.autoImportIgdb || "Importar datos automáticamente"}
+                        </p>
+                        <p className="text-[11px] text-indigo-700 dark:text-indigo-400">
+                          {t.autoImportDesc || "Busca en la base de datos de IGDB los detalles oficiales y portada"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowIgdbModal(true)}
+                      className="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors cursor-pointer shrink-0 shadow-sm"
+                    >
+                      {t.searchIgdb || "Buscar en IGDB"}
+                    </button>
+                  </div>
+
                   {editImportNotice && (
                     <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between gap-2 shadow-sm">
                       <div className="flex items-center gap-2">
@@ -533,260 +577,43 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
-                    {/* Left Column: Basic Info */}
-                    <div className="space-y-4 flex flex-col">
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1 flex justify-between items-center">
-                          <span>{t.gameTitleLabel}</span>
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            required
-                            placeholder={t.gameTitlePlaceholder}
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowIgdbModal(true)}
-                            className="px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-                            title={t.igdbSearchBtn}
-                          >
-                            <Icons.Search className="w-3.5 h-3.5" />
-                            <span>{t.igdbSearchBtn}</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Cover Image URL Input */}
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1 flex justify-between items-center">
-                          <span>{t.igdbCoverUrlLabel}</span>
-                          {editCoverImage && (
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                              <Icons.CheckCircle2 className="w-3 h-3" />
-                              {t.igdbOfficialCover}
-                            </span>
-                          )}
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="url"
-                            placeholder={t.igdbCoverUrlPlaceholder}
-                            value={editCoverImage}
-                            onChange={(e) => setEditCoverImage(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
-                          />
-                          {editCoverImage && (
-                            <button
-                              type="button"
-                              onClick={() => setEditCoverImage("")}
-                              className="px-2 text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer"
-                              title={t.removeImage}
-                            >
-                              <Icons.XCircle className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                            {t.genreLabel}
-                          </label>
-                          <input
-                            type="text"
-                            placeholder={t.genrePlaceholder}
-                            value={editGenre}
-                            onChange={(e) => setEditGenre(e.target.value)}
-                            className="w-full px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                            {t.releaseLabel}
-                          </label>
-                          <input
-                            type="text"
-                            placeholder={t.releasePlaceholder}
-                            value={editReleaseDate}
-                            onChange={(e) => setEditReleaseDate(e.target.value)}
-                            className="w-full px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                          {t.barcodeLabel}
-                        </label>
-                        <input
-                          type="text"
-                          value={editBarcode}
-                          onChange={(e) => setEditBarcode(e.target.value.replace(/[^0-9]/g, ""))}
-                          maxLength={13}
-                          className="w-full px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all font-mono"
-                        />
-                      </div>
-
-                      <div className="flex-1 flex flex-col">
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                          {t.descriptionLabel}
-                        </label>
-                        <textarea
-                          rows={4}
-                          value={editDescription}
-                          onChange={(e) => setEditDescription(e.target.value)}
-                          className="w-full flex-1 min-h-[90px] px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all resize-none"
-                        />
-                      </div>
+                  {/* Title & Status */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.gameTitleLabel || "Título"} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        placeholder={t.titlePlaceholder || "ej. The Legend of Zelda: Tears of the Kingdom"}
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      />
                     </div>
 
-                    {/* Right Column: Personal status & aesthetics */}
-                    <div className="space-y-4 flex flex-col">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                            {t.statusLabel}
-                          </label>
-                          <select
-                            value={editStatus}
-                            onChange={(e) => setEditStatus(e.target.value as GameStatus)}
-                            className="w-full px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all cursor-pointer"
-                          >
-                            <option value="Pendiente">{t.statusPendingTag}</option>
-                            <option value="Jugando">{t.statusPlayingTag}</option>
-                            <option value="Completado">{t.statusCompletedTag}</option>
-                            <option value="Favoritos">{t.statusFavoriteTag}</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                            {t.acquisitionDateLabel}
-                          </label>
-                          <input
-                            type="date"
-                            value={editAcquisitionDate}
-                            onChange={(e) => setEditAcquisitionDate(e.target.value)}
-                            className="w-full px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all cursor-pointer"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                            {t.playHoursLabel}
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder={t.hours}
-                            value={editPlayTime}
-                            onChange={(e) => setEditPlayTime(Math.max(0, Number(e.target.value)))}
-                            className="w-full px-3 py-2 border border-neutral-200 dark:border-white/5 rounded-lg bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mb-1">
-                            {t.rating}
-                          </label>
-                          <div className="flex gap-1.5 h-[38px] items-center">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                type="button"
-                                onClick={() => setEditRating(star)}
-                                className="text-amber-400 hover:scale-110 transition-transform cursor-pointer"
-                              >
-                                <Icons.Star
-                                  className={`w-6 h-6 ${star <= editRating ? "fill-amber-400" : "text-neutral-300 dark:text-gray-700"}`}
-                                />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Cover Preview & Customization */}
-                      <div className="p-4 rounded-xl border border-neutral-200 dark:border-white/5 bg-neutral-50 dark:bg-[#1A1A1A]/40 space-y-3 flex-1 flex flex-col justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-gray-300 flex items-center justify-between">
-                          <span className="flex items-center gap-1">
-                            <Icons.Palette className="w-3.5 h-3.5" />
-                            {t.coverDesignTitle}
-                          </span>
-                        </h4>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[10px] uppercase font-semibold text-neutral-400 mb-1">
-                              {t.bgColorLabel}
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="color"
-                                value={editCoverColor}
-                                onChange={(e) => setEditCoverColor(e.target.value)}
-                                className="w-8 h-8 rounded-lg cursor-pointer border border-neutral-200 dark:border-gray-700 p-0 overflow-hidden"
-                              />
-                              <span className="text-xs font-mono">{editCoverColor}</span>
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] uppercase font-semibold text-neutral-400 mb-1">
-                              {t.centralSymbolLabel}
-                            </label>
-                            <select
-                              value={editCoverSymbol}
-                              onChange={(e) => setEditCoverSymbol(e.target.value)}
-                              className="w-full px-2 py-1.5 border border-neutral-200 dark:border-white/5 rounded-lg bg-white dark:bg-[#121212] text-neutral-800 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
-                            >
-                              {AVAILABLE_SYMBOLS.map((sym) => (
-                                <option key={sym.id} value={sym.icon}>
-                                  {translateSymbolLabel(sym.id, language)}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Cover Live Preview */}
-                        <div className="relative h-28 w-full rounded-lg overflow-hidden flex items-center justify-center p-3 shadow-inner mt-auto" style={{ backgroundColor: editCoverColor }}>
-                          {editCoverImage ? (
-                            <img
-                              src={editCoverImage}
-                              alt={t.previewCover}
-                              className="absolute inset-0 w-full h-full object-cover"
-                              referrerPolicy="no-referrer"
-                            />
-                          ) : (
-                            <div className="p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-                              <Icons.Gamepad2 className="w-8 h-8 text-white" />
-                            </div>
-                          )}
-                          <div className="absolute bottom-2 left-3 right-3 text-white drop-shadow">
-                            <p className="text-xs font-bold truncate">{editTitle || game.title}</p>
-                          </div>
-                        </div>
-                      </div>
-
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.statusLabel || "Estado"}
+                      </label>
+                      <select
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value as GameStatus)}
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 cursor-pointer"
+                      >
+                        <option value="Pendiente">{t.statusPending || t.statusPendingTag || "Pendiente"}</option>
+                        <option value="Jugando">{t.statusPlaying || t.statusPlayingTag || "Jugando"}</option>
+                        <option value="Completado">{t.statusCompleted || t.statusCompletedTag || "Completado"}</option>
+                        <option value="Favoritos">{t.statusFavorites || t.statusFavoriteTag || "Favoritos"}</option>
+                      </select>
                     </div>
-
                   </div>
 
-                  {/* Platforms selection - Full Width */}
-                  <div className="border-t border-neutral-100 dark:border-white/5 pt-5 space-y-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-gray-400">
-                      {t.platformsLabel}
+                  {/* Platforms Selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                      {t.platformsLabel || "Plataformas / Consolas"}
                     </label>
                     <ConsolePicker
                       selectedPlatforms={editPlatforms}
@@ -795,24 +622,241 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     />
                   </div>
 
-                  {/* Action buttons */}
-                  <div className="border-t border-neutral-100 dark:border-white/5 pt-6 flex justify-end gap-3">
+                  {/* Genre & Release Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.genreLabel || "Género"}
+                      </label>
+                      <input
+                        type="text"
+                        value={editGenre}
+                        onChange={(e) => setEditGenre(e.target.value)}
+                        placeholder={t.genrePlaceholder || "RPG, Acción, Aventura"}
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.releaseDateLabel || "Fecha o Año de Lanzamiento"}
+                      </label>
+                      <input
+                        type="text"
+                        value={editReleaseDate}
+                        onChange={(e) => setEditReleaseDate(e.target.value)}
+                        placeholder="YYYY-MM-DD or 2023"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rating & Playtime */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.ratingLabel || "Calificación (1-5)"}
+                      </label>
+                      <div className="flex items-center gap-1 py-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setEditRating(editRating === star ? 0 : star)}
+                            className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
+                          >
+                            <Icons.Star
+                              size={22}
+                              className={star <= editRating ? "fill-amber-400 text-amber-400" : "text-neutral-300 dark:text-neutral-600"}
+                            />
+                          </button>
+                        ))}
+                        <span className="text-xs font-bold text-neutral-500 ml-2">
+                          {editRating > 0 ? `${editRating}/5` : t.notRated || "Sin calificar"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.playTimeLabel || "Horas de Juego"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={editPlayTime || ""}
+                        onChange={(e) => setEditPlayTime(parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cover customizer (Color / Icon / Custom Image) */}
+                  <div className="space-y-3 p-4 bg-neutral-50 dark:bg-[#161616] rounded-xl border border-neutral-200 dark:border-white/5">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-gray-300 flex items-center gap-2">
+                      <Icons.Palette className="w-4 h-4 text-indigo-500" />
+                      <span>{t.coverCustomizer || "Personalización de Portada"}</span>
+                    </h3>
+
+                    {/* Preview Box */}
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-20 h-28 rounded-xl shadow-md flex flex-col items-center justify-center p-2 text-white relative overflow-hidden shrink-0 border border-white/20"
+                        style={{
+                          backgroundColor: editCoverColor,
+                          backgroundImage: editCoverImage ? `url(${editCoverImage})` : undefined,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                      >
+                        {!editCoverImage && (
+                          <>
+                            <GameIcon name={editCoverSymbol} size={32} className="drop-shadow-md mb-1" />
+                            <span className="text-[10px] font-bold text-center line-clamp-2 opacity-90 drop-shadow">
+                              {editTitle || game.title || t.gameTitleLabel || "Título"}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="space-y-3 flex-1">
+                        {/* Cover image URL input */}
+                        <div>
+                          <label className="text-[11px] font-semibold text-neutral-500 dark:text-gray-400">
+                            {t.coverImageUrl || "URL de la Portada (opcional)"}
+                          </label>
+                          <input
+                            type="url"
+                            value={editCoverImage}
+                            onChange={(e) => setEditCoverImage(e.target.value)}
+                            placeholder="https://..."
+                            className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          />
+                        </div>
+
+                        {/* Fallback color picker */}
+                        <div>
+                          <label className="text-[11px] font-semibold text-neutral-500 dark:text-gray-400 block mb-1">
+                            {t.coverColorLabel || "Color de Portada"}
+                          </label>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {COLOR_PRESETS.map((color) => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setEditCoverColor(color)}
+                                className={`w-6 h-6 rounded-full transition-transform cursor-pointer ${
+                                  editCoverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
+                                }`}
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Icon symbol picker */}
+                        <div>
+                          <label className="text-[11px] font-semibold text-neutral-500 dark:text-gray-400 block mb-1">
+                            {t.coverSymbolLabel || "Icono de Portada"}
+                          </label>
+                          <div className="flex flex-wrap items-center gap-1">
+                            {AVAILABLE_SYMBOLS.slice(0, 10).map((sym) => (
+                              <button
+                                key={sym.id}
+                                type="button"
+                                onClick={() => setEditCoverSymbol(sym.icon)}
+                                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                  editCoverSymbol === sym.icon
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white dark:bg-[#1A1A1A] border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
+                                }`}
+                                title={translateSymbolLabel(sym.id, language)}
+                              >
+                                <GameIcon name={sym.icon} size={16} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barcode & Acquisition date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.barcodeLabel || "Código de Barras (EAN / UPC)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={editBarcode}
+                        onChange={(e) => setEditBarcode(e.target.value)}
+                        placeholder="EAN / UPC / ISBN"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                        {t.acquisitionDateLabel || "Fecha de Adquisición"}
+                      </label>
+                      <input
+                        type="date"
+                        value={editAcquisitionDate}
+                        onChange={(e) => setEditAcquisitionDate(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                      {t.descriptionLabel || "Descripción"}
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder={t.descriptionPlaceholder || "Breve resumen del juego..."}
+                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                    />
+                  </div>
+
+                  {/* Personal Notes */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
+                      {t.notesLabel || "Notas Personales"}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.target.value)}
+                      placeholder={t.notesPlaceholder || "Notas de coleccionista, ubicación..."}
+                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                    />
+                  </div>
+
+                  {/* Submit & Cancel Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-white/10">
                     <button
                       type="button"
                       onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 text-xs font-semibold text-neutral-700 dark:text-[#CCCCCC] border border-neutral-200 dark:border-white/5 rounded-lg hover:bg-neutral-50 dark:hover:bg-[#1A1A1A] transition-colors cursor-pointer"
+                      className="px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
                     >
-                      {t.cancel}
+                      {t.cancelBtn || t.cancel || "Cancelar"}
                     </button>
                     <button
                       type="submit"
                       disabled={!editTitle.trim()}
-                      className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 rounded-lg shadow-sm transition-all cursor-pointer"
+                      className="px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer flex items-center gap-2"
                     >
-                      {t.saveSettings}
+                      <Icons.Check className="w-4 h-4 stroke-[3]" />
+                      <span>{t.saveSettings || t.save || "Guardar Cambios"}</span>
                     </button>
                   </div>
-
                 </form>
               </div>
             )}
