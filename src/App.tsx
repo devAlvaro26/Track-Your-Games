@@ -18,6 +18,7 @@ import {
 } from "./lib/database";
 import * as Icons from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
   // App Settings state (theme, language, username)
@@ -671,6 +672,9 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+
+      {/* VERCEL WEB ANALYTICS */}
+      <Analytics />
 
     </div>
   );
