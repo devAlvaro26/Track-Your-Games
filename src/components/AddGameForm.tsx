@@ -127,17 +127,17 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="w-full max-w-2xl bg-white dark:bg-[#121212] rounded-2xl border border-neutral-200 dark:border-white/10 shadow-2xl overflow-hidden my-auto"
+          className="w-full max-w-2xl bg-white dark:bg-[#141417] text-neutral-900 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 shadow-2xl overflow-hidden my-auto"
           id="add-game-modal-content"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-white/10 bg-neutral-50/50 dark:bg-[#181818]/50">
+          <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                <Icons.PlusCircle className="w-6 h-6 stroke-[2]" />
+              <div className="p-2 bg-indigo-600 text-white rounded-none">
+                <Icons.PlusCircle className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div>
-                <h2 className="text-lg font-black uppercase text-neutral-900 dark:text-white">
+                <h2 className="text-base font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
                   {t.addGame}
                 </h2>
                 <p className="text-xs text-neutral-500 dark:text-gray-400">
@@ -148,7 +148,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
             >
               <Icons.X className="w-5 h-5" />
             </button>
@@ -156,7 +156,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
             {/* Quick IGDB Search Banner */}
-            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Icons.Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <div>
@@ -171,14 +171,14 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
               <button
                 type="button"
                 onClick={() => setShowIgdbModal(true)}
-                className="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors cursor-pointer shrink-0 shadow-sm"
+                className="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
               >
                 {t.searchIgdb || "Search IGDB"}
               </button>
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-none text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
                 <Icons.AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
@@ -196,7 +196,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t.titlePlaceholder || "e.g. The Legend of Zelda: Tears of the Kingdom"}
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -207,7 +207,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as GameStatus)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
                   <option value="Pendiente">{t.statusPending || "Pending"}</option>
                   <option value="Jugando">{t.statusPlaying || "Playing"}</option>
@@ -240,7 +240,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   value={genre}
                   onChange={(e) => setGenre(e.target.value)}
                   placeholder={t.genrePlaceholder || "RPG, Action, Adventure"}
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -253,7 +253,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   value={releaseDate}
                   onChange={(e) => setReleaseDate(e.target.value)}
                   placeholder="YYYY-MM-DD or 2023"
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -295,13 +295,13 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   value={playTime || ""}
                   onChange={(e) => setPlayTime(parseFloat(e.target.value) || 0)}
                   placeholder="0"
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
 
             {/* Cover customizer (Color / Icon / Custom Image) */}
-            <div className="space-y-3 p-4 bg-neutral-50 dark:bg-[#161616] rounded-xl border border-neutral-200 dark:border-white/5">
+            <div className="space-y-3 p-4 bg-neutral-50 dark:bg-[#1b1b1f] rounded-none border border-neutral-300 dark:border-white/10">
               <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-gray-300 flex items-center gap-2">
                 <Icons.Palette className="w-4 h-4 text-indigo-500" />
                 <span>{t.coverCustomizer || "Cover Customization"}</span>
@@ -310,7 +310,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
               {/* Preview Box */}
               <div className="flex items-center gap-4">
                 <div
-                  className="w-20 h-28 rounded-xl shadow-md flex flex-col items-center justify-center p-2 text-white relative overflow-hidden shrink-0 border border-white/20"
+                  className="w-20 h-28 rounded-none shadow-md flex flex-col items-center justify-center p-2 text-white relative overflow-hidden shrink-0 border border-white/20"
                   style={{
                     backgroundColor: coverColor,
                     backgroundImage: coverImage ? `url(${coverImage})` : undefined,
@@ -339,7 +339,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                       value={coverImage}
                       onChange={(e) => setCoverImage(e.target.value)}
                       placeholder="https://..."
-                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#121212] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
@@ -354,7 +354,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                           key={color}
                           type="button"
                           onClick={() => setCoverColor(color)}
-                          className={`w-6 h-6 rounded-full transition-transform cursor-pointer ${
+                          className={`w-6 h-6 rounded-none transition-transform cursor-pointer ${
                             coverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
                           }`}
                           style={{ backgroundColor: color }}
@@ -374,10 +374,10 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                           key={sym.id}
                           type="button"
                           onClick={() => setCoverSymbol(sym.icon)}
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          className={`p-1.5 rounded-none border transition-all cursor-pointer ${
                             coverSymbol === sym.icon
                               ? "bg-indigo-600 text-white border-indigo-600"
-                              : "bg-white dark:bg-[#1A1A1A] border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
+                              : "bg-white dark:bg-[#121212] border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
                           }`}
                           title={translateSymbolLabel(sym.id, language)}
                         >
@@ -401,7 +401,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   value={barcode}
                   onChange={(e) => setBarcode(e.target.value)}
                   placeholder="EAN / UPC / ISBN"
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -413,7 +413,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   type="date"
                   value={acquisitionDate}
                   onChange={(e) => setAcquisitionDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -428,7 +428,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t.descriptionPlaceholder || "Brief summary of the game..."}
-                className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
@@ -442,7 +442,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t.notesPlaceholder || "Collector notes, physical box location, condition..."}
-                className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
@@ -451,13 +451,13 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                className="px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 border border-neutral-300 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-none transition-colors cursor-pointer"
               >
                 {t.cancelBtn || "Cancel"}
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer flex items-center gap-2"
+                className="px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none transition-all cursor-pointer flex items-center gap-2 shadow-sm"
               >
                 <Icons.Check className="w-4 h-4 stroke-[3]" />
                 <span>{t.addGame || "Add Game"}</span>

@@ -152,7 +152,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
     bars.push(true, false, true);
 
     return (
-      <div className="flex flex-col items-center bg-white p-3 rounded-lg border border-neutral-200 shadow-sm max-w-[180px] mx-auto select-none">
+      <div className="flex flex-col items-center bg-white p-3 rounded-none border border-neutral-300 shadow-sm max-w-[180px] mx-auto select-none">
         <svg viewBox="0 0 100 40" className="w-full h-10">
           <g fill="#000000">
             {bars.map((isBlack, index) => {
@@ -200,7 +200,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
         {/* Container */}
         <motion.div
           layoutId={`game-card-${game.id}`}
-          className={`relative w-full ${isEditing ? "max-w-3xl" : "max-w-4xl"} bg-white dark:bg-[#121212] rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col my-auto`}
+          className={`relative w-full ${isEditing ? "max-w-3xl" : "max-w-4xl"} bg-white dark:bg-[#141417] text-neutral-900 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto`}
           id="detail-modal"
         >
           
@@ -208,7 +208,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
           {!isEditing && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 p-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full transition-all cursor-pointer shadow-lg"
+              className="absolute top-4 right-4 z-20 p-2 text-white/80 hover:text-white bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-none transition-all cursor-pointer shadow-lg border border-white/20"
               id="close-detail-modal"
               title={t.close}
             >
@@ -245,13 +245,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         game.platforms.map((plat) => (
                           <span
                             key={plat}
-                            className="text-[10px] font-bold tracking-wider text-white/95 uppercase px-2 py-0.5 rounded-md bg-white/15 backdrop-blur-md shadow-sm border border-white/10 whitespace-nowrap"
+                            className="text-[10px] font-bold tracking-wider text-white uppercase px-2 py-0.5 rounded-none bg-white/15 backdrop-blur-md shadow-sm border border-white/20 whitespace-nowrap"
                           >
                             {plat}
                           </span>
                         ))
                       ) : (
-                        <span className="text-[10px] font-bold tracking-wider text-white/95 uppercase px-2 py-0.5 rounded-md bg-white/15 backdrop-blur-md shadow-sm border border-white/10">
+                        <span className="text-[10px] font-bold tracking-wider text-white uppercase px-2 py-0.5 rounded-none bg-white/15 backdrop-blur-md shadow-sm border border-white/20">
                           PC
                         </span>
                       )}
@@ -259,7 +259,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     <div className="flex gap-1.5 shrink-0 ml-auto">
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 border border-white/10 transition-all cursor-pointer"
+                        className="p-1.5 rounded-none bg-white/10 hover:bg-white/25 border border-white/20 transition-all cursor-pointer"
                         title={t.edit}
                         id="btn-edit-mode"
                       >
@@ -271,7 +271,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             onDelete(game.id);
                           }
                         }}
-                        className="p-1.5 rounded-lg bg-white/10 hover:bg-rose-600/85 border border-white/10 transition-all cursor-pointer"
+                        className="p-1.5 rounded-none bg-white/10 hover:bg-rose-600/85 border border-white/20 transition-all cursor-pointer"
                         title={t.delete}
                         id="btn-delete-game"
                       >
@@ -283,7 +283,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   {/* Cover Display */}
                   <div className="z-10 flex flex-col items-center justify-center my-6">
                     {game.coverImage ? (
-                      <div className="relative group w-36 h-48 rounded-xl overflow-hidden shadow-2xl border-2 border-white/20 my-2">
+                      <div className="relative group w-36 h-48 rounded-none overflow-hidden shadow-2xl border-2 border-white/20 my-2">
                         <img
                           src={game.coverImage}
                           alt={game.title}
@@ -292,7 +292,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         />
                       </div>
                     ) : (
-                      <div className="p-6 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-xl mb-4">
+                      <div className="p-6 rounded-none bg-white/15 backdrop-blur-md border border-white/20 shadow-xl mb-4">
                         <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]" size={56} />
                       </div>
                     )}
@@ -306,7 +306,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         {translateGenre(game.genre, language)}
                       </span>
                       {game.igdbRating !== undefined && (
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/80 text-white backdrop-blur-md flex items-center gap-1 shadow-sm">
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-none bg-indigo-600 text-white backdrop-blur-md flex items-center gap-1 shadow-sm border border-white/20">
                           <Icons.Star className="w-3 h-3 fill-amber-300 text-amber-300" />
                           {t.igdbRating}: {game.igdbRating}/100
                         </span>
@@ -361,12 +361,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                 </div>
 
                 {/* Right Pane: Detailed Logs, Achievements checklist, Ratings */}
-                <div className="flex-1 p-8 bg-neutral-50 dark:bg-[#1A1A1A]/40 space-y-6 overflow-y-auto max-h-[750px]">
+                <div className="flex-1 p-8 bg-neutral-50 dark:bg-[#121212] space-y-6 overflow-y-auto max-h-[750px]">
                   
                   {/* Meta Summary Row */}
                   <div className="grid grid-cols-3 gap-4" id="stats-summary-row">
-                    <div className="bg-white dark:bg-[#121212] p-3 rounded-xl border border-neutral-100 dark:border-white/5">
-                      <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 mb-0.5 flex items-center gap-1">
+                    <div className="bg-white dark:bg-[#1b1b1f] p-3.5 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
+                      <p className="text-[10px] uppercase font-bold text-neutral-500 dark:text-gray-400 mb-0.5 flex items-center gap-1">
                         <Icons.Play className="w-3 h-3 text-sky-500" />
                         {t.statusLabel}
                       </p>
@@ -382,8 +382,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       </select>
                     </div>
 
-                    <div className="bg-white dark:bg-[#121212] p-3 rounded-xl border border-neutral-100 dark:border-white/5">
-                      <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 mb-0.5 flex items-center gap-1">
+                    <div className="bg-white dark:bg-[#1b1b1f] p-3.5 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
+                      <p className="text-[10px] uppercase font-bold text-neutral-500 dark:text-gray-400 mb-0.5 flex items-center gap-1">
                         <Icons.Clock className="w-3 h-3 text-emerald-500" />
                         {t.playHoursLabel}
                       </p>
@@ -393,14 +393,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           min="0"
                           value={game.playTime}
                           onChange={(e) => handleSaveQuickEdits("playTime", Math.max(0, Number(e.target.value)))}
-                          className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none w-14 border-b border-dashed border-neutral-300 dark:border-white/10"
+                          className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none w-14 border-b border-dashed border-neutral-300 dark:border-white/20"
                         />
                         <span className="text-xs text-neutral-500 font-semibold">{t.hours}</span>
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#121212] p-3 rounded-xl border border-neutral-100 dark:border-white/5">
-                      <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 mb-0.5 flex items-center gap-1">
+                    <div className="bg-white dark:bg-[#1b1b1f] p-3.5 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
+                      <p className="text-[10px] uppercase font-bold text-neutral-500 dark:text-gray-400 mb-0.5 flex items-center gap-1">
                         <Icons.Award className="w-3 h-3 text-amber-500" />
                         {t.rating}
                       </p>
@@ -422,10 +422,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
 
                   {/* Description */}
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-gray-500 mb-2">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-gray-400 mb-2">
                       {t.gameSummaryTitle}
                     </h3>
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed bg-white dark:bg-[#121212] p-4 rounded-xl border border-neutral-100 dark:border-white/5">
+                    <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed bg-white dark:bg-[#1b1b1f] p-4 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
                       {game.description || t.noDescriptionProvided}
                     </p>
                   </div>
@@ -433,7 +433,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   {/* Achievements Progress & Checklist */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-gray-500 flex items-center gap-1.5">
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-gray-400 flex items-center gap-1.5">
                         <Icons.Trophy className="w-3.5 h-3.5 text-indigo-500" />
                         {t.achievementsObtainedTitle} ({unlockedCount}/{totalAchievements})
                       </h3>
@@ -445,16 +445,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     </div>
 
                     {totalAchievements > 0 && (
-                      <div className="w-full bg-neutral-200 dark:bg-[#1A1A1A] h-2 rounded-full overflow-hidden mb-4">
+                      <div className="w-full bg-neutral-200 dark:bg-[#1b1b1f] h-2.5 rounded-none overflow-hidden mb-4 border border-neutral-300 dark:border-white/10">
                         <div
-                          className="bg-indigo-600 h-full rounded-full transition-all duration-500"
+                          className="bg-indigo-600 h-full rounded-none transition-all duration-500"
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
                     )}
 
                     {game.achievements.length === 0 ? (
-                      <div className="text-center py-4 bg-white dark:bg-[#121212] border border-neutral-100 dark:border-white/5 rounded-xl text-xs text-neutral-400">
+                      <div className="text-center py-4 bg-white dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-xs text-neutral-400 p-4">
                         {t.noAchievementsDetailHint}
                       </div>
                     ) : (
@@ -463,19 +463,19 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           <div
                             key={ach.id}
                             onClick={() => handleToggleAchievement(ach.id)}
-                            className={`p-3.5 rounded-xl border transition-all cursor-pointer flex gap-3 items-start select-none ${
+                            className={`p-3.5 rounded-none border transition-all cursor-pointer flex gap-3 items-start select-none ${
                               ach.unlocked
-                                ? "bg-indigo-500/5 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-900/50"
-                                : "bg-white dark:bg-[#121212] border border-neutral-100 dark:border-white/5 hover:border-neutral-200 dark:hover:border-white/10"
+                                ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
+                                : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                             }`}
                           >
                             <div className="mt-0.5">
                               {ach.unlocked ? (
-                                <div className="p-1 bg-indigo-600 text-white rounded-md">
+                                <div className="p-1 bg-indigo-600 text-white rounded-none">
                                   <Icons.Check className="w-3.5 h-3.5 stroke-[3]" />
                                 </div>
                               ) : (
-                                <div className="p-1 border-2 border-neutral-300 dark:border-white/10 rounded-md w-[22px] h-[22px]" />
+                                <div className="p-1 border-2 border-neutral-300 dark:border-white/20 rounded-none w-[22px] h-[22px]" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -483,12 +483,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 <h4 className={`text-xs font-bold truncate ${ach.unlocked ? "text-indigo-900 dark:text-indigo-300" : "text-neutral-800 dark:text-neutral-200"}`}>
                                   {ach.name}
                                 </h4>
-                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none ${
                                   ach.difficulty === "Fácil" 
-                                    ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600" 
+                                    ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40" 
                                     : ach.difficulty === "Medio" 
-                                    ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600" 
-                                    : "bg-rose-50 dark:bg-rose-950/20 text-rose-600"
+                                    ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40" 
+                                    : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
                                 }`}>
                                   {ach.difficulty === "Fácil" ? t.difficultyEasy : ach.difficulty === "Medio" ? t.difficultyMedium : t.difficultyHard}
                                 </span>
@@ -514,13 +514,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
               /* ================= EDIT MODE ================= */
               <div className="flex flex-col flex-1 overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-white/10 bg-neutral-50/50 dark:bg-[#181818]/50">
+                <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                      <Icons.Edit3 className="w-6 h-6 stroke-[2]" />
+                    <div className="p-2 bg-indigo-600 text-white rounded-none">
+                      <Icons.Edit3 className="w-5 h-5 stroke-[2.5]" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-black uppercase text-neutral-900 dark:text-white">
+                      <h2 className="text-base font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
                         {t.editGameDetailsTitle || "Editar Detalles de Juego"}
                       </h2>
                       <p className="text-xs text-neutral-500 dark:text-gray-400">
@@ -532,7 +532,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
                   >
                     <Icons.X className="w-5 h-5" />
                   </button>
@@ -540,7 +540,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
 
                 <form onSubmit={handleSaveFullEdit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
                   {/* Quick IGDB Search Banner */}
-                  <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <Icons.Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                       <div>
@@ -555,14 +555,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     <button
                       type="button"
                       onClick={() => setShowIgdbModal(true)}
-                      className="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors cursor-pointer shrink-0 shadow-sm"
+                      className="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
                     >
                       {t.searchIgdb || "Buscar en IGDB"}
                     </button>
                   </div>
 
                   {editImportNotice && (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between gap-2 shadow-sm">
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-none text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between gap-2 shadow-sm">
                       <div className="flex items-center gap-2">
                         <Icons.CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                         <span className="font-semibold">{editImportNotice}</span>
@@ -589,7 +589,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
                         placeholder={t.titlePlaceholder || "ej. The Legend of Zelda: Tears of the Kingdom"}
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -600,7 +600,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       <select
                         value={editStatus}
                         onChange={(e) => setEditStatus(e.target.value as GameStatus)}
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 cursor-pointer"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                       >
                         <option value="Pendiente">{t.statusPending || t.statusPendingTag || "Pendiente"}</option>
                         <option value="Jugando">{t.statusPlaying || t.statusPlayingTag || "Jugando"}</option>
@@ -633,7 +633,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         value={editGenre}
                         onChange={(e) => setEditGenre(e.target.value)}
                         placeholder={t.genrePlaceholder || "RPG, Acción, Aventura"}
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -646,7 +646,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         value={editReleaseDate}
                         onChange={(e) => setEditReleaseDate(e.target.value)}
                         placeholder="YYYY-MM-DD or 2023"
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -688,13 +688,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         value={editPlayTime || ""}
                         onChange={(e) => setEditPlayTime(parseFloat(e.target.value) || 0)}
                         placeholder="0"
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
 
                   {/* Cover customizer (Color / Icon / Custom Image) */}
-                  <div className="space-y-3 p-4 bg-neutral-50 dark:bg-[#161616] rounded-xl border border-neutral-200 dark:border-white/5">
+                  <div className="space-y-3 p-4 bg-neutral-50 dark:bg-[#1b1b1f] rounded-none border border-neutral-300 dark:border-white/10">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-gray-300 flex items-center gap-2">
                       <Icons.Palette className="w-4 h-4 text-indigo-500" />
                       <span>{t.coverCustomizer || "Personalización de Portada"}</span>
@@ -703,7 +703,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     {/* Preview Box */}
                     <div className="flex items-center gap-4">
                       <div
-                        className="w-20 h-28 rounded-xl shadow-md flex flex-col items-center justify-center p-2 text-white relative overflow-hidden shrink-0 border border-white/20"
+                        className="w-20 h-28 rounded-none shadow-md flex flex-col items-center justify-center p-2 text-white relative overflow-hidden shrink-0 border border-white/20"
                         style={{
                           backgroundColor: editCoverColor,
                           backgroundImage: editCoverImage ? `url(${editCoverImage})` : undefined,
@@ -732,7 +732,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             value={editCoverImage}
                             onChange={(e) => setEditCoverImage(e.target.value)}
                             placeholder="https://..."
-                            className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#121212] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                           />
                         </div>
 
@@ -747,7 +747,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 key={color}
                                 type="button"
                                 onClick={() => setEditCoverColor(color)}
-                                className={`w-6 h-6 rounded-full transition-transform cursor-pointer ${
+                                className={`w-6 h-6 rounded-none transition-transform cursor-pointer ${
                                   editCoverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
                                 }`}
                                 style={{ backgroundColor: color }}
@@ -767,10 +767,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 key={sym.id}
                                 type="button"
                                 onClick={() => setEditCoverSymbol(sym.icon)}
-                                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                className={`p-1.5 rounded-none border transition-all cursor-pointer ${
                                   editCoverSymbol === sym.icon
                                     ? "bg-indigo-600 text-white border-indigo-600"
-                                    : "bg-white dark:bg-[#1A1A1A] border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
+                                    : "bg-white dark:bg-[#121212] border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
                                 }`}
                                 title={translateSymbolLabel(sym.id, language)}
                               >
@@ -794,7 +794,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         value={editBarcode}
                         onChange={(e) => setEditBarcode(e.target.value)}
                         placeholder="EAN / UPC / ISBN"
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -806,7 +806,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="date"
                         value={editAcquisitionDate}
                         onChange={(e) => setEditAcquisitionDate(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                        className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -821,7 +821,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
                       placeholder={t.descriptionPlaceholder || "Breve resumen del juego..."}
-                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
@@ -835,7 +835,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       value={editNotes}
                       onChange={(e) => setEditNotes(e.target.value)}
                       placeholder={t.notesPlaceholder || "Notas de coleccionista, ubicación..."}
-                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600"
+                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
@@ -844,14 +844,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     <button
                       type="button"
                       onClick={() => setIsEditing(false)}
-                      className="px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                      className="px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 border border-neutral-300 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-none transition-colors cursor-pointer"
                     >
                       {t.cancelBtn || t.cancel || "Cancelar"}
                     </button>
                     <button
                       type="submit"
                       disabled={!editTitle.trim()}
-                      className="px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer flex items-center gap-2"
+                      className="px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 rounded-none shadow-sm transition-all cursor-pointer flex items-center gap-2"
                     >
                       <Icons.Check className="w-4 h-4 stroke-[3]" />
                       <span>{t.saveSettings || t.save || "Guardar Cambios"}</span>

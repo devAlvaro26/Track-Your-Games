@@ -154,18 +154,18 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
         transition={{ duration: 0.2 }}
-        className="relative w-full max-w-3xl bg-white dark:bg-[#121212] border border-neutral-200/80 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden my-6"
+        className="relative w-full max-w-3xl bg-white dark:bg-[#141417] text-neutral-900 dark:text-white border border-neutral-300 dark:border-white/10 rounded-none shadow-2xl overflow-hidden my-6"
         onClick={(e) => e.stopPropagation()}
         id="igdb-search-modal-card"
       >
         {/* Header */}
-        <div className="p-5 border-b border-neutral-100 dark:border-white/5 bg-neutral-50/80 dark:bg-[#1A1A1A]/40 flex items-center justify-between">
+        <div className="p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-600/20">
+            <div className="p-2 bg-indigo-600 text-white rounded-none shadow-sm">
               <Icons.Database className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-neutral-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-base font-bold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-2">
                 {t.igdbModalTitle}
               </h2>
               <p className="text-xs text-neutral-500 dark:text-gray-400">
@@ -176,7 +176,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white rounded-none hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
             id="close-igdb-search-modal"
           >
             <Icons.X className="w-5 h-5" />
@@ -184,7 +184,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         </div>
 
         {/* IGDB Status Banner */}
-        <div className="px-5 py-2.5 bg-neutral-100/70 dark:bg-neutral-900/50 border-b border-neutral-200/50 dark:border-white/5 flex flex-col gap-1 text-xs">
+        <div className="px-5 py-2.5 bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-200 dark:border-white/10 flex flex-col gap-1 text-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
@@ -206,7 +206,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
           </div>
 
           {statusError && (
-            <div className="mt-1 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-800 dark:text-amber-300 flex items-start gap-2 text-xs">
+            <div className="mt-1 p-2 bg-amber-500/10 border border-amber-500/20 rounded-none text-amber-800 dark:text-amber-300 flex items-start gap-2 text-xs">
               <Icons.AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold">{t.igdbConfigWarning} </span>
@@ -217,7 +217,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         </div>
 
         {/* Search Input Bar */}
-        <div className="p-5 border-b border-neutral-100 dark:border-white/5">
+        <div className="p-5 border-b border-neutral-200 dark:border-white/10">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <div className="relative flex-1">
               <Icons.Search className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
@@ -227,14 +227,14 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
                 placeholder={t.searchPlaceholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/5 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-all"
                 id="input-igdb-query"
               />
             </div>
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 font-bold text-xs text-white rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 font-bold text-xs text-white rounded-none shadow-sm transition-all flex items-center gap-2 cursor-pointer"
               id="btn-igdb-search-submit"
             >
               {isLoading ? (
@@ -253,7 +253,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
 
           {/* Error Alert Box */}
           {error && (
-            <div className="mt-3 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+            <div className="mt-3 p-3 bg-rose-500/10 border border-rose-500/30 rounded-none text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
               <Icons.AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block">{t.igdbQueryErrorTitle}</span>
@@ -264,7 +264,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
 
           {/* Success / Result Notice Banner */}
           {!error && searchNotice && (
-            <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 font-medium">
+            <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-none text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 font-medium">
               <Icons.CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
               <span>{searchNotice}</span>
             </div>
@@ -296,10 +296,10 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
                 <div
                   key={item.id}
                   onClick={() => onSelectGame(item)}
-                  className="p-3 bg-neutral-50 dark:bg-[#1A1A1A]/60 border border-neutral-200/80 dark:border-white/5 hover:border-indigo-500 dark:hover:border-indigo-500/60 rounded-xl transition-all cursor-pointer flex gap-3 group relative overflow-hidden"
+                  className="p-3 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 rounded-none transition-all cursor-pointer flex gap-3 group relative overflow-hidden"
                 >
                   {/* Thumbnail Cover */}
-                  <div className="w-20 h-28 bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden flex-shrink-0 shadow-sm relative">
+                  <div className="w-20 h-28 bg-neutral-200 dark:bg-neutral-800 rounded-none overflow-hidden flex-shrink-0 shadow-sm relative border border-neutral-300 dark:border-white/10">
                     {item.coverUrl ? (
                       <img
                         src={item.coverUrl}

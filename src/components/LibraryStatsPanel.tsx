@@ -34,18 +34,18 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   const achievementsRate = totalAchievementsCount > 0 ? Math.round((unlockedAchievementsCount / totalAchievementsCount) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" id="library-stats-dashboard">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" id="library-stats-dashboard">
       
       {/* Total Games Metric */}
-      <div className="p-4 bg-white dark:bg-[#121212] rounded-xl border border-neutral-200/60 dark:border-white/5 flex items-center gap-4 transition-all hover:border-neutral-300 dark:hover:border-white/10">
-        <div className="p-3 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-xl">
-          <Icons.Gamepad2 className="w-6 h-6" />
+      <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
+        <div className="p-2.5 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-none border border-indigo-500/20">
+          <Icons.Gamepad2 className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
             {t.totalLibrary}
           </p>
-          <p className="text-2xl font-black text-neutral-800 dark:text-white leading-none mt-1">
+          <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
             {totalGames}
           </p>
           <p className="text-[10px] text-neutral-500 dark:text-gray-400 mt-1">
@@ -55,15 +55,15 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       </div>
 
       {/* Completion Rate Metric */}
-      <div className="p-4 bg-white dark:bg-[#121212] rounded-xl border border-neutral-200/60 dark:border-white/5 flex items-center gap-4 transition-all hover:border-neutral-300 dark:hover:border-white/10">
-        <div className="p-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-xl">
-          <Icons.CheckCircle2 className="w-6 h-6" />
+      <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
+        <div className="p-2.5 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-none border border-emerald-500/20">
+          <Icons.CheckCircle2 className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
             {t.completionRate}
           </p>
-          <p className="text-2xl font-black text-neutral-800 dark:text-white leading-none mt-1">
+          <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
             {completionRate}%
           </p>
           <p className="text-[10px] text-neutral-500 dark:text-gray-400 mt-1 truncate">
@@ -73,15 +73,15 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       </div>
 
       {/* Total Hours Metric */}
-      <div className="p-4 bg-white dark:bg-[#121212] rounded-xl border border-neutral-200/60 dark:border-white/5 flex items-center gap-4 transition-all hover:border-neutral-300 dark:hover:border-white/10">
-        <div className="p-3 bg-violet-500/10 text-violet-500 dark:text-violet-400 rounded-xl">
-          <Icons.Hourglass className="w-6 h-6" />
+      <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
+        <div className="p-2.5 bg-violet-500/10 text-violet-500 dark:text-violet-400 rounded-none border border-violet-500/20">
+          <Icons.Hourglass className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
             {t.playTime}
           </p>
-          <p className="text-2xl font-black text-neutral-800 dark:text-white leading-none mt-1">
+          <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
             {totalHours}h
           </p>
           <p className="text-[10px] text-neutral-500 dark:text-gray-400 mt-1">
@@ -91,20 +91,20 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       </div>
 
       {/* Achievements unlocked Metric */}
-      <div className="p-4 bg-white dark:bg-[#121212] rounded-xl border border-neutral-200/60 dark:border-white/5 flex items-center gap-4 transition-all hover:border-neutral-300 dark:hover:border-white/10">
-        <div className="p-3 bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-xl">
-          <Icons.Trophy className="w-6 h-6" />
+      <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
+        <div className="p-2.5 bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-none border border-rose-500/20">
+          <Icons.Trophy className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-500 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
             {t.achievementsUnlocked}
           </p>
-          <p className="text-2xl font-black text-neutral-800 dark:text-white leading-none mt-1">
+          <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
             {unlockedAchievementsCount} <span className="text-sm font-normal text-neutral-400 dark:text-gray-500">/ {totalAchievementsCount}</span>
           </p>
           <div className="mt-1 flex items-center gap-2">
-            <div className="flex-1 bg-neutral-100 dark:bg-[#1A1A1A] h-1 rounded-full overflow-hidden">
-              <div className="bg-rose-500 h-full rounded-full" style={{ width: `${achievementsRate}%` }} />
+            <div className="flex-1 bg-neutral-200 dark:bg-[#1A1A1A] h-1 rounded-none overflow-hidden">
+              <div className="bg-rose-500 h-full rounded-none" style={{ width: `${achievementsRate}%` }} />
             </div>
             <span className="text-[9px] font-bold text-neutral-400 dark:text-gray-500">{achievementsRate}%</span>
           </div>

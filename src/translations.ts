@@ -23,6 +23,30 @@ export const translationTable = {
     es: "Ajustes",
     en: "Settings",
   },
+  navigation: {
+    es: "Navegación",
+    en: "Navigation",
+  },
+  homeLibrary: {
+    es: "Inicio / Biblioteca",
+    en: "Home / Library",
+  },
+  collections: {
+    es: "COLECCIONES",
+    en: "COLLECTIONS",
+  },
+  statistics: {
+    es: "Estadísticas",
+    en: "Statistics",
+  },
+  lightTheme: {
+    es: "Claro",
+    en: "Light",
+  },
+  darkTheme: {
+    es: "Oscuro",
+    en: "Dark",
+  },
 
   // --- AUTHENTICATION ---
   loginTitle: {
@@ -106,8 +130,8 @@ export const translationTable = {
     en: "User Profile",
   },
   cloudSynced: {
-    es: "Datos guardados en la nube (Base de datos)",
-    en: "Data saved in cloud (Database)",
+    es: "Datos guardados en la nube",
+    en: "Data saved in cloud",
   },
   localStorageNotice: {
     es: "Guardando temporalmente en el navegador",
@@ -432,8 +456,8 @@ export const translationTable = {
     en: "Cancel",
   },
   igdbSearchTitle: {
-    es: "Buscar en IGDB (Base de Datos Oficial)",
-    en: "Search IGDB (Official Database)",
+    es: "Buscar en IGDB",
+    en: "Search IGDB",
   },
   igdbSearchBtn: {
     es: "Buscar en IGDB",

@@ -27,8 +27,8 @@ export default function App() {
     const savedUser = localStorage.getItem("username");
 
     return {
-      theme: savedTheme || "light",
-      language: savedLang || "en",
+      theme: savedTheme || "dark",
+      language: savedLang || "es",
       username: savedUser || "Gamer",
     };
   });
@@ -40,7 +40,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [syncLoading, setSyncLoading] = useState(false);
 
-  // Games list: initialized empty or loaded from database / localStorage for current user
+  // Games list
   const [games, setGames] = useState<Game[]>(() => {
     const saved = localStorage.getItem("game_library_user");
     if (saved) {
@@ -58,6 +58,7 @@ export default function App() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   // Search, filter and sorting state
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,7 +66,7 @@ export default function App() {
   const [platformFilter, setPlatformFilter] = useState<string>("All");
   const [sortBy, setSortBy] = useState<"title" | "playTime" | "rating" | "acquisitionDate">("acquisitionDate");
 
-  // Sync settings & theme to document element and localStorage
+  // Sync settings & theme
   useEffect(() => {
     const root = window.document.documentElement;
     if (settings.theme === "dark") {
@@ -123,16 +124,14 @@ export default function App() {
   const loadUserData = async (userId: string, defaultUsername?: string) => {
     setSyncLoading(true);
     try {
-      // 1. Load user games
       const userGames = await fetchUserGamesFromDb(userId);
       setGames(userGames);
 
-      // 2. Load user profile
       const profile = await fetchUserProfile(userId);
       if (profile) {
         setSettings((prev) => ({
           ...prev,
-          username: profile.username || defaultUsername || prev.username,
+          username: profile.username || prev.username,
           language: (profile.language as Language) || prev.language,
           theme: (profile.theme as "light" | "dark") || prev.theme,
         }));
@@ -147,7 +146,7 @@ export default function App() {
     }
   };
 
-  // Auth logout handler
+  // Auth handlers
   const handleLogout = async () => {
     if (db && isDatabaseConfigured) {
       await db.auth.signOut();
@@ -157,15 +156,33 @@ export default function App() {
     localStorage.removeItem("game_library_user");
   };
 
-  // Auth login success handler
-  const handleAuthSuccess = (authUser: any, customUsername?: string) => {
+  const handleAuthSuccess = (authUser: any, authUsername?: string) => {
     setUser(authUser);
-    const uName = customUsername || authUser.user_metadata?.username || authUser.email?.split("@")[0] || "Gamer";
-    setSettings((prev) => ({ ...prev, username: uName }));
-    loadUserData(authUser.id, uName);
+    if (authUsername) {
+      setSettings((prev) => {
+        const nextSettings = { ...prev, username: authUsername };
+        if (isDatabaseConfigured) {
+          saveUserProfile(authUser.id, nextSettings);
+        }
+        return nextSettings;
+      });
+    }
+    loadUserData(authUser.id, authUsername);
   };
 
-  // Handle settings update
+  const toggleTheme = () => {
+    setSettings((prev) => {
+      const nextSettings: AppSettings = {
+        ...prev,
+        theme: prev.theme === "dark" ? "light" : "dark",
+      };
+      if (user && isDatabaseConfigured) {
+        saveUserProfile(user.id, nextSettings);
+      }
+      return nextSettings;
+    });
+  };
+
   const handleSaveSettings = async (newSettings: AppSettings) => {
     setSettings(newSettings);
     if (user && isDatabaseConfigured) {
@@ -173,11 +190,11 @@ export default function App() {
     }
   };
 
-  // Add a new game
-  const handleAddGame = async (newGameData: Omit<Game, "id">) => {
+  // Game CRUD Handlers
+  const handleAddGame = async (gameData: Omit<Game, "id">) => {
     const newGame: Game = {
-      ...newGameData,
-      id: `game-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      ...gameData,
+      id: `game-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
     };
 
     setGames((prev) => [newGame, ...prev]);
@@ -192,7 +209,6 @@ export default function App() {
     }
   };
 
-  // Update game details (achievements, rating, play hours, etc.)
   const handleUpdateGame = async (updatedGame: Game) => {
     setGames((prev) => prev.map((g) => (g.id === updatedGame.id ? updatedGame : g)));
 
@@ -205,7 +221,6 @@ export default function App() {
     }
   };
 
-  // Delete a game
   const handleDeleteGame = async (id: string) => {
     setGames((prev) => prev.filter((g) => g.id !== id));
     setSelectedGameId(null);
@@ -219,8 +234,14 @@ export default function App() {
     }
   };
 
-  // Get current selected game
   const selectedGame = games.find((g) => g.id === selectedGameId);
+
+  // Counts for each collection category
+  const countAll = games.length;
+  const countPlaying = games.filter((g) => g.status === "Jugando").length;
+  const countPending = games.filter((g) => g.status === "Pendiente").length;
+  const countCompleted = games.filter((g) => g.status === "Completado").length;
+  const countFavorites = games.filter((g) => g.status === "Favoritos").length;
 
   // Filter & Sort logic
   const filteredGames = games
@@ -256,165 +277,259 @@ export default function App() {
   // Extract all available platforms in the library
   const allPlatforms = Array.from(new Set(games.flatMap((g) => g.platforms))).sort();
 
+  // Helper for collection tabs configuration
+  const collectionTabs = [
+    { id: "All", label: t.allStatuses || "Todos los Juegos", icon: Icons.LayoutGrid, count: countAll },
+    { id: "Jugando", label: t.statusPlaying || "Jugando", icon: Icons.PlayCircle, count: countPlaying },
+    { id: "Pendiente", label: t.statusPending || "Pendientes / Deseados", icon: Icons.Bookmark, count: countPending },
+    { id: "Completado", label: t.statusCompleted || "Completados", icon: Icons.CheckCircle2, count: countCompleted },
+    { id: "Favoritos", label: t.statusFavorites || "Favoritos", icon: Icons.Star, count: countFavorites },
+  ];
+
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-neutral-50 dark:bg-[#0A0A0A] text-neutral-800 dark:text-gray-100 font-sans" id="app-root">
+    <div className="min-h-screen bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row select-none" id="app-root">
 
-      {/* HEADER SECTION */}
-      <header className="sticky top-0 z-30 border-b border-neutral-200/60 dark:border-white/5 bg-white/85 dark:bg-[#121212]/90 backdrop-blur-md px-6 py-4" id="app-header">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-
-          {/* Logo & User Welcome */}
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-500/10 flex items-center justify-center">
-              <Icons.Library className="w-6 h-6 stroke-[2]" />
+      {/* LEFT SIDEBAR (LAUNCHER STYLE LIKE IN SCREENSHOT) */}
+      <aside className="w-full md:w-64 bg-white dark:bg-[#141417] border-r border-neutral-300 dark:border-white/10 flex flex-col justify-between shrink-0 p-4 space-y-6" id="launcher-sidebar">
+        
+        {/* Top Branding & User Profile */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-neutral-200 dark:border-white/10">
+            <div className="p-2.5 bg-indigo-600 rounded-none text-white shadow-md flex items-center justify-center font-black">
+              <Icons.Library className="w-5 h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
-                  {t.appTitle}
-                </h1>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  {settings.username}
-                </span>
-              </div>
-              <p className="text-xs text-neutral-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5">
-                {user ? (
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <Icons.CloudCheck size={14} />
-                    <span>{user.email}</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                    <Icons.CloudOff size={14} />
-                    <span>{t.guestMode}</span>
-                  </span>
-                )}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-black tracking-wider uppercase text-neutral-900 dark:text-white truncate">
+                {t.appTitle}
+              </h1>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0"></span>
+                <span>{settings.username}</span>
               </p>
             </div>
           </div>
 
-          {/* Action Header controls */}
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+          {/* Nav Categories */}
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-500 px-2 mb-2">
+                {t.navigation}
+              </p>
+              <button
+                onClick={() => setStatusFilter("All")}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${
+                  statusFilter === "All"
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                    : "bg-transparent text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Icons.Home className="w-4 h-4" />
+                  <span>{t.homeLibrary}</span>
+                </span>
+                <span className="text-[10px] font-mono opacity-80">{countAll}</span>
+              </button>
+            </div>
 
-            {/* User Auth Button */}
+            {/* COLLECTIONS LIST */}
+            <div className="space-y-1">
+              <p className="text-[10px] font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-500 px-2 mb-2">
+                {t.collections}
+              </p>
+              {collectionTabs.slice(1).map((tab) => {
+                const IconComponent = tab.icon;
+                const isSelected = statusFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${
+                      isSelected
+                        ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                        : "bg-transparent text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white border-transparent"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 truncate">
+                      <IconComponent className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{tab.label}</span>
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 bg-neutral-200 dark:bg-black/40 rounded text-neutral-800 dark:text-neutral-300 shrink-0">
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Sidebar Action Controls */}
+        <div className="pt-4 border-t border-neutral-200 dark:border-white/10 space-y-2">
+          
+          {/* Add Game Button */}
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
+            id="sidebar-add-game"
+          >
+            <Icons.Plus className="w-4 h-4 stroke-[3]" />
+            <span>{t.addGame}</span>
+          </button>
+
+          {/* Theme & Settings Buttons */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center gap-1.5 p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-semibold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
+              title={settings.theme === "dark" ? t.themeLight : t.themeDark}
+            >
+              {settings.theme === "dark" ? <Icons.Sun size={14} className="text-amber-400" /> : <Icons.Moon size={14} className="text-indigo-600" />}
+              <span>{settings.theme === "dark" ? t.lightTheme : t.darkTheme}</span>
+            </button>
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center justify-center gap-1.5 p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-semibold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
+              title={t.settings}
+            >
+              <Icons.Settings size={14} className="text-indigo-600 dark:text-indigo-400" />
+              <span>{t.settings}</span>
+            </button>
+          </div>
+
+          {/* Account session control */}
+          <div>
             {user ? (
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold transition-all cursor-pointer border border-red-500/20"
-                title={t.logoutBtn}
+                className="w-full flex items-center justify-center gap-1.5 p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
               >
-                <Icons.LogOut className="w-4 h-4" />
+                <Icons.LogOut size={14} />
                 <span>{t.logoutBtn}</span>
               </button>
             ) : (
               <button
                 onClick={() => setIsAuthOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition-all cursor-pointer border border-indigo-500/20"
+                className="w-full flex items-center justify-center gap-1.5 p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
               >
-                <Icons.LogIn className="w-4 h-4" />
+                <Icons.LogIn size={14} />
                 <span>{t.loginBtn}</span>
               </button>
             )}
-
-            {/* Settings Button */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-white/5 hover:bg-neutral-100 dark:hover:bg-[#1A1A1A] transition-colors cursor-pointer text-neutral-700 dark:text-gray-300 text-xs font-bold"
-              title={t.settings}
-              id="btn-open-settings"
-            >
-              <Icons.Settings className="w-4 h-4 text-indigo-500" />
-            </button>
-
-            {/* Add Game Button */}
-            <button
-              onClick={() => setIsAddOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/15 transition-all hover:scale-[1.02] cursor-pointer"
-              id="btn-open-add"
-            >
-              <Icons.Plus className="w-4 h-4 stroke-[3]" />
-              {t.addGame}
-            </button>
-
           </div>
 
         </div>
-      </header>
 
-      {/* MAIN LAYOUT WRAPPER */}
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8" id="app-main-content">
+      </aside>
 
-        {/* Sync Indicator */}
-        {syncLoading && (
-          <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
-            <Icons.Loader2 className="w-4 h-4 animate-spin" />
-            <span>{t.syncingData}</span>
+      {/* RIGHT MAIN LAUNCHER CONTENT AREA */}
+      <main className="flex-1 flex flex-col min-w-0 bg-neutral-100 dark:bg-[#0d0d0f]" id="app-main-content">
+        
+        {/* TOP LAUNCHER HEADER BAR */}
+        <header className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-30" id="main-header">
+          
+          {/* Collection Tab Selector Bar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none" id="collection-tabs-bar">
+            {collectionTabs.map((tab) => {
+              const isSelected = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider rounded-none border transition-all cursor-pointer shrink-0 ${
+                    isSelected
+                      ? "bg-indigo-600 text-white border-indigo-500 dark:bg-white dark:text-black dark:border-white shadow-md"
+                      : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-400 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] font-mono px-1 rounded ${isSelected ? "bg-black/10 text-white dark:text-black font-extrabold" : "bg-neutral-300/60 dark:bg-black/40 text-neutral-800 dark:text-neutral-400"}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {/* Statistics board */}
-        <LibraryStatsPanel games={games} language={settings.language} />
+          {/* Quick Stats Toggle & Header Action */}
+          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            <button
+              onClick={() => setShowStats(!showStats)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-none border transition-all cursor-pointer ${
+                showStats
+                  ? "bg-indigo-600 text-white border-indigo-500"
+                  : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10"
+              }`}
+            >
+              <Icons.BarChart2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>{t.statistics}</span>
+            </button>
+          </div>
 
-        {/* CONTROLS BAR: SEARCH, FILTERS, AND SORTING */}
-        <div className="p-5 bg-white dark:bg-[#121212] rounded-2xl border border-neutral-200/60 dark:border-white/5 flex flex-col gap-4" id="controls-section">
+        </header>
 
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+        {/* MAIN BODY CONTENT */}
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
 
+          {/* Sync indicator */}
+          {syncLoading && (
+            <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-none text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
+              <Icons.Loader2 className="w-4 h-4 animate-spin" />
+              <span>{t.syncingData}</span>
+            </div>
+          )}
+
+          {/* Collapsible Stats Board */}
+          {showStats && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <LibraryStatsPanel games={games} language={settings.language} />
+            </motion.div>
+          )}
+
+          {/* TOOLBAR CONTROLS BAR: SEARCH, CONSOLE FILTER, SORTING */}
+          <div className="p-4 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 flex flex-col md:flex-row gap-3 items-center justify-between" id="controls-section">
+            
             {/* Search Input */}
-            <div className="relative w-full md:w-1/3">
-              <Icons.Search className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+            <div className="relative w-full md:w-80">
+              <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
               <input
                 type="text"
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/5 rounded-xl text-neutral-800 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                className="w-full pl-9 pr-8 py-2 text-xs bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-medium"
                 id="search-input"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-3 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                  className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white cursor-pointer"
                 >
-                  <Icons.X className="w-4 h-4" />
+                  <Icons.X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Quick platform scroll buttons / filter drops */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-
-              {/* Status Filter */}
-              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/5 px-3 py-1.5 rounded-xl">
-                <Icons.Layers className="w-4 h-4 text-neutral-400" />
-                <span className="text-xs text-neutral-400 font-semibold uppercase mr-1">{t.statusLabel}:</span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-neutral-700 dark:text-gray-200 focus:outline-none cursor-pointer"
-                  id="filter-status"
-                >
-                  <option value="All">{t.allStatuses}</option>
-                  <option value="Pendiente">{t.statusPending}</option>
-                  <option value="Jugando">{t.statusPlaying}</option>
-                  <option value="Completado">{t.statusCompleted}</option>
-                  <option value="Favoritos">{t.statusFavorites}</option>
-                </select>
-              </div>
-
-              {/* Platform Filter */}
-              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/5 px-3 py-1.5 rounded-xl">
-                <Icons.MonitorPlay className="w-4 h-4 text-neutral-400" />
-                <span className="text-xs text-neutral-400 font-semibold uppercase mr-1">{t.consoleLabel}:</span>
+            {/* Filter & Sorting Controls */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+              
+              {/* Console Filter */}
+              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
+                <Icons.MonitorPlay className="w-3.5 h-3.5 text-neutral-400" />
+                <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.consoleLabel}:</span>
                 <select
                   value={platformFilter}
                   onChange={(e) => setPlatformFilter(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-neutral-700 dark:text-gray-200 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-bold text-neutral-900 dark:text-white focus:outline-none cursor-pointer"
                   id="filter-platform"
                 >
-                  <option value="All">{t.allConsoles}</option>
+                  <option value="All" className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">{t.allConsoles}</option>
                   {allPlatforms.map((plat) => (
-                    <option key={plat} value={plat}>
+                    <option key={plat} value={plat} className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">
                       {plat}
                     </option>
                   ))}
@@ -422,19 +537,19 @@ export default function App() {
               </div>
 
               {/* Sorting */}
-              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/5 px-3 py-1.5 rounded-xl">
-                <Icons.ArrowUpDown className="w-4 h-4 text-neutral-400" />
-                <span className="text-xs text-neutral-400 font-semibold uppercase mr-1">{t.sortByLabel}:</span>
+              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
+                <Icons.ArrowUpDown className="w-3.5 h-3.5 text-neutral-400" />
+                <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.sortByLabel}:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent text-xs font-bold text-neutral-700 dark:text-gray-200 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-bold text-neutral-900 dark:text-white focus:outline-none cursor-pointer"
                   id="sort-select"
                 >
-                  <option value="acquisitionDate">{t.sortAcquisitionDate}</option>
-                  <option value="title">{t.sortTitle}</option>
-                  <option value="playTime">{t.sortPlayTime}</option>
-                  <option value="rating">{t.sortRating}</option>
+                  <option value="acquisitionDate" className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">{t.sortAcquisitionDate}</option>
+                  <option value="title" className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">{t.sortTitle}</option>
+                  <option value="playTime" className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">{t.sortPlayTime}</option>
+                  <option value="rating" className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">{t.sortRating}</option>
                 </select>
               </div>
 
@@ -442,82 +557,65 @@ export default function App() {
 
           </div>
 
-          {/* Quick Stats Summary Footer */}
-          <div className="flex flex-wrap items-center justify-between text-xs text-neutral-500 dark:text-gray-400 pt-3 border-t border-neutral-100 dark:border-white/5">
-            <p>
-              {t.showingCount} <span className="font-bold text-neutral-700 dark:text-gray-200">{filteredGames.length}</span> {t.ofCount} <span className="font-bold">{games.length}</span> {t.titlesInLibrary}
-            </p>
-            {games.length === 0 && (
-              <p className="text-indigo-500 font-semibold">{t.emptyLibraryTip}</p>
-            )}
-          </div>
+          {/* RESULTS GRID OR EMPTY STATE */}
+          {filteredGames.length === 0 ? (
+            <div className="text-center py-20 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 p-8 space-y-4" id="empty-state-view">
+              <div className="w-16 h-16 bg-neutral-100 dark:bg-[#1b1b1f] rounded-none border border-neutral-200 dark:border-white/10 flex items-center justify-center mx-auto text-neutral-500">
+                <Icons.Gamepad2 size={36} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-neutral-900 dark:text-white">{t.noGamesMatch}</h3>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
+                  {t.noGamesMatchDesc}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("All");
+                    setPlatformFilter("All");
+                    setSortBy("acquisitionDate");
+                  }}
+                  className="text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-none hover:bg-indigo-500/10 transition-all cursor-pointer"
+                >
+                  {t.resetFilters}
+                </button>
+                <button
+                  onClick={() => setIsAddOpen(true)}
+                  className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow"
+                >
+                  + {t.addGame}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <motion.div
+              layout
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+              id="games-grid"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredGames.map((game) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    language={settings.language}
+                    onClick={() => setSelectedGameId(game.id)}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
 
         </div>
 
-        {/* GAMES GRID */}
-        {filteredGames.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-[#121212] rounded-3xl border border-neutral-200/60 dark:border-white/5 p-8 space-y-4" id="empty-state-view">
-            <div className="w-16 h-16 bg-neutral-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto text-neutral-400 dark:text-gray-500">
-              <Icons.Gamepad2 size={36} />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-neutral-800 dark:text-white">{t.noGamesMatch}</h3>
-              <p className="text-sm text-neutral-500 dark:text-gray-400 max-w-md mx-auto">
-                {t.noGamesMatchDesc}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("All");
-                  setPlatformFilter("All");
-                  setSortBy("acquisitionDate");
-                }}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl hover:bg-indigo-500/5 transition-all cursor-pointer"
-              >
-                {t.resetFilters}
-              </button>
-              <button
-                onClick={() => setIsAddOpen(true)}
-                className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-xl hover:bg-indigo-500 transition-all cursor-pointer shadow-md shadow-indigo-600/15"
-              >
-                + {t.addGame}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-            id="games-grid"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredGames.map((game) => (
-                <GameCard
-                  key={game.id}
-                  game={game}
-                  language={settings.language}
-                  onClick={() => setSelectedGameId(game.id)}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        )}
+        {/* FOOTER */}
+        <footer className="border-t border-neutral-200 dark:border-white/10 bg-white dark:bg-[#141417] py-4 px-6 text-center text-[11px] text-neutral-600 dark:text-neutral-500 mt-auto" id="app-footer">
+          <p>© {new Date().getFullYear()} {t.appTitle} • {user ? t.cloudSynced : t.localStorageNotice}</p>
+        </footer>
 
       </main>
-
-      {/* FOOTER */}
-      <footer className="border-t border-neutral-200/60 dark:border-white/5 bg-white dark:bg-[#121212] py-8 px-6 mt-16 text-center text-xs text-neutral-500 dark:text-gray-400" id="app-footer">
-        <div className="max-w-7xl mx-auto space-y-2">
-          <p className="font-medium">
-            © {new Date().getFullYear()} {t.appTitle}. {t.madeWithLove}
-          </p>
-          <p className="text-[10px] text-neutral-400 dark:text-gray-500">
-            {t.footerTechNote} • {user ? t.cloudSynced : t.localStorageNotice}
-          </p>
-        </div>
-      </footer>
 
       {/* SETTINGS MODAL OVERLAY */}
       <AnimatePresence>

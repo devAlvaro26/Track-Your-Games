@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { Game, Language } from "../types";
 import { GameIcon } from "./GameIcon";
+import { ConsoleBanner } from "./ConsoleBanner";
 import { getTranslation, translateGenre } from "../translations";
 import * as Icons from "lucide-react";
 
@@ -14,37 +15,47 @@ interface GameCardProps {
 export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "en" }) => {
   const t = getTranslation(language);
 
+  // Take only the FIRST platform for the top console banner as requested
+  const primaryPlatform = game.platforms && game.platforms.length > 0 ? game.platforms[0] : "PC";
+
+  // Achievements calculation
   const totalAchievements = game.achievements.length;
   const unlockedAchievements = game.achievements.filter((a) => a.unlocked).length;
   const achievementProgress = totalAchievements > 0 
     ? Math.round((unlockedAchievements / totalAchievements) * 100) 
     : 0;
 
-  // Status tag configuration matching clear/dark mode aesthetics
+  // Status badge styling
   const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-    Pendiente: { bg: "bg-amber-100 dark:bg-amber-950/40", text: "text-amber-800 dark:text-amber-300", label: t.statusPendingTag },
-    Jugando: { bg: "bg-sky-100 dark:bg-sky-950/40", text: "text-sky-800 dark:text-sky-300", label: t.statusPlayingTag },
-    Completado: { bg: "bg-emerald-100 dark:bg-emerald-950/40", text: "text-emerald-800 dark:text-emerald-300", label: t.statusCompletedTag },
-    Favoritos: { bg: "bg-rose-100 dark:bg-rose-950/40", text: "text-rose-800 dark:text-rose-300", label: t.statusFavoriteTag },
+    Pendiente: { bg: "bg-amber-500/90 text-amber-950", text: "text-amber-200", label: t.statusPendingTag || "Pendiente" },
+    Jugando: { bg: "bg-sky-500/90 text-sky-950", text: "text-sky-200", label: t.statusPlayingTag || "Jugando" },
+    Completado: { bg: "bg-emerald-500/90 text-emerald-950", text: "text-emerald-200", label: t.statusCompletedTag || "Completado" },
+    Favoritos: { bg: "bg-rose-500/90 text-rose-950", text: "text-rose-200", label: t.statusFavoriteTag || "Favoritos" },
   };
 
-  const statusStyle = statusConfig[game.status] || { bg: "bg-slate-100", text: "text-slate-800", label: game.status };
-
-  const locale = language === "en" ? "en-US" : "es-ES";
+  const statusStyle = statusConfig[game.status] || { bg: "bg-slate-700 text-white", text: "text-white", label: game.status };
 
   return (
     <motion.div
       layoutId={`game-card-${game.id}`}
-      whileHover={{ y: -8, scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={{ y: -6, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 350, damping: 22 }}
       onClick={onClick}
-      className="group relative flex flex-col h-[400px] w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl bg-white dark:bg-[#0F0F0F] border border-neutral-200/60 dark:border-white/5 cursor-pointer transition-shadow"
+      className="group relative flex flex-col w-full rounded-none sm:rounded-sm overflow-hidden bg-white dark:bg-[#161618] border border-slate-300 dark:border-white/10 shadow-md hover:shadow-2xl hover:border-indigo-500 cursor-pointer transition-all select-none"
       id={`card-${game.id}`}
     >
-      {/* 3:4 Aspect Ratio Cover Box */}
-      <div className="relative h-[280px] w-full overflow-hidden flex flex-col justify-between p-4" style={{ backgroundColor: game.coverColor }}>
-        
-        {/* Official Cover Image (if present) */}
+      {/* 1. TOP CONSOLE INTEGRATED HEADER BANNER (SOLO LOGO DE CONSOLA) */}
+      <ConsoleBanner
+        platformName={primaryPlatform}
+        size="sm"
+      />
+
+      {/* 2. MAIN POSTER COVER AREA (Aspect 2/3 independiente para no superponer ni recortar) */}
+      <div
+        className="relative w-full aspect-[2/3] overflow-hidden flex flex-col justify-between p-3 shrink-0"
+        style={{ backgroundColor: game.coverColor || "#171717" }}
+      >
+        {/* Full cover image if present */}
         {game.coverImage && (
           <img
             src={game.coverImage}
@@ -58,106 +69,49 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
           />
         )}
 
-        {/* Abstract pattern overlays for readability over image or background */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40 pointer-events-none" />
-        
-        {/* Platform logo & Star Rating / IGDB Badge (Top Bar) */}
-        <div className="z-10 flex justify-between items-center">
-          <span className="text-[10px] font-bold tracking-widest text-white/90 uppercase px-2.5 py-0.5 rounded-md bg-black/40 backdrop-blur-md border border-white/10">
-            {game.platforms[0] || "GAME"}
-          </span>
-          <div className="flex items-center gap-1.5">
-            {game.igdbRating !== undefined && (
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-indigo-600/90 text-white backdrop-blur-md border border-indigo-400/30 flex items-center gap-1 shadow-sm" title={`${t.igdbRating}: ${game.igdbRating}/100`}>
-                <Icons.Database className="w-2.5 h-2.5" />
-                {game.igdbRating}
-              </span>
-            )}
-            <div className="flex items-center gap-0.5 bg-black/30 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Icons.Star
-                  key={i}
-                  className={`w-3 h-3 ${i < game.rating ? "text-amber-400 fill-amber-400" : "text-white/20"}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Poster gradient shadow overlay for contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/20 pointer-events-none" />
 
-        {/* Central Symbol Cover Art (Shown as emblem or overlay) */}
+
+
+        {/* Fallback symbol cover art if no image */}
         {!game.coverImage && (
-          <div className="z-10 flex flex-col items-center justify-center py-6">
-            <div className="p-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-inner group-hover:scale-110 transition-transform duration-300">
-              <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]" size={42} />
+          <div className="z-10 my-auto flex flex-col items-center justify-center py-4">
+            <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]" size={38} />
             </div>
           </div>
         )}
 
-        {/* Cover footer text with title & genre */}
-        <div className="z-10 mt-auto">
-          <p className="text-[11px] font-semibold text-white/80 uppercase tracking-wider mb-0.5 truncate drop-shadow">
+        {/* Bottom Poster Info (Title & Genre) */}
+        <div className="z-10 mt-auto space-y-0.5">
+          <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest truncate">
             {translateGenre(game.genre, language)}
           </p>
-          <h3 className="text-lg font-bold text-white leading-snug tracking-tight line-clamp-2 drop-shadow-md">
+          <h3 className="text-sm sm:text-base font-black text-white leading-tight tracking-tight line-clamp-2 drop-shadow-md group-hover:text-indigo-300 transition-colors">
             {game.title}
           </h3>
         </div>
       </div>
 
-      {/* Game info content area */}
-      <div className="flex-1 p-4 flex flex-col justify-between bg-white dark:bg-[#0F0F0F]">
-        
-        {/* Status and Acquisition Date */}
-        <div className="flex justify-between items-center mb-2">
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
-            {statusStyle.label}
-          </span>
-          <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-gray-400">
-            <Icons.Calendar className="w-3.5 h-3.5" />
-            <span>{game.acquisitionDate ? new Date(game.acquisitionDate).toLocaleDateString(locale, { year: "numeric", month: "short" }) : "N/A"}</span>
-          </div>
-        </div>
-
-        {/* Progress on Achievements */}
-        <div className="mt-auto">
+      {/* 3. BOTTOM LAUNCHER STATS BAR (e.g. 🏆 0/49  0%) */}
+      <div className="px-3 py-2 bg-slate-100 dark:bg-[#101012] border-t border-slate-200 dark:border-white/10 text-[11px] font-mono text-neutral-800 dark:text-neutral-300 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 truncate">
+          <Icons.Trophy className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
           {totalAchievements > 0 ? (
-            <div>
-              <div className="flex justify-between items-center text-xs mb-1">
-                <span className="text-neutral-500 dark:text-gray-400 flex items-center gap-1">
-                  <Icons.Trophy className="w-3.5 h-3.5 text-indigo-500" />
-                  {t.achievementsLabel}: {unlockedAchievements}/{totalAchievements}
-                </span>
-                <span className="font-semibold text-neutral-700 dark:text-gray-300">
-                  {achievementProgress}%
-                </span>
-              </div>
-              <div className="w-full bg-neutral-100 dark:bg-[#1A1A1A] h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-indigo-600 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${achievementProgress}%` }}
-                />
-              </div>
-            </div>
+            <span className="font-semibold text-neutral-800 dark:text-white/90">
+              {unlockedAchievements}/{totalAchievements}
+            </span>
           ) : (
-            <div className="text-xs text-neutral-400 dark:text-gray-500 italic flex items-center gap-1">
-              <Icons.Trophy className="w-3.5 h-3.5 opacity-50" />
-              {t.noAchievementsRecorded}
-            </div>
-          )}
-        </div>
-
-        {/* Footer Play Hours */}
-        <div className="flex justify-between items-center pt-2 mt-2 border-t border-neutral-100 dark:border-white/5 text-[11px] text-neutral-400 dark:text-gray-500">
-          <span className="flex items-center gap-1">
-            <Icons.Clock className="w-3 h-3" /> {game.playTime}h {t.hoursPlayed}
-          </span>
-          {game.barcode && (
-            <span className="font-mono text-[9px] tracking-wider truncate max-w-[100px]" title={`${t.barcodeShort}: ${game.barcode}`}>
-              ‖ {game.barcode}
+            <span className="text-neutral-500 dark:text-white/50 text-[10px] uppercase font-sans">
+              {t.noAchievementsRecorded || "Sin Logros"}
             </span>
           )}
         </div>
 
+        <div className="flex items-center gap-2 font-bold text-amber-400">
+          <span>{totalAchievements > 0 ? `${achievementProgress}%` : ""}</span>
+        </div>
       </div>
     </motion.div>
   );

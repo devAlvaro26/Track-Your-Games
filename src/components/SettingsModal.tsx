@@ -47,7 +47,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
       id="settings-modal-backdrop"
     >
@@ -56,28 +56,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: 0.2 }}
-        className="relative w-full max-w-lg bg-white dark:bg-[#121212] border border-neutral-200/80 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg bg-white dark:bg-[#141417] text-neutral-900 dark:text-white border border-neutral-300 dark:border-white/10 rounded-none shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         id="settings-modal-card"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-neutral-100 dark:border-white/5 bg-neutral-50/50 dark:bg-[#1A1A1A]/30">
+        <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+            <div className="p-2 bg-indigo-600 text-white rounded-none">
               <Icons.Settings className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
+              <h2 className="text-base font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
                 {t.settingsTitle}
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-gray-400">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {t.settingsSubtitle}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
             id="btn-close-settings"
             title={t.close}
           >
@@ -89,8 +89,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Username setting */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-gray-400 flex items-center gap-2">
-              <Icons.User className="w-4 h-4 text-indigo-500" />
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
+              <Icons.User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               {t.usernameLabel}
             </label>
             <input
@@ -100,25 +100,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               placeholder={t.usernamePlaceholder}
               maxLength={30}
               required
-              className="w-full px-4 py-2.5 text-sm bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/5 rounded-xl text-neutral-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+              className="w-full px-4 py-2 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 font-medium"
               id="input-username"
             />
           </div>
 
           {/* Theme setting */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-gray-400 flex items-center gap-2">
-              <Icons.SunMoon className="w-4 h-4 text-amber-500" />
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
+              <Icons.SunMoon className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               {t.themeLabel}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => handleThemeChange("dark")}
-                className={`flex items-center justify-center gap-2.5 p-3.5 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2.5 p-3 rounded-none border font-bold text-xs transition-all cursor-pointer ${
                   theme === "dark"
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
-                    : "bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-700 dark:text-gray-300 border-neutral-200 dark:border-white/5 hover:border-neutral-300 dark:hover:border-white/10"
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                    : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                 }`}
               >
                 <Icons.Moon className="w-4 h-4" />
@@ -127,10 +127,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleThemeChange("light")}
-                className={`flex items-center justify-center gap-2.5 p-3.5 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2.5 p-3 rounded-none border font-bold text-xs transition-all cursor-pointer ${
                   theme === "light"
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
-                    : "bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-700 dark:text-gray-300 border-neutral-200 dark:border-white/5 hover:border-neutral-300 dark:hover:border-white/10"
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                    : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                 }`}
               >
                 <Icons.Sun className="w-4 h-4" />
@@ -141,18 +141,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Language setting */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-gray-400 flex items-center gap-2">
-              <Icons.Globe className="w-4 h-4 text-emerald-500" />
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
+              <Icons.Globe className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               {t.languageLabel}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setLanguage("es")}
-                className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 p-3 rounded-none border font-bold text-xs transition-all cursor-pointer ${
                   language === "es"
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
-                    : "bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-700 dark:text-gray-300 border-neutral-200 dark:border-white/5 hover:border-neutral-300 dark:hover:border-white/10"
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                    : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                 }`}
               >
                 <span className="text-sm">🇪🇸</span>
@@ -161,10 +161,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={() => setLanguage("en")}
-                className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 p-3 rounded-none border font-bold text-xs transition-all cursor-pointer ${
                   language === "en"
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
-                    : "bg-neutral-50 dark:bg-[#1A1A1A] text-neutral-700 dark:text-gray-300 border-neutral-200 dark:border-white/5 hover:border-neutral-300 dark:hover:border-white/10"
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                    : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                 }`}
               >
                 <span className="text-sm">🇬🇧</span>
@@ -174,14 +174,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-neutral-100 dark:border-white/5 flex items-center justify-between">
+          <div className="pt-4 border-t border-neutral-200 dark:border-white/10 flex items-center justify-between">
             {savedSuccess ? (
               <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <Icons.CheckCircle2 className="w-4 h-4" />
                 {t.settingsSavedMsg}
               </span>
             ) : (
-              <span className="text-xs text-neutral-400 dark:text-gray-500">
+              <span className="text-xs text-neutral-500">
                 {t.saveToApply}
               </span>
             )}
@@ -190,13 +190,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 text-xs font-bold text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-white/5 rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-neutral-600 dark:text-neutral-400 border border-neutral-300 dark:border-white/10 rounded-none hover:bg-neutral-100 dark:hover:bg-white/5 transition-all cursor-pointer"
               >
                 {t.cancel}
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.02] cursor-pointer"
+                className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none shadow transition-all cursor-pointer"
               >
                 {t.saveSettings}
               </button>
