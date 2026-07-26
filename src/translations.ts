@@ -109,6 +109,18 @@ export const translationTable = {
     es: "Modo Local (Sin Conexión)",
     en: "Local Mode (No Connection)",
   },
+  statusOnline: {
+    es: "En línea",
+    en: "Online",
+  },
+  statusOffline: {
+    es: "Desconectado",
+    en: "Offline",
+  },
+  sessionStatus: {
+    es: "Estado de la sesión",
+    en: "Session status",
+  },
   databaseNotConnected: {
     es: "Base de datos no configurada",
     en: "Database not configured",
@@ -156,6 +168,22 @@ export const translationTable = {
   authDefaultErr: {
     es: "Error al autenticar.",
     en: "Authentication error.",
+  },
+  userAlreadyRegisteredErr: {
+    es: "Este correo electrónico ya está registrado. Por favor, inicia sesión.",
+    en: "This email address is already registered. Please sign in.",
+  },
+  invalidCredentialsErr: {
+    es: "Correo electrónico o contraseña incorrectos.",
+    en: "Invalid email or password.",
+  },
+  passwordMinLengthErr: {
+    es: "La contraseña debe tener al menos 6 caracteres.",
+    en: "Password must be at least 6 characters.",
+  },
+  switchToLoginBtn: {
+    es: "Ir a Iniciar Sesión",
+    en: "Switch to Sign In",
   },
   signingIn: {
     es: "Iniciando...",

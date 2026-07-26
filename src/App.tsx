@@ -302,9 +302,18 @@ export default function App() {
               <h1 className="text-base font-black tracking-wider uppercase text-neutral-900 dark:text-white truncate">
                 {t.appTitle}
               </h1>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0"></span>
-                <span>{settings.username}</span>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1.5 font-medium">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 transition-colors ${
+                    user
+                      ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+                      : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)] animate-pulse"
+                  }`}
+                  title={user ? t.statusOnline : t.statusOffline}
+                />
+                <span className={user ? "text-neutral-700 dark:text-neutral-300 truncate" : "text-orange-600 dark:text-orange-400 font-semibold truncate"}>
+                  {settings.username} {user ? `(${t.statusOnline})` : `(${t.statusOffline})`}
+                </span>
               </p>
             </div>
           </div>
@@ -402,7 +411,7 @@ export default function App() {
             {user ? (
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-1.5 p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
               >
                 <Icons.LogOut size={14} />
                 <span>{t.logoutBtn}</span>
@@ -410,7 +419,7 @@ export default function App() {
             ) : (
               <button
                 onClick={() => setIsAuthOpen(true)}
-                className="w-full flex items-center justify-center gap-1.5 p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 p-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
               >
                 <Icons.LogIn size={14} />
                 <span>{t.loginBtn}</span>

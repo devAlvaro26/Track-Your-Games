@@ -155,7 +155,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                 }`}
               >
-                <span className="text-sm">🇪🇸</span>
+                <span className="text-[11px] font-mono font-black px-1.5 py-0.5 bg-black/15 dark:bg-white/10 rounded-none">ES</span>
                 {t.languageEs}
               </button>
               <button
@@ -167,7 +167,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                 }`}
               >
-                <span className="text-sm">🇬🇧</span>
+                <span className="text-[11px] font-mono font-black px-1.5 py-0.5 bg-black/15 dark:bg-white/10 rounded-none">EN</span>
                 {t.languageEn}
               </button>
             </div>
