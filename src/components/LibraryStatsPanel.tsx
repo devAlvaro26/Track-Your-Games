@@ -18,6 +18,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   const favoritesGames = games.filter((g) => g.status === "Favoritos").length;
   const playingGames = games.filter((g) => g.status === "Jugando").length;
   const pendingGames = games.filter((g) => g.status === "Pendiente").length;
+  const wishlistGames = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
 
   const totalHours = games.reduce((acc, g) => acc + (g.playTime || 0), 0);
 
@@ -49,7 +50,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
             {totalGames}
           </p>
           <p className="text-[10px] text-neutral-500 dark:text-gray-400 mt-1">
-            {playingGames} {t.inProgress} · {pendingGames} {t.pending}
+            {playingGames} {t.inProgress} · {pendingGames} {t.pending} · {wishlistGames} {t.wishlist || "deseados"}
           </p>
         </div>
       </div>

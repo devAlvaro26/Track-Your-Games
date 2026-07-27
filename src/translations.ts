@@ -323,6 +323,10 @@ export const translationTable = {
     es: "Favoritos",
     en: "Favorites",
   },
+  statusWishlist: {
+    es: "Quiero Jugar",
+    en: "Wishlist",
+  },
   consoleLabel: {
     es: "Consola",
     en: "Console",
@@ -396,6 +400,10 @@ export const translationTable = {
   statusFavoriteTag: {
     es: "Favorito",
     en: "Favorite",
+  },
+  statusWishlistTag: {
+    es: "Quiero Jugar",
+    en: "Wishlist",
   },
   achievementsLabel: {
     es: "Logros",
@@ -706,6 +714,14 @@ export const translationTable = {
   pendingToPlayOption: {
     es: "Pendiente de Jugar",
     en: "Pending to Play",
+  },
+  wishlistOption: {
+    es: "Quiero Jugar (Lista de Deseos)",
+    en: "Want to Play (Wishlist)",
+  },
+  wishlist: {
+    es: "deseados",
+    en: "wishlist",
   },
   currentlyPlayingOption: {
     es: "Jugando Actualmente",

@@ -210,6 +210,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
                   <option value="Pendiente">{t.statusPending || "Pending"}</option>
+                  <option value="Deseados">{t.wishlistOption || "Quiero Jugar (Lista de Deseos)"}</option>
                   <option value="Jugando">{t.statusPlaying || "Playing"}</option>
                   <option value="Completado">{t.statusCompleted || "Completed"}</option>
                   <option value="Favoritos">{t.statusFavorites || "Favorite"}</option>

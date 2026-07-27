@@ -243,6 +243,7 @@ export default function App() {
   const countAll = games.length;
   const countPlaying = games.filter((g) => g.status === "Jugando").length;
   const countPending = games.filter((g) => g.status === "Pendiente").length;
+  const countWishlist = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
   const countCompleted = games.filter((g) => g.status === "Completado").length;
   const countFavorites = games.filter((g) => g.status === "Favoritos").length;
 
@@ -256,7 +257,11 @@ export default function App() {
         translateGenre(game.genre, settings.language).toLowerCase().includes(query) ||
         game.barcode.includes(query);
 
-      const matchesStatus = statusFilter === "All" || game.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "All" ||
+        game.status === statusFilter ||
+        (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
+        (statusFilter === "Quiero Jugar" && game.status === "Deseados");
       const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
 
       return matchesSearch && matchesStatus && matchesPlatform;
@@ -284,7 +289,8 @@ export default function App() {
   const collectionTabs = [
     { id: "All", label: t.allStatuses || "Todos los Juegos", icon: Icons.LayoutGrid, count: countAll },
     { id: "Jugando", label: t.statusPlaying || "Jugando", icon: Icons.PlayCircle, count: countPlaying },
-    { id: "Pendiente", label: t.statusPending || "Pendientes / Deseados", icon: Icons.Bookmark, count: countPending },
+    { id: "Pendiente", label: t.statusPending || "Pendientes", icon: Icons.Bookmark, count: countPending },
+    { id: "Deseados", label: t.statusWishlist || "Quiero Jugar", icon: Icons.Heart, count: countWishlist },
     { id: "Completado", label: t.statusCompleted || "Completados", icon: Icons.CheckCircle2, count: countCompleted },
     { id: "Favoritos", label: t.statusFavorites || "Favoritos", icon: Icons.Star, count: countFavorites },
   ];

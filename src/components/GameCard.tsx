@@ -28,6 +28,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
   // Status badge styling
   const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
     Pendiente: { bg: "bg-amber-500/90 text-amber-950", text: "text-amber-200", label: t.statusPendingTag || "Pendiente" },
+    Deseados: { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag || "Quiero Jugar" },
+    "Quiero Jugar": { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag || "Quiero Jugar" },
     Jugando: { bg: "bg-sky-500/90 text-sky-950", text: "text-sky-200", label: t.statusPlayingTag || "Jugando" },
     Completado: { bg: "bg-emerald-500/90 text-emerald-950", text: "text-emerald-200", label: t.statusCompletedTag || "Completado" },
     Favoritos: { bg: "bg-rose-500/90 text-rose-950", text: "text-rose-200", label: t.statusFavoriteTag || "Favoritos" },

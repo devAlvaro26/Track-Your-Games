@@ -7,7 +7,7 @@ export interface Achievement {
   unlockedAt?: string; // date string
 }
 
-export type GameStatus = "Pendiente" | "Jugando" | "Completado" | "Favoritos";
+export type GameStatus = "Pendiente" | "Jugando" | "Completado" | "Favoritos" | "Deseados" | "Quiero Jugar";
 
 export interface Game {
   id: string;
