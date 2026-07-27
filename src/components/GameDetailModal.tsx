@@ -195,12 +195,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
         />
       )}
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm overflow-hidden" id="detail-modal-container">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm overflow-hidden" id="detail-modal-container">
         
         {/* Container */}
         <motion.div
           layoutId={`game-card-${game.id}`}
-          className={`relative w-full ${isEditing ? "max-w-3xl" : "max-w-4xl"} bg-white dark:bg-[#141417] text-neutral-900 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto`}
+          className={`relative w-full ${isEditing ? "max-w-3xl" : "max-w-4xl"} bg-white dark:bg-[#141417] text-neutral-900 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 shadow-2xl overflow-hidden max-h-[95vh] flex flex-col my-auto`}
           id="detail-modal"
         >
           
@@ -208,7 +208,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
           {!isEditing && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 p-2 text-white/80 hover:text-white bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-none transition-all cursor-pointer shadow-lg border border-white/20"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 p-2 text-white/80 hover:text-white bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-none transition-all cursor-pointer shadow-lg border border-white/20"
               id="close-detail-modal"
               title={t.close}
             >
@@ -219,11 +219,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
           <AnimatePresence mode="wait">
             {!isEditing ? (
               /* ================= VIEW MODE ================= */
-              <div className="flex flex-col md:flex-row h-full overflow-y-auto max-h-[90vh]">
+              <div className="flex flex-col md:flex-row h-full overflow-y-auto max-h-[95vh]">
                 
                 {/* Left Pane: Interactive Cover & Barcode Side */}
                 <div
-                  className="w-full md:w-1/3 p-6 flex flex-col justify-between text-white relative min-h-[400px] overflow-hidden"
+                  className="w-full md:w-1/3 p-4 sm:p-6 flex flex-col justify-between text-white relative min-h-[300px] sm:min-h-[400px] overflow-hidden shrink-0"
                   style={{ backgroundColor: game.coverColor }}
                 >
                   {/* High-res IGDB Cover Background Image if available */}
@@ -361,10 +361,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                 </div>
 
                 {/* Right Pane: Detailed Logs, Achievements checklist, Ratings */}
-                <div className="flex-1 p-8 bg-neutral-50 dark:bg-[#121212] space-y-6 overflow-y-auto max-h-[750px]">
+                <div className="flex-1 p-4 sm:p-8 bg-neutral-50 dark:bg-[#121212] space-y-4 sm:space-y-6 overflow-y-auto max-h-[750px]">
                   
                   {/* Meta Summary Row */}
-                  <div className="grid grid-cols-3 gap-4" id="stats-summary-row">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4" id="stats-summary-row">
                     <div className="bg-white dark:bg-[#1b1b1f] p-3.5 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
                       <p className="text-[10px] uppercase font-bold text-neutral-500 dark:text-gray-400 mb-0.5 flex items-center gap-1">
                         <Icons.Play className="w-3 h-3 text-sky-500" />

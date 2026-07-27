@@ -114,7 +114,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
       id="auth-modal-backdrop"
     >
@@ -128,7 +128,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
         id="auth-modal-card"
       >
         {/* Header matching project style */}
-        <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-600 text-white rounded-none">
               <Icons.UserCheck className="w-5 h-5 stroke-[2.5]" />
@@ -154,7 +154,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Mode Segmented Controls matching launcher tabs */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-100 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 rounded-none">
             <button

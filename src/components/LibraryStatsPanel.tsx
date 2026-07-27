@@ -34,7 +34,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   const achievementsRate = totalAchievementsCount > 0 ? Math.round((unlockedAchievementsCount / totalAchievementsCount) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" id="library-stats-dashboard">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3" id="library-stats-dashboard">
       
       {/* Total Games Metric */}
       <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">

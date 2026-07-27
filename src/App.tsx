@@ -60,6 +60,8 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileStatusFilterOpen, setIsMobileStatusFilterOpen] = useState(false);
 
   // Search, filter and sorting state
   const [searchQuery, setSearchQuery] = useState("");
@@ -290,9 +292,227 @@ export default function App() {
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row select-none" id="app-root">
 
-      {/* LEFT SIDEBAR (LAUNCHER STYLE LIKE IN SCREENSHOT) */}
-      <aside className="w-full md:w-64 bg-white dark:bg-[#141417] border-r border-neutral-300 dark:border-white/10 flex flex-col justify-between shrink-0 p-4 space-y-6" id="launcher-sidebar">
-        
+      {/* MOBILE TOP NAVIGATION BAR (Visible only on mobile < md) */}
+      <header className="md:hidden bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm" id="mobile-top-bar">
+        <div className="flex items-center gap-2.5">
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center"
+            title="Abrir menú"
+            id="btn-open-mobile-menu"
+          >
+            <Icons.Menu className="w-5 h-5 stroke-[2.5]" />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-indigo-600 rounded-none text-white shadow-sm flex items-center justify-center font-black">
+              <Icons.Library className="w-4 h-4" />
+            </div>
+            <div>
+              <h1 className="text-xs font-black tracking-wider uppercase text-neutral-900 dark:text-white truncate">
+                {t.appTitle}
+              </h1>
+              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate font-medium flex items-center gap-1">
+                <span
+                  className={`w-2 h-2 rounded-full inline-block shrink-0 ${user ? "bg-emerald-500" : "bg-orange-500"
+                    }`}
+                />
+                <span className="truncate">{settings.username}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center gap-1"
+            title={t.addGame}
+            id="btn-mobile-add-game"
+          >
+            <Icons.Plus className="w-4 h-4 stroke-[3]" />
+            <span className="hidden sm:inline">{t.addGame}</span>
+          </button>
+        </div>
+      </header>
+
+      {/* MOBILE FULLSCREEN SIDEBAR MENU OVERLAY */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-50 md:hidden flex flex-col bg-white dark:bg-[#141417] text-neutral-900 dark:text-white overflow-y-auto" id="mobile-fullscreen-sidebar">
+            <motion.div
+              initial={{ opacity: 0, x: "-100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "-100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="flex flex-col min-h-full p-5 justify-between space-y-6"
+            >
+              {/* Header inside mobile menu */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-indigo-600 rounded-none text-white shadow-md flex items-center justify-center font-black">
+                      <Icons.Library className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-black tracking-wider uppercase text-neutral-900 dark:text-white">
+                        {t.appTitle}
+                      </h2>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5 font-medium">
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 ${user
+                            ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+                            : "bg-orange-500"
+                            }`}
+                        />
+                        <span>
+                          {settings.username} {user ? `(${t.statusOnline})` : `(${t.statusOffline})`}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-300 dark:border-white/10 rounded-none transition-colors cursor-pointer"
+                    title={t.close}
+                    id="btn-close-mobile-menu"
+                  >
+                    <Icons.X className="w-6 h-6 stroke-[2.5]" />
+                  </button>
+                </div>
+
+                {/* Nav Links inside mobile menu */}
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <p className="text-xs font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-500 px-2">
+                      {t.navigation}
+                    </p>
+                    <button
+                      onClick={() => {
+                        setStatusFilter("All");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-none text-sm font-bold transition-all cursor-pointer border ${statusFilter === "All"
+                        ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                        : "bg-neutral-50 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10"
+                        }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icons.Home className="w-5 h-5" />
+                        <span>{t.homeLibrary}</span>
+                      </span>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 bg-black/10 dark:bg-white/10 rounded">
+                        {countAll}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* COLLECTIONS LIST */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-500 px-2">
+                      {t.collections}
+                    </p>
+                    <div className="space-y-1.5">
+                      {collectionTabs.slice(1).map((tab) => {
+                        const IconComponent = tab.icon;
+                        const isSelected = statusFilter === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              setStatusFilter(tab.id);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-4 py-3 rounded-none text-sm font-bold transition-all cursor-pointer border ${isSelected
+                              ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                              : "bg-neutral-50 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5"
+                              }`}
+                          >
+                            <span className="flex items-center gap-3 truncate">
+                              <IconComponent className="w-5 h-5 shrink-0" />
+                              <span className="truncate">{tab.label}</span>
+                            </span>
+                            <span className="text-xs font-mono font-bold px-2 py-0.5 bg-neutral-200 dark:bg-black/40 rounded text-neutral-800 dark:text-neutral-300 shrink-0">
+                              {tab.count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Actions inside mobile menu */}
+              <div className="pt-5 border-t border-neutral-200 dark:border-white/10 space-y-3">
+                <button
+                  onClick={() => {
+                    setIsAddOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
+                >
+                  <Icons.Plus className="w-5 h-5 stroke-[3]" />
+                  <span>{t.addGame}</span>
+                </button>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={toggleTheme}
+                    className="flex items-center justify-center gap-2 p-3 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-bold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
+                  >
+                    {settings.theme === "dark" ? <Icons.Sun size={16} className="text-amber-400" /> : <Icons.Moon size={16} className="text-indigo-600" />}
+                    <span>{settings.theme === "dark" ? t.lightTheme : t.darkTheme}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 p-3 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-bold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
+                  >
+                    <Icons.Settings size={16} className="text-indigo-600 dark:text-indigo-400" />
+                    <span>{t.settings}</span>
+                  </button>
+                </div>
+
+                <div>
+                  {user ? (
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 p-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
+                    >
+                      <Icons.LogOut size={16} />
+                      <span>{t.logoutBtn}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setIsAuthOpen(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 p-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
+                    >
+                      <Icons.LogIn size={16} />
+                      <span>{t.loginBtn}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* DESKTOP SIDEBAR (Visible only on desktop md+) */}
+      <aside className="hidden md:flex md:w-64 bg-white dark:bg-[#141417] border-r border-neutral-300 dark:border-white/10 flex-col justify-between shrink-0 p-4 space-y-6" id="launcher-sidebar">
+
         {/* Top Branding & User Profile */}
         <div className="space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-neutral-200 dark:border-white/10">
@@ -305,11 +525,10 @@ export default function App() {
               </h1>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1.5 font-medium">
                 <span
-                  className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 transition-colors ${
-                    user
-                      ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"
-                      : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)] animate-pulse"
-                  }`}
+                  className={`w-2.5 h-2.5 rounded-full inline-block shrink-0 transition-colors ${user
+                    ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+                    : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)] animate-pulse"
+                    }`}
                   title={user ? t.statusOnline : t.statusOffline}
                 />
                 <span className={user ? "text-neutral-700 dark:text-neutral-300 truncate" : "text-orange-600 dark:text-orange-400 font-semibold truncate"}>
@@ -327,11 +546,10 @@ export default function App() {
               </p>
               <button
                 onClick={() => setStatusFilter("All")}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${
-                  statusFilter === "All"
-                    ? "bg-indigo-600 text-white border-indigo-500 shadow"
-                    : "bg-transparent text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white"
-                }`}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${statusFilter === "All"
+                  ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                  : "bg-transparent text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white"
+                  }`}
               >
                 <span className="flex items-center gap-2">
                   <Icons.Home className="w-4 h-4" />
@@ -353,11 +571,10 @@ export default function App() {
                   <button
                     key={tab.id}
                     onClick={() => setStatusFilter(tab.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${
-                      isSelected
-                        ? "bg-indigo-600 text-white border-indigo-500 shadow"
-                        : "bg-transparent text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white border-transparent"
-                    }`}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${isSelected
+                      ? "bg-indigo-600 text-white border-indigo-500 shadow"
+                      : "bg-transparent text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white border-transparent"
+                      }`}
                   >
                     <span className="flex items-center gap-2 truncate">
                       <IconComponent className="w-4 h-4 shrink-0" />
@@ -375,7 +592,7 @@ export default function App() {
 
         {/* Bottom Sidebar Action Controls */}
         <div className="pt-4 border-t border-neutral-200 dark:border-white/10 space-y-2">
-          
+
           {/* Add Game Button */}
           <button
             onClick={() => setIsAddOpen(true)}
@@ -434,26 +651,28 @@ export default function App() {
 
       {/* RIGHT MAIN LAUNCHER CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-neutral-100 dark:bg-[#0d0d0f]" id="app-main-content">
-        
+
         {/* TOP LAUNCHER HEADER BAR */}
-        <header className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-30" id="main-header">
-          
-          {/* Collection Tab Selector Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none" id="collection-tabs-bar">
+        <header className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-3 sm:px-6 py-2.5 sm:py-4 flex flex-row items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30" id="main-header">
+
+          {/* DESKTOP Collection Tab Selector Bar (Visible md+) */}
+          <div className="hidden md:flex items-center gap-1.5 overflow-x-auto w-auto pb-0 scrollbar-none" id="collection-tabs-bar-desktop">
             {collectionTabs.map((tab) => {
               const isSelected = statusFilter === tab.id;
+              const IconComponent = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider rounded-none border transition-all cursor-pointer shrink-0 ${
-                    isSelected
-                      ? "bg-indigo-600 text-white border-indigo-500 dark:bg-white dark:text-black dark:border-white shadow-md"
-                      : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-400 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white"
-                  }`}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-none border transition-all cursor-pointer shrink-0 ${isSelected
+                    ? "bg-indigo-600 text-white border-indigo-500 dark:bg-white dark:text-black dark:border-white shadow-md"
+                    : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-400 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white"
+                    }`}
+                  id={`tab-${tab.id}`}
                 >
+                  <IconComponent className="w-3.5 h-3.5 shrink-0" />
                   <span>{tab.label}</span>
-                  <span className={`text-[10px] font-mono px-1 rounded ${isSelected ? "bg-black/10 text-white dark:text-black font-extrabold" : "bg-neutral-300/60 dark:bg-black/40 text-neutral-800 dark:text-neutral-400"}`}>
+                  <span className={`text-[10px] font-mono px-1 rounded ${isSelected ? "bg-black/20 text-white dark:bg-black/10 dark:text-black font-extrabold" : "bg-neutral-300/60 dark:bg-black/40 text-neutral-800 dark:text-neutral-400"}`}>
                     {tab.count}
                   </span>
                 </button>
@@ -461,15 +680,95 @@ export default function App() {
             })}
           </div>
 
+          {/* MOBILE Collection Tab Selector Dropdown Button (Visible < md) */}
+          {(() => {
+            const activeTab = collectionTabs.find((t) => t.id === statusFilter) || collectionTabs[0];
+            const ActiveIcon = activeTab.icon;
+            return (
+              <div className="relative w-full md:w-auto md:hidden" id="collection-tabs-mobile-filter">
+                <button
+                  onClick={() => setIsMobileStatusFilterOpen(!isMobileStatusFilterOpen)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-none border border-indigo-500 shadow-sm transition-all cursor-pointer"
+                  id="btn-mobile-status-filter"
+                  title={t.filterByStatus || "Filtrar por estado"}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Icons.Filter className="w-3.5 h-3.5 shrink-0 text-indigo-200" />
+                    <span className="truncate flex items-center gap-1.5">
+                      <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{activeTab.label}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-1.5 py-0.5 text-[10px] font-mono bg-black/25 text-white font-extrabold rounded">
+                      {activeTab.count}
+                    </span>
+                    <Icons.ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMobileStatusFilterOpen ? "rotate-180" : ""}`} />
+                  </div>
+                </button>
+
+                {/* Dropdown Menu Options */}
+                <AnimatePresence>
+                  {isMobileStatusFilterOpen && (
+                    <>
+                      {/* Invisible Backdrop to close on tap outside */}
+                      <div
+                        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+                        onClick={() => setIsMobileStatusFilterOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 shadow-xl rounded-none py-1 overflow-hidden"
+                        id="mobile-status-dropdown-menu"
+                      >
+                        <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500 border-b border-neutral-100 dark:border-white/5">
+                          {t.filterByStatus || "Filtrar por estado"}
+                        </div>
+                        {collectionTabs.map((tab) => {
+                          const isSelected = statusFilter === tab.id;
+                          const IconComponent = tab.icon;
+                          return (
+                            <button
+                              key={tab.id}
+                              onClick={() => {
+                                setStatusFilter(tab.id);
+                                setIsMobileStatusFilterOpen(false);
+                              }}
+                              className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold transition-colors cursor-pointer text-left border-b last:border-b-0 border-neutral-100 dark:border-white/5 ${isSelected
+                                ? "bg-indigo-600 text-white font-extrabold"
+                                : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5"
+                                }`}
+                            >
+                              <span className="flex items-center gap-2.5 truncate">
+                                <IconComponent className={`w-4 h-4 shrink-0 ${isSelected ? "text-white" : "text-neutral-400"}`} />
+                                <span className="truncate uppercase tracking-wider">{tab.label}</span>
+                              </span>
+                              <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded ${isSelected ? "bg-black/20 text-white" : "bg-neutral-200 dark:bg-black/40 text-neutral-700 dark:text-neutral-300"
+                                }`}>
+                                {tab.count}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })()}
+
           {/* Quick Stats Toggle & Header Action */}
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowStats(!showStats)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-none border transition-all cursor-pointer ${
-                showStats
-                  ? "bg-indigo-600 text-white border-indigo-500"
-                  : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-none border transition-all cursor-pointer ${showStats
+                ? "bg-indigo-600 text-white border-indigo-500"
+                : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10"
+                }`}
             >
               <Icons.BarChart2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>{t.statistics}</span>
@@ -479,7 +778,7 @@ export default function App() {
         </header>
 
         {/* MAIN BODY CONTENT */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 flex-1 overflow-y-auto">
 
           {/* Sync indicator */}
           {syncLoading && (
@@ -501,8 +800,8 @@ export default function App() {
           )}
 
           {/* TOOLBAR CONTROLS BAR: SEARCH, CONSOLE FILTER, SORTING */}
-          <div className="p-4 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 flex flex-col md:flex-row gap-3 items-center justify-between" id="controls-section">
-            
+          <div className="p-3 sm:p-4 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 flex flex-col md:flex-row gap-3 items-center justify-between" id="controls-section">
+
             {/* Search Input */}
             <div className="relative w-full md:w-80">
               <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
@@ -525,16 +824,18 @@ export default function App() {
             </div>
 
             {/* Filter & Sorting Controls */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-              
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
+
               {/* Console Filter */}
-              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
-                <Icons.MonitorPlay className="w-3.5 h-3.5 text-neutral-400" />
-                <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.consoleLabel}:</span>
+              <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <Icons.MonitorPlay className="w-3.5 h-3.5 text-neutral-400" />
+                  <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.consoleLabel}:</span>
+                </div>
                 <select
                   value={platformFilter}
                   onChange={(e) => setPlatformFilter(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-neutral-900 dark:text-white focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-bold text-neutral-900 dark:text-white focus:outline-none cursor-pointer max-w-[180px] truncate"
                   id="filter-platform"
                 >
                   <option value="All" className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">{t.allConsoles}</option>
@@ -547,9 +848,11 @@ export default function App() {
               </div>
 
               {/* Sorting */}
-              <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
-                <Icons.ArrowUpDown className="w-3.5 h-3.5 text-neutral-400" />
-                <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.sortByLabel}:</span>
+              <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <Icons.ArrowUpDown className="w-3.5 h-3.5 text-neutral-400" />
+                  <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.sortByLabel}:</span>
+                </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
@@ -569,7 +872,7 @@ export default function App() {
 
           {/* RESULTS GRID OR EMPTY STATE */}
           {filteredGames.length === 0 ? (
-            <div className="text-center py-20 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 p-8 space-y-4" id="empty-state-view">
+            <div className="text-center py-12 sm:py-20 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 p-4 sm:p-8 space-y-4" id="empty-state-view">
               <div className="w-16 h-16 bg-neutral-100 dark:bg-[#1b1b1f] rounded-none border border-neutral-200 dark:border-white/10 flex items-center justify-center mx-auto text-neutral-500">
                 <Icons.Gamepad2 size={36} />
               </div>
@@ -602,7 +905,7 @@ export default function App() {
           ) : (
             <motion.div
               layout
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4"
               id="games-grid"
             >
               <AnimatePresence mode="popLayout">

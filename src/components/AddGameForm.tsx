@@ -120,7 +120,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto py-8"
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto py-4 sm:py-8"
         id="add-game-modal-overlay"
       >
         <motion.div
@@ -131,7 +131,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
           id="add-game-modal-content"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
+          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-indigo-600 text-white rounded-none">
                 <Icons.PlusCircle className="w-5 h-5 stroke-[2.5]" />
@@ -154,7 +154,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[85vh] overflow-y-auto">
             {/* Quick IGDB Search Banner */}
             <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">

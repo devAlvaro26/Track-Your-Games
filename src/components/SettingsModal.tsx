@@ -47,7 +47,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
       id="settings-modal-backdrop"
     >
@@ -61,7 +61,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         id="settings-modal-card"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-600 text-white rounded-none">
               <Icons.Settings className="w-5 h-5 stroke-[2.5]" />
@@ -86,7 +86,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Username setting */}
           <div className="space-y-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-2">

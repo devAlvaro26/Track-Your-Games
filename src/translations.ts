@@ -291,6 +291,10 @@ export const translationTable = {
   },
 
   // --- CONTROLS & FILTERS ---
+  filterByStatus: {
+    es: "Filtrar por estado",
+    en: "Filter by status",
+  },
   searchPlaceholder: {
     es: "Buscar por título, género o código de barra...",
     en: "Search by title, genre, or barcode...",
