@@ -9,42 +9,42 @@
 
 ---
 
-## 📋 Overview
+## Overview
 
 **Track‑It** is a modern web application designed to organize, catalog, and track your personal video game collection. It features native integration with the **IGDB API v4**, optional cloud persistence via **Supabase**, a full vector branding catalog for over 60 video game consoles, detailed library analytics, and multi-language support (English and Spanish).
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-- 🎮 **Comprehensive Library Management**:
+- **Comprehensive Library Management**:
   - Categorize by play status: *Playing*, *Backlog / Wishlist*, *Completed*, and *Favorites*.
   - Detailed metadata tracking: platforms, genres, personal ratings (1-10 stars), hours played, acquisition date, personal notes, and interactive achievements/trophies list.
   - Barcode / EAN code entry field for physical games.
 
-- 🔍 **IGDB API v4 Search & Integration**:
+- **IGDB API v4 Search & Integration**:
   - Real-time video game search powered by a secure Express backend proxy.
   - Automatic import of high-resolution cover art (`t_cover_big_2x`), game summaries, release dates, and global IGDB community ratings.
 
-- 🎨 **Console Identity & Vector Branding**:
+- **Console Identity & Vector Branding**:
   - Extensive collection of vector logos and badges for over 60 gaming platforms and systems (PlayStation, Nintendo, Xbox, Sega, PC, Atari, Retro, and Arcade).
   - Categorized console picker featuring official manufacturer color schemes.
 
-- 💾 **Dual Storage (Cloud + Local Storage)**:
+- **Dual Storage (Cloud + Local Storage)**:
   - **Cloud Mode (Supabase)**: User authentication (sign up & sign in) with isolated user data using Row Level Security (RLS).
   - **Local / Guest Mode**: Instant out-of-the-box usage saving data locally via `localStorage` without requiring account creation.
 
-- 📊 **Library Analytics & Statistics**:
+- **Library Analytics & Statistics**:
   - Visual metrics for your game collection: total games tracked, total playtime, average user rating, breakdown by platform, top genres, and completion rate.
 
-- 🌐 **Multilingual Support & Customization**:
+- **Multilingual Support & Customization**:
   - Languages: English (`en`) and Spanish (`es`) with dynamic interface and genre translations.
   - Persistent Light and Dark mode.
   - Advanced filtering by console or status, instant search, and sorting by title, hours played, rating, or purchase date.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: React 19, TypeScript, Vite 8, Tailwind CSS v4, Motion (Framer Motion), Lucide React.
 - **Backend / API Proxy**: Express 5, Node.js
@@ -52,7 +52,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .
@@ -82,7 +82,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -124,7 +124,7 @@
    ```
 ---
 
-## 🗄️ Supabase Setup (Optional)
+## Supabase Setup (Optional)
 
 To enable cloud storage and user accounts:
 
@@ -135,6 +135,6 @@ To enable cloud storage and user accounts:
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
