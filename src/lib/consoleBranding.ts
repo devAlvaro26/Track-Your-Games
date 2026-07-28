@@ -61,7 +61,7 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     return {
       brandKey: "playstation",
       displayName: name,
-      bannerBg: "bg-gradient-to-r from-[#00439C] via-[#0052C2] to-[#002C68]",
+      bannerBg: name == "PS2" ? "bg-black" : "bg-gradient-to-r from-[#00439C] via-[#0052C2] to-[#002C68]",
       bannerTextColor: "text-white font-black",
       accentBorder: "border-[#00439C]/50",
       badgeBg: "bg-black/40",
