@@ -39,9 +39,16 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
 
   return (
     <motion.div
-      layoutId={`game-card-${game.id}`}
+      layout="position"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -6, scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 350, damping: 22 }}
+      transition={{
+        layout: { type: "spring", stiffness: 350, damping: 25 },
+        opacity: { duration: 0.2 },
+        scale: { duration: 0.2 },
+      }}
       onClick={onClick}
       className="group relative flex flex-col w-full rounded-none sm:rounded-sm overflow-hidden bg-white dark:bg-[#161618] border border-slate-300 dark:border-white/10 shadow-md hover:shadow-2xl hover:border-indigo-500 cursor-pointer transition-all select-none"
       id={`card-${game.id}`}

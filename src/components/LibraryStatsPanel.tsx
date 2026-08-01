@@ -11,8 +11,9 @@ interface LibraryStatsPanelProps {
 export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, language = "en" }) => {
   const t = getTranslation((language as Language) || "en");
 
-  // Compute stats on the fly
-  const totalGames = games.length;
+  // Compute stats on the fly (excluding wishlist games from library total)
+  const ownedGames = games.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar");
+  const totalGames = ownedGames.length;
   
   const completedGames = games.filter((g) => g.status === "Completado").length;
   const favoritesGames = games.filter((g) => g.status === "Favoritos").length;
@@ -20,13 +21,13 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   const pendingGames = games.filter((g) => g.status === "Pendiente").length;
   const wishlistGames = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
 
-  const totalHours = games.reduce((acc, g) => acc + (g.playTime || 0), 0);
+  const totalHours = ownedGames.reduce((acc, g) => acc + (g.playTime || 0), 0);
 
-  // Achievements totals
+  // Achievements totals for library games
   let totalAchievementsCount = 0;
   let unlockedAchievementsCount = 0;
 
-  games.forEach((g) => {
+  ownedGames.forEach((g) => {
     totalAchievementsCount += g.achievements.length;
     unlockedAchievementsCount += g.achievements.filter((a) => a.unlocked).length;
   });

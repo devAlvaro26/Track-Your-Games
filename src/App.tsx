@@ -240,7 +240,7 @@ export default function App() {
   const selectedGame = games.find((g) => g.id === selectedGameId);
 
   // Counts for each collection category
-  const countAll = games.length;
+  const countAll = games.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar").length;
   const countPlaying = games.filter((g) => g.status === "Jugando").length;
   const countPending = games.filter((g) => g.status === "Pendiente").length;
   const countWishlist = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
@@ -258,10 +258,11 @@ export default function App() {
         game.barcode.includes(query);
 
       const matchesStatus =
-        statusFilter === "All" ||
-        game.status === statusFilter ||
-        (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
-        (statusFilter === "Quiero Jugar" && game.status === "Deseados");
+        statusFilter === "All"
+          ? (game.status !== "Deseados" && game.status !== "Quiero Jugar")
+          : game.status === statusFilter ||
+            (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
+            (statusFilter === "Quiero Jugar" && game.status === "Deseados");
       const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
 
       return matchesSearch && matchesStatus && matchesPlatform;
@@ -877,55 +878,69 @@ export default function App() {
           </div>
 
           {/* RESULTS GRID OR EMPTY STATE */}
-          {filteredGames.length === 0 ? (
-            <div className="text-center py-12 sm:py-20 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 p-4 sm:p-8 space-y-4" id="empty-state-view">
-              <div className="w-16 h-16 bg-neutral-100 dark:bg-[#1b1b1f] rounded-none border border-neutral-200 dark:border-white/10 flex items-center justify-center mx-auto text-neutral-500">
-                <Icons.Gamepad2 size={36} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-900 dark:text-white">{t.noGamesMatch}</h3>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
-                  {t.noGamesMatchDesc}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("All");
-                    setPlatformFilter("All");
-                    setSortBy("acquisitionDate");
-                  }}
-                  className="text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-none hover:bg-indigo-500/10 transition-all cursor-pointer"
-                >
-                  {t.resetFilters}
-                </button>
-                <button
-                  onClick={() => setIsAddOpen(true)}
-                  className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow"
-                >
-                  + {t.addGame}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4"
-              id="games-grid"
-            >
-              <AnimatePresence mode="popLayout">
-                {filteredGames.map((game) => (
-                  <GameCard
-                    key={game.id}
-                    game={game}
-                    language={settings.language}
-                    onClick={() => setSelectedGameId(game.id)}
-                  />
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          )}
+          <AnimatePresence mode="wait">
+            {filteredGames.length === 0 ? (
+              <motion.div
+                key={`empty-${statusFilter}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="text-center py-12 sm:py-20 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 p-4 sm:p-8 space-y-4"
+                id="empty-state-view"
+              >
+                <div className="w-16 h-16 bg-neutral-100 dark:bg-[#1b1b1f] rounded-none border border-neutral-200 dark:border-white/10 flex items-center justify-center mx-auto text-neutral-500">
+                  <Icons.Gamepad2 size={36} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">{t.noGamesMatch}</h3>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
+                    {t.noGamesMatchDesc}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("All");
+                      setPlatformFilter("All");
+                      setSortBy("acquisitionDate");
+                    }}
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-none hover:bg-indigo-500/10 transition-all cursor-pointer"
+                  >
+                    {t.resetFilters}
+                  </button>
+                  <button
+                    onClick={() => setIsAddOpen(true)}
+                    className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow"
+                  >
+                    + {t.addGame}
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`grid-${statusFilter}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4"
+                id="games-grid"
+              >
+                <AnimatePresence mode="popLayout">
+                  {filteredGames.map((game) => (
+                    <GameCard
+                      key={game.id}
+                      game={game}
+                      language={settings.language}
+                      onClick={() => setSelectedGameId(game.id)}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         </div>
 
