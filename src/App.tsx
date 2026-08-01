@@ -261,8 +261,8 @@ export default function App() {
         statusFilter === "All"
           ? (game.status !== "Deseados" && game.status !== "Quiero Jugar")
           : game.status === statusFilter ||
-            (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
-            (statusFilter === "Quiero Jugar" && game.status === "Deseados");
+          (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
+          (statusFilter === "Quiero Jugar" && game.status === "Deseados");
       const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
 
       return matchesSearch && matchesStatus && matchesPlatform;
@@ -297,7 +297,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row select-none" id="app-root">
+    <div className="h-screen w-full bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row overflow-hidden select-none" id="app-root">
 
       {/* MOBILE TOP NAVIGATION BAR (Visible only on mobile < md) */}
       <header className="md:hidden bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm" id="mobile-top-bar">
@@ -518,10 +518,10 @@ export default function App() {
       </AnimatePresence>
 
       {/* DESKTOP SIDEBAR (Visible only on desktop md+) */}
-      <aside className="hidden md:flex md:w-64 bg-white dark:bg-[#141417] border-r border-neutral-300 dark:border-white/10 flex-col justify-between shrink-0 p-4 space-y-6" id="launcher-sidebar">
+      <aside className="hidden md:flex md:w-64 h-full bg-white dark:bg-[#141417] border-r border-neutral-300 dark:border-white/10 flex-col justify-between shrink-0 p-4 space-y-6 overflow-hidden" id="launcher-sidebar">
 
         {/* Top Branding & User Profile */}
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1 overflow-y-auto min-h-0 pr-1">
           <div className="flex items-center gap-3 pb-4 border-b border-neutral-200 dark:border-white/10">
             <div className="p-2.5 bg-indigo-600 rounded-none text-white shadow-md flex items-center justify-center font-black">
               <Icons.Library className="w-5 h-5" />
@@ -598,7 +598,7 @@ export default function App() {
         </div>
 
         {/* Bottom Sidebar Action Controls */}
-        <div className="pt-4 border-t border-neutral-200 dark:border-white/10 space-y-2">
+        <div className="pt-4 border-t border-neutral-200 dark:border-white/10 space-y-2 shrink-0">
 
           {/* Add Game Button */}
           <button
@@ -657,10 +657,10 @@ export default function App() {
       </aside>
 
       {/* RIGHT MAIN LAUNCHER CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-w-0 bg-neutral-100 dark:bg-[#0d0d0f]" id="app-main-content">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-neutral-100 dark:bg-[#0d0d0f]" id="app-main-content">
 
         {/* TOP LAUNCHER HEADER BAR */}
-        <header className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-3 sm:px-6 py-2.5 sm:py-4 flex flex-row items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30" id="main-header">
+        <header className="bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-3 sm:px-6 py-2.5 sm:py-4 flex flex-row items-center justify-between gap-3 sm:gap-4 shrink-0 z-30" id="main-header">
 
           {/* DESKTOP Collection Tab Selector Bar (Visible md+) */}
           <div className="hidden md:flex items-center gap-1.5 overflow-x-auto w-auto pb-0 scrollbar-none" id="collection-tabs-bar-desktop">
@@ -785,7 +785,7 @@ export default function App() {
         </header>
 
         {/* MAIN BODY CONTENT */}
-        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 flex-1 overflow-y-auto">
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 flex-1 overflow-y-auto min-h-0">
 
           {/* Sync indicator */}
           {syncLoading && (
@@ -944,8 +944,8 @@ export default function App() {
 
         </div>
 
-        {/* FOOTER */}
-        <footer className="border-t border-neutral-200 dark:border-white/10 bg-white dark:bg-[#141417] py-4 px-6 text-center text-[11px] text-neutral-600 dark:text-neutral-500 mt-auto" id="app-footer">
+        {/* FOOTER (Always fixed at bottom of main section) */}
+        <footer className="shrink-0 border-t border-neutral-200 dark:border-white/10 bg-white dark:bg-[#141417] py-2.5 px-6 text-center text-[11px] text-neutral-600 dark:text-neutral-500 z-20" id="app-footer">
           <p>© {new Date().getFullYear()} {t.appTitle} • {user ? t.cloudSynced : t.localStorageNotice}</p>
         </footer>
 
