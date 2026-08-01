@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Game, Achievement, GameStatus, Language, IgdbSearchResult } from "../types";
 import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
@@ -34,6 +34,27 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   const [isEditing, setIsEditing] = useState(false);
   const [showIgdbModal, setShowIgdbModal] = useState(false);
   const [editImportNotice, setEditImportNotice] = useState("");
+  const [isImageEnlarged, setIsImageEnlarged] = useState(false);
+
+  // Close enlarged image on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isImageEnlarged) {
+        setIsImageEnlarged(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isImageEnlarged]);
+
+  // Convert IGDB image URLs to high-res 1080p quality for lightboxes
+  const getHighResCoverUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    if (url.includes("images.igdb.com")) {
+      return url.replace(/t_(cover_big|thumb|crop_3d|cover_small|logo_med|micro|screenshot_med|cover_big_2x)/g, "t_1080p");
+    }
+    return url;
+  };
 
   const [editTitle, setEditTitle] = useState(game.title);
   const [editDescription, setEditDescription] = useState(game.description);
@@ -128,7 +149,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
     const cleanCode = code.replace(/[^0-9]/g, "") || "0000000000000";
     const bars: boolean[] = [];
     bars.push(true, false, true);
-    
+
     for (let i = 0; i < cleanCode.length; i++) {
       const digit = parseInt(cleanCode[i] || "0");
       const pattern = [
@@ -143,7 +164,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
         [false, false, true, true, true],
         [true, true, true, false, false],
       ][digit % 10];
-      
+
       bars.push(...pattern);
       if (i === 5) {
         bars.push(false, true, false, true, false);
@@ -196,14 +217,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
       )}
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm overflow-hidden" id="detail-modal-container">
-        
+
         {/* Container */}
         <motion.div
           layoutId={`game-card-${game.id}`}
           className={`relative w-full ${isEditing ? "max-w-3xl" : "max-w-4xl"} bg-white dark:bg-[#141417] text-neutral-900 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 shadow-2xl overflow-hidden max-h-[95vh] flex flex-col my-auto`}
           id="detail-modal"
         >
-          
+
           {/* Close Button - View mode only */}
           {!isEditing && (
             <button
@@ -220,7 +241,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
             {!isEditing ? (
               /* ================= VIEW MODE ================= */
               <div className="flex flex-col md:flex-row h-full overflow-y-auto max-h-[95vh]">
-                
+
                 {/* Left Pane: Interactive Cover & Barcode Side */}
                 <div
                   className="w-full md:w-1/3 p-4 sm:p-6 flex flex-col justify-between text-white relative min-h-[300px] sm:min-h-[400px] overflow-hidden shrink-0"
@@ -283,24 +304,43 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   {/* Cover Display */}
                   <div className="z-10 flex flex-col items-center justify-center my-6">
                     {game.coverImage ? (
-                      <div className="relative group w-36 h-48 rounded-none overflow-hidden shadow-2xl border-2 border-white/20 my-2">
+                      <div
+                        onClick={() => setIsImageEnlarged(true)}
+                        className="relative group w-36 h-48 rounded-none overflow-hidden shadow-2xl border-2 border-white/20 my-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:border-indigo-400 hover:shadow-indigo-500/20"
+                        id="btn-enlarge-cover-image"
+                      >
                         <img
                           src={game.coverImage}
                           alt={game.title}
-                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           referrerPolicy="no-referrer"
                         />
+                        {/* Hover Overlay with Zoom Icon */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white gap-1.5 backdrop-blur-[2px] p-2 text-center">
+                          <Icons.Maximize2 className="w-6 h-6 stroke-[2.5] text-indigo-300 drop-shadow-md animate-pulse" />
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-black/70 rounded-none border border-white/20 text-white/90">
+                          </span>
+                        </div>
                       </div>
                     ) : (
-                      <div className="p-6 rounded-none bg-white/15 backdrop-blur-md border border-white/20 shadow-xl mb-4">
-                        <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]" size={56} />
+                      <div
+                        onClick={() => setIsImageEnlarged(true)}
+                        className="relative group p-6 rounded-none bg-white/15 backdrop-blur-md border border-white/20 shadow-xl mb-4 cursor-pointer hover:bg-white/25 transition-all duration-300 hover:scale-105"
+                        id="btn-enlarge-cover-symbol"
+                      >
+                        <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)] transition-transform duration-300 group-hover:scale-110" size={56} />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white gap-1 p-2 text-center rounded-none backdrop-blur-[2px]">
+                          <Icons.Maximize2 className="w-5 h-5 stroke-[2.5] text-indigo-300" />
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider">
+                          </span>
+                        </div>
                       </div>
                     )}
 
                     <h1 className="text-2xl font-black text-center tracking-tight leading-tight px-2 text-white mt-2">
                       {game.title}
                     </h1>
-                    
+
                     <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
                       <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
                         {translateGenre(game.genre, language)}
@@ -362,7 +402,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
 
                 {/* Right Pane: Detailed Logs, Achievements checklist, Ratings */}
                 <div className="flex-1 p-4 sm:p-8 bg-neutral-50 dark:bg-[#121212] space-y-4 sm:space-y-6 overflow-y-auto max-h-[750px]">
-                  
+
                   {/* Meta Summary Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4" id="stats-summary-row">
                     <div className="bg-white dark:bg-[#1b1b1f] p-3.5 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
@@ -464,11 +504,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           <div
                             key={ach.id}
                             onClick={() => handleToggleAchievement(ach.id)}
-                            className={`p-3.5 rounded-none border transition-all cursor-pointer flex gap-3 items-start select-none ${
-                              ach.unlocked
+                            className={`p-3.5 rounded-none border transition-all cursor-pointer flex gap-3 items-start select-none ${ach.unlocked
                                 ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
                                 : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
-                            }`}
+                              }`}
                           >
                             <div className="mt-0.5">
                               {ach.unlocked ? (
@@ -484,13 +523,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 <h4 className={`text-xs font-bold truncate ${ach.unlocked ? "text-indigo-900 dark:text-indigo-300" : "text-neutral-800 dark:text-neutral-200"}`}>
                                   {ach.name}
                                 </h4>
-                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none ${
-                                  ach.difficulty === "Fácil" 
-                                    ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40" 
-                                    : ach.difficulty === "Medio" 
-                                    ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40" 
-                                    : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
-                                }`}>
+                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none ${ach.difficulty === "Fácil"
+                                    ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40"
+                                    : ach.difficulty === "Medio"
+                                      ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40"
+                                      : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
+                                  }`}>
                                   {ach.difficulty === "Fácil" ? t.difficultyEasy : ach.difficulty === "Medio" ? t.difficultyMedium : t.difficultyHard}
                                 </span>
                               </div>
@@ -749,9 +787,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 key={color}
                                 type="button"
                                 onClick={() => setEditCoverColor(color)}
-                                className={`w-6 h-6 rounded-none transition-transform cursor-pointer ${
-                                  editCoverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
-                                }`}
+                                className={`w-6 h-6 rounded-none transition-transform cursor-pointer ${editCoverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
+                                  }`}
                                 style={{ backgroundColor: color }}
                               />
                             ))}
@@ -769,11 +806,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 key={sym.id}
                                 type="button"
                                 onClick={() => setEditCoverSymbol(sym.icon)}
-                                className={`p-1.5 rounded-none border transition-all cursor-pointer ${
-                                  editCoverSymbol === sym.icon
+                                className={`p-1.5 rounded-none border transition-all cursor-pointer ${editCoverSymbol === sym.icon
                                     ? "bg-indigo-600 text-white border-indigo-600"
                                     : "bg-white dark:bg-[#121212] border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
-                                }`}
+                                  }`}
                                 title={translateSymbolLabel(sym.id, language)}
                               >
                                 <GameIcon name={sym.icon} size={16} />
@@ -875,6 +911,99 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
           onSelectGame={handleSelectIgdbGame}
         />
       )}
+
+      {/* FULL-SIZE IMAGE LIGHTBOX OVERLAY */}
+      <AnimatePresence>
+        {isImageEnlarged && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-8 select-none overflow-hidden"
+            onClick={() => setIsImageEnlarged(false)}
+            id="enlarged-image-lightbox"
+          >
+            {/* Header / Top Control Bar */}
+            <div
+              className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-auto max-w-7xl mx-auto w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 bg-black/70 backdrop-blur-md px-4 py-2 rounded-none border border-white/20 shadow-lg">
+                <Icons.Maximize2 className="w-4 h-4 text-indigo-400" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-white leading-none">{game.title}</span>
+                  <span className="text-[10px] text-white/60 uppercase tracking-wider font-mono mt-0.5">
+                    {t.enlargedImageTitle || "Imagen en tamaño completo"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {game.coverImage && (
+                  <a
+                    href={game.coverImage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 text-white/80 hover:text-white bg-black/70 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-lg"
+                    title={t.openOriginalImage || "Abrir imagen original"}
+                  >
+                    <Icons.ExternalLink className="w-4 h-4 text-indigo-300" />
+                    <span className="hidden sm:inline">{t.openOriginalImage || "Abrir original"}</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setIsImageEnlarged(false)}
+                  className="p-2.5 text-white/80 hover:text-white bg-black/70 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer shadow-lg"
+                  title={t.close || "Cerrar"}
+                  id="close-enlarged-image"
+                >
+                  <Icons.X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Central Image Container */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="relative max-w-full max-h-[82vh] flex items-center justify-center my-auto pointer-events-auto p-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {game.coverImage ? (
+                <img
+                  src={getHighResCoverUrl(game.coverImage)}
+                  alt={game.title}
+                  onError={(e) => {
+                    // Fallback to original image URL if high-res 1080p fails
+                    const target = e.target as HTMLImageElement;
+                    if (game.coverImage && target.src !== game.coverImage) {
+                      target.src = game.coverImage;
+                    }
+                  }}
+                  className="max-h-[78vh] max-w-[90vw] object-contain rounded-none border-2 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div
+                  className="p-12 sm:p-16 rounded-none flex flex-col items-center justify-center border-2 border-white/20 shadow-2xl min-w-[280px]"
+                  style={{ backgroundColor: game.coverColor || "#171717" }}
+                >
+                  <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_16px_rgba(255,255,255,0.4)] mb-4" size={110} />
+                  <h2 className="text-2xl font-black text-white text-center tracking-tight">{game.title}</h2>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Bottom Keyboard Hint */}
+            <div className="absolute bottom-4 text-[11px] font-mono text-white/60 bg-black/60 backdrop-blur-md px-3.5 py-1.5 border border-white/15 rounded-none pointer-events-none shadow-md">
+              {t.pressEscToClose || "Presiona ESC o haz clic en cualquier lugar para cerrar"}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -599,6 +599,18 @@ export const translationTable = {
     es: "Vista previa de la portada",
     en: "Cover preview",
   },
+  enlargedImageTitle: {
+    es: "Imagen en tamaño completo",
+    en: "Full size image",
+  },
+  openOriginalImage: {
+    es: "Abrir imagen original",
+    en: "Open original image",
+  },
+  pressEscToClose: {
+    es: "Presiona ESC o haz clic en cualquier lugar para cerrar",
+    en: "Press ESC or click anywhere to close",
+  },
   gameTitleDefault: {
     es: "Título del juego",
     en: "Game title",
