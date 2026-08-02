@@ -79,18 +79,23 @@ export function formatGameForDb(game: Game, userId: string): any {
 export async function fetchUserGamesFromDb(userId: string): Promise<Game[]> {
   if (!db) return [];
 
-  const { data, error } = await db
-    .from("games")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  try {
+    const { data, error } = await db
+      .from("games")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching games from database:", error.message);
-    throw new Error(error.message);
+    if (error) {
+      console.warn("Error fetching games from database:", error.message);
+      return [];
+    }
+
+    return (data || []).map(formatGameFromDb);
+  } catch (err: any) {
+    console.warn("Network error fetching games from database:", err?.message || err);
+    return [];
   }
-
-  return (data || []).map(formatGameFromDb);
 }
 
 /**
@@ -99,14 +104,17 @@ export async function fetchUserGamesFromDb(userId: string): Promise<Game[]> {
 export async function saveGameToDb(game: Game, userId: string): Promise<void> {
   if (!db) return;
 
-  const payload = formatGameForDb(game, userId);
-  const { error } = await db
-    .from("games")
-    .upsert(payload, { onConflict: "id" });
+  try {
+    const payload = formatGameForDb(game, userId);
+    const { error } = await db
+      .from("games")
+      .upsert(payload, { onConflict: "id" });
 
-  if (error) {
-    console.error("Error saving game to database:", error.message);
-    throw new Error(error.message);
+    if (error) {
+      console.warn("Error saving game to database:", error.message);
+    }
+  } catch (err: any) {
+    console.warn("Network error saving game to database:", err?.message || err);
   }
 }
 
@@ -116,15 +124,18 @@ export async function saveGameToDb(game: Game, userId: string): Promise<void> {
 export async function deleteGameFromDb(gameId: string, userId: string): Promise<void> {
   if (!db) return;
 
-  const { error } = await db
-    .from("games")
-    .delete()
-    .eq("id", gameId)
-    .eq("user_id", userId);
+  try {
+    const { error } = await db
+      .from("games")
+      .delete()
+      .eq("id", gameId)
+      .eq("user_id", userId);
 
-  if (error) {
-    console.error("Error deleting game from database:", error.message);
-    throw new Error(error.message);
+    if (error) {
+      console.warn("Error deleting game from database:", error.message);
+    }
+  } catch (err: any) {
+    console.warn("Network error deleting game from database:", err?.message || err);
   }
 }
 
@@ -134,18 +145,23 @@ export async function deleteGameFromDb(gameId: string, userId: string): Promise<
 export async function fetchUserProfile(userId: string): Promise<{ username?: string; language?: string; theme?: string; avatar_url?: string } | null> {
   if (!db) return null;
 
-  const { data, error } = await db
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  try {
+    const { data, error } = await db
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  if (error) {
-    console.warn("Could not fetch user profile:", error.message);
+    if (error) {
+      console.warn("Could not fetch user profile:", error.message);
+      return null;
+    }
+
+    return data;
+  } catch (err: any) {
+    console.warn("Network error fetching user profile:", err?.message || err);
     return null;
   }
-
-  return data;
 }
 
 /**
@@ -154,20 +170,24 @@ export async function fetchUserProfile(userId: string): Promise<{ username?: str
 export async function saveUserProfile(userId: string, settings: Partial<AppSettings>): Promise<void> {
   if (!db) return;
 
-  const payload: any = {
-    id: userId,
-    updated_at: new Date().toISOString(),
-  };
-  if (settings.username) payload.username = settings.username;
-  if (settings.language) payload.language = settings.language;
-  if (settings.theme) payload.theme = settings.theme;
-  if (settings.avatarUrl !== undefined) payload.avatar_url = settings.avatarUrl;
+  try {
+    const payload: any = {
+      id: userId,
+      updated_at: new Date().toISOString(),
+    };
+    if (settings.username) payload.username = settings.username;
+    if (settings.language) payload.language = settings.language;
+    if (settings.theme) payload.theme = settings.theme;
+    if (settings.avatarUrl !== undefined) payload.avatar_url = settings.avatarUrl;
 
-  const { error } = await db
-    .from("profiles")
-    .upsert(payload, { onConflict: "id" });
+    const { error } = await db
+      .from("profiles")
+      .upsert(payload, { onConflict: "id" });
 
-  if (error) {
-    console.error("Error saving user profile to database:", error.message);
+    if (error) {
+      console.warn("Error saving user profile to database:", error.message);
+    }
+  } catch (err: any) {
+    console.warn("Network error saving user profile to database:", err?.message || err);
   }
 }

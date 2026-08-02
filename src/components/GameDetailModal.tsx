@@ -944,45 +944,49 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-8 select-none overflow-hidden"
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl p-2 sm:p-6 select-none overflow-hidden"
             onClick={() => setIsImageEnlarged(false)}
             id="enlarged-image-lightbox"
           >
             {/* Header / Top Control Bar */}
             <div
-              className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-auto max-w-7xl mx-auto w-full"
+              className="fixed top-2 sm:top-4 inset-x-2 sm:inset-x-4 flex items-center justify-between gap-2 z-10 pointer-events-auto max-w-7xl mx-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 bg-black/70 backdrop-blur-md px-4 py-2 rounded-none border border-white/20 shadow-lg">
-                <Icons.Maximize2 className="w-4 h-4 text-indigo-400" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-white leading-none">{game.title}</span>
-                  <span className="text-[10px] text-white/60 uppercase tracking-wider font-mono mt-0.5">
+              {/* Left Title Box with proper min-w-0 and truncation for mobile */}
+              <div className="flex items-center gap-2 sm:gap-3 bg-black/80 backdrop-blur-md px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-none border border-white/20 shadow-lg min-w-0 flex-1 max-w-[calc(100%-88px)] sm:max-w-xl">
+                <Icons.Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400 shrink-0" />
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-xs sm:text-sm font-bold text-white leading-tight truncate block max-w-full">
+                    {game.title}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] text-white/60 uppercase tracking-wider font-mono mt-0.5 truncate hidden xs:block">
                     {t.enlargedImageTitle || "Imagen en tamaño completo"}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Right Action Buttons */}
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 {game.coverImage && (
                   <a
                     href={game.coverImage}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2.5 text-white/80 hover:text-white bg-black/70 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-lg"
+                    className="p-2 sm:p-2.5 text-white/80 hover:text-white bg-black/80 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-lg shrink-0"
                     title={t.openOriginalImage || "Abrir imagen original"}
                   >
-                    <Icons.ExternalLink className="w-4 h-4 text-indigo-300" />
+                    <Icons.ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
                     <span className="hidden sm:inline">{t.openOriginalImage || "Abrir original"}</span>
                   </a>
                 )}
                 <button
                   onClick={() => setIsImageEnlarged(false)}
-                  className="p-2.5 text-white/80 hover:text-white bg-black/70 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer shadow-lg"
+                  className="p-2 sm:p-2.5 text-white/80 hover:text-white bg-black/80 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer shadow-lg shrink-0"
                   title={t.close || "Cerrar"}
                   id="close-enlarged-image"
                 >
-                  <Icons.X className="w-5 h-5" />
+                  <Icons.X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
@@ -993,7 +997,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative max-w-full max-h-[82vh] flex items-center justify-center my-auto pointer-events-auto p-2"
+              className="relative max-w-full max-h-[72vh] sm:max-h-[80vh] flex items-center justify-center my-auto pointer-events-auto p-1 sm:p-2 mt-12 sm:mt-16 mb-10 sm:mb-8"
               onClick={(e) => e.stopPropagation()}
             >
               {game.coverImage ? (
@@ -1007,22 +1011,22 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       target.src = game.coverImage;
                     }
                   }}
-                  className="max-h-[78vh] max-w-[90vw] object-contain rounded-none border-2 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+                  className="max-h-[66vh] sm:max-h-[78vh] max-w-[92vw] sm:max-w-[90vw] object-contain rounded-none border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
                   referrerPolicy="no-referrer"
                 />
               ) : (
                 <div
-                  className="p-12 sm:p-16 rounded-none flex flex-col items-center justify-center border-2 border-white/20 shadow-2xl min-w-[280px]"
+                  className="p-6 sm:p-16 rounded-none flex flex-col items-center justify-center border border-white/20 shadow-2xl min-w-[220px] sm:min-w-[280px] max-w-[90vw]"
                   style={{ backgroundColor: game.coverColor || "#171717" }}
                 >
-                  <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_16px_rgba(255,255,255,0.4)] mb-4" size={110} />
-                  <h2 className="text-2xl font-black text-white text-center tracking-tight">{game.title}</h2>
+                  <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_16px_rgba(255,255,255,0.4)] mb-3 sm:mb-4" size={60} />
+                  <h2 className="text-base sm:text-2xl font-black text-white text-center tracking-tight truncate max-w-full px-2">{game.title}</h2>
                 </div>
               )}
             </motion.div>
 
             {/* Bottom Keyboard Hint */}
-            <div className="absolute bottom-4 text-[11px] font-mono text-white/60 bg-black/60 backdrop-blur-md px-3.5 py-1.5 border border-white/15 rounded-none pointer-events-none shadow-md">
+            <div className="absolute bottom-2 sm:bottom-4 text-[9px] sm:text-[11px] font-mono text-white/70 bg-black/80 backdrop-blur-md px-2.5 py-1 sm:px-3.5 sm:py-1.5 border border-white/15 rounded-none pointer-events-none shadow-md max-w-[90vw] truncate text-center">
               {t.pressEscToClose || "Presiona ESC o haz clic en cualquier lugar para cerrar"}
             </div>
           </motion.div>

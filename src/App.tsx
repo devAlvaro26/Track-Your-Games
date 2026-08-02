@@ -106,14 +106,17 @@ export default function App() {
       return;
     }
 
-    db.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user || null;
+    db.auth.getSession().then(({ data }) => {
+      const currentUser = data?.session?.user || null;
       setUser(currentUser);
       if (currentUser) {
         loadUserData(currentUser.id, currentUser.user_metadata?.username);
       } else {
         setAuthLoading(false);
       }
+    }).catch((err) => {
+      console.warn("Could not check auth session from database:", err?.message || err);
+      setAuthLoading(false);
     });
 
     const { data: authListener } = db.auth.onAuthStateChange(async (event, session) => {
@@ -138,7 +141,9 @@ export default function App() {
     setSyncLoading(true);
     try {
       const userGames = await fetchUserGamesFromDb(userId);
-      setGames(userGames);
+      if (userGames.length > 0) {
+        setGames(userGames);
+      }
 
       const profile = await fetchUserProfile(userId);
       if (profile) {
@@ -152,8 +157,8 @@ export default function App() {
       } else if (defaultUsername) {
         setSettings((prev) => ({ ...prev, username: defaultUsername }));
       }
-    } catch (err) {
-      console.error("Error loading user data from database:", err);
+    } catch (err: any) {
+      console.warn("Could not load user data from database:", err?.message || err);
     } finally {
       setSyncLoading(false);
       setAuthLoading(false);
