@@ -19,6 +19,7 @@ const COLOR_PRESETS = [
   "#4F46E5", // Indigo
   "#0284C7", // Sky
   "#059669", // Emerald
+  "#EAB308", // Yellow
   "#D97706", // Amber
   "#E11D48", // Rose
   "#7C3AED", // Violet
@@ -500,8 +501,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             key={ach.id}
                             onClick={() => handleToggleAchievement(ach.id)}
                             className={`p-3.5 rounded-none border transition-all cursor-pointer flex gap-3 items-start select-none ${ach.unlocked
-                                ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
-                                : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
+                              ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
+                              : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                               }`}
                           >
                             <div className="mt-0.5">
@@ -519,10 +520,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                   {ach.name}
                                 </h4>
                                 <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none ${ach.difficulty === "Fácil"
-                                    ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40"
-                                    : ach.difficulty === "Medio"
-                                      ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40"
-                                      : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
+                                  ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40"
+                                  : ach.difficulty === "Medio"
+                                    ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40"
+                                    : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
                                   }`}>
                                   {ach.difficulty === "Fácil" ? t.difficultyEasy : ach.difficulty === "Medio" ? t.difficultyMedium : t.difficultyHard}
                                 </span>
@@ -776,17 +777,45 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           <label className="text-[11px] font-semibold text-neutral-500 dark:text-gray-400 block mb-1">
                             {t.coverColorLabel || "Color de Portada"}
                           </label>
-                          <div className="flex flex-wrap items-center gap-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             {COLOR_PRESETS.map((color) => (
                               <button
                                 key={color}
                                 type="button"
                                 onClick={() => setEditCoverColor(color)}
-                                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-none transition-transform cursor-pointer ${editCoverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
+                                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-none transition-transform cursor-pointer border border-black/10 ${editCoverColor.toLowerCase() === color.toLowerCase() ? "ring-2 ring-indigo-500 scale-110 z-10" : ""
                                   }`}
                                 style={{ backgroundColor: color }}
+                                title={color}
                               />
                             ))}
+
+                            {/* Custom color picker button */}
+                            <label
+                              className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-none transition-transform cursor-pointer border border-dashed border-neutral-400 dark:border-white/30 flex items-center justify-center bg-white dark:bg-[#121212] hover:border-indigo-500 ${!COLOR_PRESETS.some((c) => c.toLowerCase() === editCoverColor.toLowerCase())
+                                  ? "ring-2 ring-indigo-500 scale-110 z-10 border-solid"
+                                  : ""
+                                }`}
+                              style={{
+                                backgroundColor: !COLOR_PRESETS.some((c) => c.toLowerCase() === editCoverColor.toLowerCase())
+                                  ? editCoverColor
+                                  : undefined,
+                              }}
+                              title={t.customColor || "Personalizar color"}
+                            >
+                              <input
+                                type="color"
+                                value={editCoverColor.startsWith("#") && editCoverColor.length === 7 ? editCoverColor : "#EAB308"}
+                                onChange={(e) => setEditCoverColor(e.target.value)}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              />
+                              <Icons.Pipette
+                                className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${!COLOR_PRESETS.some((c) => c.toLowerCase() === editCoverColor.toLowerCase())
+                                    ? "text-white drop-shadow"
+                                    : "text-neutral-600 dark:text-neutral-300"
+                                  }`}
+                              />
+                            </label>
                           </div>
                         </div>
 
@@ -802,8 +831,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 type="button"
                                 onClick={() => setEditCoverSymbol(sym.icon)}
                                 className={`p-1.5 rounded-none border transition-all cursor-pointer ${editCoverSymbol === sym.icon
-                                    ? "bg-indigo-600 text-white border-indigo-600"
-                                    : "bg-white dark:bg-[#121212] border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
+                                  ? "bg-indigo-600 text-white border-indigo-600"
+                                  : "bg-white dark:bg-[#121212] border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
                                   }`}
                                 title={translateSymbolLabel(sym.id, language)}
                               >

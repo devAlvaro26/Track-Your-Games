@@ -17,6 +17,7 @@ const COLOR_PRESETS = [
   "#4F46E5", // Indigo
   "#0284C7", // Sky
   "#059669", // Emerald
+  "#EAB308", // Yellow
   "#D97706", // Amber
   "#E11D48", // Rose
   "#7C3AED", // Violet
@@ -347,7 +348,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   {/* Fallback color picker */}
                   <div>
                     <label className="text-[11px] font-semibold text-neutral-500 dark:text-gray-400 block mb-1">
-                      {t.coverColorLabel || "Cover Color (Fallback)"}
+                      {t.coverColorLabel || "Cover Color"}
                     </label>
                     <div className="flex flex-wrap items-center gap-1.5">
                       {COLOR_PRESETS.map((color) => (
@@ -355,12 +356,39 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                           key={color}
                           type="button"
                           onClick={() => setCoverColor(color)}
-                          className={`w-6 h-6 rounded-none transition-transform cursor-pointer ${
-                            coverColor === color ? "ring-2 ring-indigo-500 scale-110" : ""
-                          }`}
+                          className={`w-6 h-6 rounded-none transition-transform cursor-pointer border border-black/10 ${coverColor.toLowerCase() === color.toLowerCase() ? "ring-2 ring-indigo-500 scale-110 z-10" : ""
+                            }`}
                           style={{ backgroundColor: color }}
+                          title={color}
                         />
                       ))}
+
+                      {/* Custom color picker button */}
+                      <label
+                        className={`relative w-6 h-6 rounded-none transition-transform cursor-pointer border border-dashed border-neutral-400 dark:border-white/30 flex items-center justify-center bg-white dark:bg-[#121212] hover:border-indigo-500 ${!COLOR_PRESETS.some((c) => c.toLowerCase() === coverColor.toLowerCase())
+                            ? "ring-2 ring-indigo-500 scale-110 z-10 border-solid"
+                            : ""
+                          }`}
+                        style={{
+                          backgroundColor: !COLOR_PRESETS.some((c) => c.toLowerCase() === coverColor.toLowerCase())
+                            ? coverColor
+                            : undefined,
+                        }}
+                        title={t.customColor || "Personalizar color"}
+                      >
+                        <input
+                          type="color"
+                          value={coverColor.startsWith("#") && coverColor.length === 7 ? coverColor : "#EAB308"}
+                          onChange={(e) => setCoverColor(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <Icons.Pipette
+                          className={`w-3.5 h-3.5 ${!COLOR_PRESETS.some((c) => c.toLowerCase() === coverColor.toLowerCase())
+                              ? "text-white drop-shadow"
+                              : "text-neutral-600 dark:text-neutral-300"
+                            }`}
+                        />
+                      </label>
                     </div>
                   </div>
 
@@ -375,11 +403,10 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                           key={sym.id}
                           type="button"
                           onClick={() => setCoverSymbol(sym.icon)}
-                          className={`p-1.5 rounded-none border transition-all cursor-pointer ${
-                            coverSymbol === sym.icon
+                          className={`p-1.5 rounded-none border transition-all cursor-pointer ${coverSymbol === sym.icon
                               ? "bg-indigo-600 text-white border-indigo-600"
                               : "bg-white dark:bg-[#121212] border-neutral-300 dark:border-white/10 text-neutral-600 dark:text-gray-300 hover:border-indigo-500"
-                          }`}
+                            }`}
                           title={translateSymbolLabel(sym.id, language)}
                         >
                           <GameIcon name={sym.icon} size={16} />

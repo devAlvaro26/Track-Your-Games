@@ -479,6 +479,10 @@ export const translationTable = {
     es: "Color de Portada",
     en: "Cover Color",
   },
+  customColor: {
+    es: "Personalizar color",
+    en: "Custom color",
+  },
   coverSymbolLabel: {
     es: "Icono de Portada",
     en: "Cover Icon",
