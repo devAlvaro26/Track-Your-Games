@@ -235,6 +235,34 @@ export const translationTable = {
     es: "Tu apodo o nombre...",
     en: "Your gamer tag or name...",
   },
+  avatarLabel: {
+    es: "Imagen de perfil",
+    en: "Profile Picture",
+  },
+  uploadAvatar: {
+    es: "Subir Imagen",
+    en: "Upload Image",
+  },
+  changeAvatar: {
+    es: "Cambiar Foto",
+    en: "Change Photo",
+  },
+  removeAvatar: {
+    es: "Quitar Foto",
+    en: "Remove Photo",
+  },
+  avatarUrlPlaceholder: {
+    es: "O pega la URL de la imagen...",
+    en: "Or paste an image URL...",
+  },
+  avatarUploadHint: {
+    es: "Haz clic o arrastra una imagen (PNG, JPG o WebP). Se ajustará automáticamente.",
+    en: "Click or drag an image (PNG, JPG or WebP). Auto-resized automatically.",
+  },
+  preview: {
+    es: "Vista Previa",
+    en: "Preview",
+  },
   saveSettings: {
     es: "Guardar Cambios",
     en: "Save Changes",

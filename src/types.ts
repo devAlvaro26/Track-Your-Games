@@ -57,6 +57,7 @@ export interface AppSettings {
   theme: "light" | "dark";
   language: Language;
   username: string;
+  avatarUrl?: string;
 }
 
 export interface LibraryStats {

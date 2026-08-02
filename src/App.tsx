@@ -6,6 +6,8 @@ import { AddGameForm } from "./components/AddGameForm";
 import { LibraryStatsPanel } from "./components/LibraryStatsPanel";
 import { SettingsModal } from "./components/SettingsModal";
 import { AuthModal } from "./components/AuthModal";
+import { ProfileAvatar } from "./components/ProfileAvatar";
+import { AvatarModal } from "./components/AvatarModal";
 import { getTranslation, translateGenre } from "./translations";
 import {
   db,
@@ -21,16 +23,18 @@ import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
-  // App Settings state (theme, language, username)
+  // App Settings state (theme, language, username, avatarUrl)
   const [settings, setSettings] = useState<AppSettings>(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     const savedLang = localStorage.getItem("language") as Language | null;
     const savedUser = localStorage.getItem("username");
+    const savedAvatar = localStorage.getItem("avatarUrl");
 
     return {
       theme: savedTheme || "dark",
       language: savedLang || "es",
       username: savedUser || "Gamer",
+      avatarUrl: savedAvatar || undefined,
     };
   });
 
@@ -58,6 +62,7 @@ export default function App() {
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -80,6 +85,11 @@ export default function App() {
     localStorage.setItem("theme", settings.theme);
     localStorage.setItem("language", settings.language);
     localStorage.setItem("username", settings.username);
+    if (settings.avatarUrl) {
+      localStorage.setItem("avatarUrl", settings.avatarUrl);
+    } else {
+      localStorage.removeItem("avatarUrl");
+    }
   }, [settings]);
 
   // Save local games cache
@@ -137,6 +147,7 @@ export default function App() {
           username: profile.username || prev.username,
           language: (profile.language as Language) || prev.language,
           theme: (profile.theme as "light" | "dark") || prev.theme,
+          avatarUrl: profile.avatar_url || prev.avatarUrl,
         }));
       } else if (defaultUsername) {
         setSettings((prev) => ({ ...prev, username: defaultUsername }));
@@ -312,10 +323,13 @@ export default function App() {
             <Icons.Menu className="w-5 h-5 stroke-[2.5]" />
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-indigo-600 rounded-none text-white shadow-sm flex items-center justify-center font-black">
-              <Icons.Library className="w-4 h-4" />
-            </div>
+          <div className="flex items-center gap-2.5">
+            <ProfileAvatar
+              avatarUrl={settings.avatarUrl}
+              username={settings.username}
+              size="sm"
+              onClick={() => setIsAvatarModalOpen(true)}
+            />
             <div>
               <h1 className="text-xs font-black tracking-wider uppercase text-neutral-900 dark:text-white truncate">
                 {t.appTitle}
@@ -359,9 +373,15 @@ export default function App() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-indigo-600 rounded-none text-white shadow-md flex items-center justify-center font-black">
-                      <Icons.Library className="w-5 h-5" />
-                    </div>
+                    <ProfileAvatar
+                      avatarUrl={settings.avatarUrl}
+                      username={settings.username}
+                      size="md"
+                      onClick={() => {
+                        setIsAvatarModalOpen(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    />
                     <div>
                       <h2 className="text-base font-black tracking-wider uppercase text-neutral-900 dark:text-white">
                         {t.appTitle}
@@ -523,9 +543,12 @@ export default function App() {
         {/* Top Branding & User Profile */}
         <div className="space-y-6 flex-1 overflow-y-auto min-h-0 pr-1">
           <div className="flex items-center gap-3 pb-4 border-b border-neutral-200 dark:border-white/10">
-            <div className="p-2.5 bg-indigo-600 rounded-none text-white shadow-md flex items-center justify-center font-black">
-              <Icons.Library className="w-5 h-5" />
-            </div>
+            <ProfileAvatar
+              avatarUrl={settings.avatarUrl}
+              username={settings.username}
+              size="md"
+              onClick={() => setIsAvatarModalOpen(true)}
+            />
             <div className="min-w-0 flex-1">
               <h1 className="text-base font-black tracking-wider uppercase text-neutral-900 dark:text-white truncate">
                 {t.appTitle}
@@ -958,6 +981,21 @@ export default function App() {
             settings={settings}
             onSaveSettings={handleSaveSettings}
             onClose={() => setIsSettingsOpen(false)}
+            onEnlargeAvatar={() => setIsAvatarModalOpen(true)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* AVATAR LARGE VIEW MODAL OVERLAY */}
+      <AnimatePresence>
+        {isAvatarModalOpen && (
+          <AvatarModal
+            isOpen={isAvatarModalOpen}
+            onClose={() => setIsAvatarModalOpen(false)}
+            avatarUrl={settings.avatarUrl}
+            username={settings.username}
+            language={settings.language}
+            onOpenSettings={() => setIsSettingsOpen(true)}
           />
         )}
       </AnimatePresence>

@@ -131,7 +131,7 @@ export async function deleteGameFromDb(gameId: string, userId: string): Promise<
 /**
  * Get user profile from the profiles table
  */
-export async function fetchUserProfile(userId: string): Promise<{ username?: string; language?: string; theme?: string } | null> {
+export async function fetchUserProfile(userId: string): Promise<{ username?: string; language?: string; theme?: string; avatar_url?: string } | null> {
   if (!db) return null;
 
   const { data, error } = await db
@@ -161,6 +161,7 @@ export async function saveUserProfile(userId: string, settings: Partial<AppSetti
   if (settings.username) payload.username = settings.username;
   if (settings.language) payload.language = settings.language;
   if (settings.theme) payload.theme = settings.theme;
+  if (settings.avatarUrl !== undefined) payload.avatar_url = settings.avatarUrl;
 
   const { error } = await db
     .from("profiles")
