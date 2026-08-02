@@ -179,7 +179,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
             className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white rounded-none hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
             id="close-igdb-search-modal"
           >
-            <Icons.X className="w-5 h-5" />
+            <Icons.X className="w-4 h-4" />
           </button>
         </div>
 

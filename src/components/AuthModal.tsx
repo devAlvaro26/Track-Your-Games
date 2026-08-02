@@ -149,7 +149,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
             id="btn-close-auth"
             title={t.close}
           >
-            <Icons.X className="w-5 h-5" />
+            <Icons.X className="w-4 h-4" />
           </button>
         </div>
 

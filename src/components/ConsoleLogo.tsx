@@ -214,8 +214,8 @@ export const ConsoleLogo: React.FC<ConsoleLogoProps> = ({
     const adapted = adaptSvgString(rawSvg);
     return (
       <span
-        className={`inline-flex items-center shrink-0 [&_svg]:h-full [&_svg]:w-auto [&_svg]:max-w-full [&_path]:fill-current [&_g]:fill-current ${className}`}
-        style={{ height: dimHeight, maxWidth: "160px" }}
+        className={`inline-flex items-center justify-center sm:justify-start max-w-full overflow-hidden [&_svg]:h-full [&_svg]:w-auto [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:block [&_path]:fill-current [&_g]:fill-current ${className}`}
+        style={{ height: dimHeight, maxHeight: dimHeight }}
         dangerouslySetInnerHTML={{ __html: adapted }}
         aria-label={platformName || "Console Logo"}
       />
@@ -226,9 +226,9 @@ export const ConsoleLogo: React.FC<ConsoleLogoProps> = ({
   return (
     <svg
       viewBox="0 0 24 24"
-      style={{ height: dimHeight, width: dimHeight }}
+      style={{ height: dimHeight, maxHeight: dimHeight, width: "auto" }}
       fill="currentColor"
-      className={`shrink-0 transition-transform ${className}`}
+      className={`shrink-0 transition-transform max-w-full max-h-full ${className}`}
       aria-label="Gaming Console"
     >
       <path d="M17 4H7C4.24 4 2 6.24 2 9v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V9c0-2.76-2.24-5-5-5zm-8 7H8v1H7v-1H6v-1h1V9h1v1h1v1zm7.5 1c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm1.5-2c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />

@@ -46,22 +46,36 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     p.includes("ps3") ||
     p.includes("ps2") ||
     p.includes("ps1") ||
+    p.includes("psone") ||
+    p.includes("psx") ||
     p.includes("vita") ||
     p.includes("psp") ||
     p.includes("psvr")
   ) {
     let name = "PLAYSTATION";
-    if (p.includes("ps5") || p.includes("5")) name = "PS5";
-    else if (p.includes("ps4") || p.includes("4")) name = "PS4";
-    else if (p.includes("ps3") || p.includes("3")) name = "PS3";
-    else if (p.includes("ps2") || p.includes("2")) name = "PS2";
+    if (p.includes("ps5") || p.includes("playstation 5")) name = "PS5";
+    else if (p.includes("ps4") || p.includes("playstation 4")) name = "PS4";
+    else if (p.includes("ps3") || p.includes("playstation 3")) name = "PS3";
+    else if (p.includes("ps2") || p.includes("playstation 2")) name = "PS2";
+    else if (
+      p.includes("ps1") ||
+      p.includes("playstation 1") ||
+      p.includes("psone") ||
+      p.includes("psx") ||
+      p === "playstation"
+    )
+      name = "PS1";
     else if (p.includes("vita")) name = "PS VITA";
     else if (p.includes("psp")) name = "PSP";
+
+    const isBlackBanner = name === "PS1" || name === "PS2";
 
     return {
       brandKey: "playstation",
       displayName: name,
-      bannerBg: name == "PS2" ? "bg-black" : "bg-gradient-to-r from-[#00439C] via-[#0052C2] to-[#002C68]",
+      bannerBg: isBlackBanner
+        ? "bg-black"
+        : "bg-gradient-to-r from-[#00439C] via-[#0052C2] to-[#002C68]",
       bannerTextColor: "text-white font-black",
       accentBorder: "border-[#00439C]/50",
       badgeBg: "bg-black/40",

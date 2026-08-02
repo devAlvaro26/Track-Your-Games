@@ -131,16 +131,16 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
           id="add-game-modal-content"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-600 text-white rounded-none">
-                <Icons.PlusCircle className="w-5 h-5 stroke-[2.5]" />
+          <div className="flex items-center justify-between p-3.5 sm:p-5 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-[#1b1b1f]">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-indigo-600 text-white rounded-none">
+                <Icons.PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
               </div>
               <div>
-                <h2 className="text-base font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
+                <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
                   {t.addGame}
                 </h2>
-                <p className="text-xs text-neutral-500 dark:text-gray-400">
+                <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-gray-400 hidden sm:block">
                   {t.addGameSubtitle || "Add a new title to your personal library"}
                 </p>
               </div>
@@ -150,20 +150,20 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
               onClick={onClose}
               className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
             >
-              <Icons.X className="w-5 h-5" />
+              <Icons.X className="w-4 h-4" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[85vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-3.5 sm:p-6 space-y-3.5 sm:space-y-6 max-h-[85vh] overflow-y-auto">
             {/* Quick IGDB Search Banner */}
-            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Icons.Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <div>
-                  <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+            <div className="p-2.5 sm:p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-row items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Icons.Search className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200 truncate">
                     {t.autoImportIgdb || "Import data automatically"}
                   </p>
-                  <p className="text-[11px] text-indigo-700 dark:text-indigo-400">
+                  <p className="text-[10px] sm:text-[11px] text-indigo-700 dark:text-indigo-400 hidden sm:block">
                     {t.autoImportDesc || "Search IGDB database for official details and cover"}
                   </p>
                 </div>
@@ -171,7 +171,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
               <button
                 type="button"
                 onClick={() => setShowIgdbModal(true)}
-                className="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
+                className="px-3 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
               >
                 {t.searchIgdb || "Search IGDB"}
               </button>

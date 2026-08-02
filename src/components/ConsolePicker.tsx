@@ -173,7 +173,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
       </div>
 
       {/* Grid of Consoles */}
-      <div className="max-h-[180px] overflow-y-auto p-2 bg-neutral-50 dark:bg-[#121212] rounded-none border border-neutral-300 dark:border-white/10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5" id="consoles-grid">
+      <div className="max-h-[120px] sm:max-h-[180px] overflow-y-auto p-1.5 sm:p-2 bg-neutral-50 dark:bg-[#121212] rounded-none border border-neutral-300 dark:border-white/10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5" id="consoles-grid">
         {filteredConsoles.length === 0 ? (
           <div className="col-span-full text-center py-4 text-xs text-neutral-400">
             {t.noConsolesFound}

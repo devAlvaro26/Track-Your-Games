@@ -81,7 +81,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             id="btn-close-settings"
             title={t.close}
           >
-            <Icons.X className="w-5 h-5" />
+            <Icons.X className="w-4 h-4" />
           </button>
         </div>
 
