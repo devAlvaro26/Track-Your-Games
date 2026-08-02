@@ -720,8 +720,8 @@ export const translationTable = {
     en: "Short summary of the game, plot, or why it's special...",
   },
   platformsLabel: {
-    es: "Plataformas y Consolas (Selecciona una o varias)",
-    en: "Platforms & Consoles (Select one or multiple)",
+    es: "Plataformas y Consolas",
+    en: "Platforms & Consoles",
   },
   selectedConsolesLabel: {
     es: "Consolas seleccionadas",
@@ -760,8 +760,8 @@ export const translationTable = {
     en: "Pending to Play",
   },
   wishlistOption: {
-    es: "Quiero Jugar (Lista de Deseos)",
-    en: "Want to Play (Wishlist)",
+    es: "Quiero Jugar",
+    en: "Wishlist",
   },
   wishlist: {
     es: "deseados",
@@ -1062,10 +1062,6 @@ export const translationTable = {
   quickThemeToggleDark: {
     es: "Cambiar a modo oscuro",
     en: "Switch to dark mode",
-  },
-  madeWithLove: {
-    es: "Hecho con ❤️ para amantes de los videojuegos.",
-    en: "Made with ❤️ for video game enthusiasts.",
   },
   footerTechNote: {
     es: "Integrado con la API oficial de IGDB.",
