@@ -14,7 +14,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   // Compute stats on the fly (excluding wishlist games from library total)
   const ownedGames = games.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar");
   const totalGames = ownedGames.length;
-  
+
   const completedGames = games.filter((g) => g.status === "Completado").length;
   const favoritesGames = games.filter((g) => g.status === "Favoritos").length;
   const playingGames = games.filter((g) => g.status === "Jugando").length;
@@ -37,7 +37,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3" id="library-stats-dashboard">
-      
+
       {/* Total Games Metric */}
       <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
         <div className="p-2.5 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-none border border-indigo-500/20">

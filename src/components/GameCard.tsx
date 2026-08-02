@@ -21,8 +21,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
   // Achievements calculation
   const totalAchievements = game.achievements.length;
   const unlockedAchievements = game.achievements.filter((a) => a.unlocked).length;
-  const achievementProgress = totalAchievements > 0 
-    ? Math.round((unlockedAchievements / totalAchievements) * 100) 
+  const achievementProgress = totalAchievements > 0
+    ? Math.round((unlockedAchievements / totalAchievements) * 100)
     : 0;
 
   // Status badge styling

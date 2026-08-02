@@ -10,11 +10,11 @@ export const isDatabaseConfigured = Boolean(databaseUrl && databaseAnonKey);
 
 export const db: SupabaseClient | null = isDatabaseConfigured
   ? createClient(databaseUrl, databaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-    })
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  })
   : null;
 
 /**

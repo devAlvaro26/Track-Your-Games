@@ -159,11 +159,10 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-none border whitespace-nowrap transition-all cursor-pointer ${
-                  isActive
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-none border whitespace-nowrap transition-all cursor-pointer ${isActive
                     ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
                     : "bg-neutral-50 dark:bg-[#1b1b1f] text-neutral-600 dark:text-gray-400 border-neutral-300 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-[#25252a]"
-                }`}
+                  }`}
               >
                 {translateConsoleCategory(cat.id)}
               </button>
@@ -186,11 +185,10 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
                 key={c.id}
                 type="button"
                 onClick={() => togglePlatform(c.name)}
-                className={`text-left text-xs px-2.5 py-1.5 rounded-none border font-medium transition-all flex items-center justify-between cursor-pointer ${
-                  isSelected
+                className={`text-left text-xs px-2.5 py-1.5 rounded-none border font-medium transition-all flex items-center justify-between cursor-pointer ${isSelected
                     ? "bg-indigo-600 text-white border-indigo-600 font-bold shadow-sm"
                     : "bg-white dark:bg-[#1b1b1f] text-neutral-700 dark:text-gray-300 border-neutral-300 dark:border-white/10 hover:border-indigo-500 hover:bg-neutral-100 dark:hover:bg-[#25252a]"
-                }`}
+                  }`}
               >
                 <span className="truncate">{c.name}</span>
                 {isSelected && <Icons.Check className="w-3 h-3 ml-1 shrink-0 text-white" />}
@@ -202,4 +200,3 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
     </div>
   );
 };
-

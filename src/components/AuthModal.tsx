@@ -163,11 +163,10 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
                 setIsLogin(true);
                 setErrorMsg(null);
               }}
-              className={`py-2 px-3 text-xs font-bold uppercase tracking-wider transition-all rounded-none border ${
-                isLogin
+              className={`py-2 px-3 text-xs font-bold uppercase tracking-wider transition-all rounded-none border ${isLogin
                   ? "bg-indigo-600 text-white border-indigo-500 shadow"
                   : "bg-transparent text-neutral-600 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-white"
-              }`}
+                }`}
             >
               {t.loginBtn}
             </button>
@@ -177,11 +176,10 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
                 setIsLogin(false);
                 setErrorMsg(null);
               }}
-              className={`py-2 px-3 text-xs font-bold uppercase tracking-wider transition-all rounded-none border ${
-                !isLogin
+              className={`py-2 px-3 text-xs font-bold uppercase tracking-wider transition-all rounded-none border ${!isLogin
                   ? "bg-indigo-600 text-white border-indigo-500 shadow"
                   : "bg-transparent text-neutral-600 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-white"
-              }`}
+                }`}
             >
               {t.signupBtn}
             </button>

@@ -21,8 +21,8 @@ export const ConsoleBanner: React.FC<ConsoleBannerProps> = ({
     size === "sm"
       ? "px-2 py-1 sm:px-3 sm:py-1.5"
       : size === "lg"
-      ? "px-3.5 py-2 sm:px-4 sm:py-2.5"
-      : "px-2.5 py-1.5 sm:px-3.5 sm:py-2";
+        ? "px-3.5 py-2 sm:px-4 sm:py-2.5"
+        : "px-2.5 py-1.5 sm:px-3.5 sm:py-2";
 
   return (
     <div
@@ -41,6 +41,3 @@ export const ConsoleBanner: React.FC<ConsoleBannerProps> = ({
     </div>
   );
 };
-
-
-

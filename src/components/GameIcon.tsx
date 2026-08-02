@@ -12,7 +12,7 @@ interface GameIconProps {
 export const GameIcon: React.FC<GameIconProps> = ({ name, className = "", size = 24 }) => {
   // Normalize the name to match standard Lucide component names (CamelCase)
   const normalizedName = name.trim().toLowerCase();
-  
+
   // Custom dictionary mapping simple strings to Lucide components
   const iconMap: Record<string, keyof typeof Icons> = {
     sword: "Sword",
@@ -76,4 +76,3 @@ export const AVAILABLE_SYMBOLS = [
 export function getSymbolLabel(symbolId: string, lang: Language = "es"): string {
   return translateSymbolLabel(symbolId, lang);
 }
-

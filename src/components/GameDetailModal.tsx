@@ -793,8 +793,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             {/* Custom color picker button */}
                             <label
                               className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-none transition-transform cursor-pointer border border-dashed border-neutral-400 dark:border-white/30 flex items-center justify-center bg-white dark:bg-[#121212] hover:border-indigo-500 ${!COLOR_PRESETS.some((c) => c.toLowerCase() === editCoverColor.toLowerCase())
-                                  ? "ring-2 ring-indigo-500 scale-110 z-10 border-solid"
-                                  : ""
+                                ? "ring-2 ring-indigo-500 scale-110 z-10 border-solid"
+                                : ""
                                 }`}
                               style={{
                                 backgroundColor: !COLOR_PRESETS.some((c) => c.toLowerCase() === editCoverColor.toLowerCase())
@@ -811,8 +811,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                               />
                               <Icons.Pipette
                                 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${!COLOR_PRESETS.some((c) => c.toLowerCase() === editCoverColor.toLowerCase())
-                                    ? "text-white drop-shadow"
-                                    : "text-neutral-600 dark:text-neutral-300"
+                                  ? "text-white drop-shadow"
+                                  : "text-neutral-600 dark:text-neutral-300"
                                   }`}
                               />
                             </label>
