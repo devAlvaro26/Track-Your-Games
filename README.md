@@ -11,7 +11,7 @@
 
 ## Overview
 
-**Track‑It** is a modern web application designed to organize, catalog, and track your personal video game collection. It features native integration with the **IGDB API v4**, optional cloud persistence via **Supabase**, a full vector branding catalog for over 60 video game consoles, detailed library analytics, and multi-language support (English and Spanish).
+**Track‑It** is a modern web application designed to organize, catalog, and track your personal video game collection. It features native integration with the **IGDB API v4**, optional cloud persistence via **Supabase**, a full vector branding catalog for over 60 video game consoles, custom profile avatars, detailed library analytics, and multi-language support (English and Spanish).
 
 ---
 
@@ -19,7 +19,7 @@
 
 - **Comprehensive Library Management**:
   - Categorize by play status: *Playing*, *Backlog / Wishlist*, *Completed*, and *Favorites*.
-  - Detailed metadata tracking: platforms, genres, personal ratings (1-10 stars), hours played, acquisition date, personal notes, and interactive achievements/trophies list.
+  - Detailed metadata tracking: platforms, genres, personal ratings (1-10 stars), hours played, acquisition date, personal notes, custom game icons, and interactive achievements/trophies list.
   - Barcode / EAN code entry field for physical games.
 
 - **IGDB API v4 Search & Integration**:
@@ -28,11 +28,14 @@
 
 - **Console Identity & Vector Branding**:
   - Extensive collection of vector logos and badges for over 60 gaming platforms and systems (PlayStation, Nintendo, Xbox, Sega, PC, Atari, Retro, and Arcade).
-  - Categorized console picker featuring official manufacturer color schemes.
+  - Categorized console picker featuring official manufacturer color schemes and dynamic console banners.
 
 - **Dual Storage (Cloud + Local Storage)**:
   - **Cloud Mode (Supabase)**: User authentication (sign up & sign in) with isolated user data using Row Level Security (RLS).
   - **Local / Guest Mode**: Instant out-of-the-box usage saving data locally via `localStorage` without requiring account creation.
+
+- **Profile Customization & Avatars**:
+  - Customizable user profile avatar with a gallery of gaming avatars and icons.
 
 - **Library Analytics & Statistics**:
   - Visual metrics for your game collection: total games tracked, total playtime, average user rating, breakdown by platform, top genres, and completion rate.
@@ -46,8 +49,8 @@
 
 ## Tech Stack
 
-- **Frontend**: React 19, TypeScript, Vite 8, Tailwind CSS v4, Motion (Framer Motion), Lucide React.
-- **Backend / API Proxy**: Express 5, Node.js
+- **Frontend**: React 19, TypeScript, Vite 8, Tailwind CSS v4, Motion (Framer Motion), Lucide React, Vercel Analytics.
+- **Backend / API Proxy**: Express 5, Node.js, Vercel Serverless Functions.
 - **Database & Auth**: Supabase JS v2, PostgreSQL with Row Level Security.
 
 ---
@@ -56,18 +59,27 @@
 
 ```
 .
+├── api/                       # Vercel serverless function entrypoint
+│   └── index.ts
+├── public/
+│   └── trackit_logo.png       # Application branding logo icon
 ├── server.ts                  # Express server (IGDB API proxy + Vite static server)
 ├── src/
 │   ├── App.tsx                # Main application component and user interface
 │   ├── components/            # UI components and modals
 │   │   ├── AddGameForm.tsx    # Modal form to add or edit video games
 │   │   ├── AuthModal.tsx      # Supabase authentication modal
+│   │   ├── AvatarModal.tsx    # Custom avatar selector modal for user profiles
+│   │   ├── ConsoleBanner.tsx  # Console brand banner display
+│   │   ├── ConsoleLogo.tsx    # Dynamic console logo renderer
 │   │   ├── ConsolePicker.tsx  # Interactive console platform selector
 │   │   ├── GameCard.tsx       # Individual game card display
 │   │   ├── GameDetailModal.tsx# Game details, playtime tracker, achievements & notes
+│   │   ├── GameIcon.tsx       # Custom game icon selector component
 │   │   ├── IgdbSearchModal.tsx# IGDB API live search modal
 │   │   ├── LibraryStatsPanel.tsx # Library analytics & statistical graphs
-│   │   └── SettingsModal.tsx  # User preferences (language, theme, auth)
+│   │   ├── ProfileAvatar.tsx  # Profile avatar image/icon renderer
+│   │   └── SettingsModal.tsx  # User preferences (language, theme, avatar, auth)
 │   ├── consoles.ts            # Console definitions, logos, and categories
 │   ├── translations.ts        # Translation strings (English / Spanish)
 │   ├── types.ts               # Shared TypeScript interface definitions
@@ -77,6 +89,7 @@
 │       └── svg/               # Vector SVG console logos
 ├── supabase/
 │   └── schema.sql             # SQL database schema and RLS policies for Supabase
+├── vercel.json                # Vercel deployment configuration
 └── .env.example               # Environment variables template
 ```
 
@@ -122,6 +135,7 @@
    ```bash
    npm run dev
    ```
+
 ---
 
 ## Supabase Setup (Optional)
@@ -135,6 +149,18 @@ To enable cloud storage and user accounts:
 
 ---
 
+## Android Install
+
+To install this application on your Android device, follow these steps:
+
+1. **Open your browser and navigate to this link**
+   - https://track-it-pi-gold.vercel.app
+2. **Click on the "Install app" button**
+   - If you don't see the button, click on the browser's menu (three dots) and select "Install app"
+3. **Open the app**
+   - After installation, you can find **Track-It** in your app drawer
+
 ## License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
