@@ -5,6 +5,9 @@ export interface Achievement {
   difficulty: "Fácil" | "Medio" | "Difícil";
   unlocked: boolean;
   unlockedAt?: string; // date string
+  icon?: string; // Steam achievement unlocked icon URL
+  iconLocked?: string; // Steam achievement locked icon URL
+  steamApiName?: string;
 }
 
 export type GameStatus = "Pendiente" | "Jugando" | "Completado" | "Favoritos" | "Deseados" | "Quiero Jugar";
@@ -27,8 +30,24 @@ export interface Game {
   igdbId?: number; // Official IGDB game ID
   igdbRating?: number; // Official IGDB rating score (0-100)
   igdbUrl?: string; // Link to official IGDB game page
+  steamAppId?: number; // Official Steam App ID
   achievements: Achievement[];
   notes?: string; // custom personal notes
+}
+
+export interface SteamSearchResult {
+  appId: number;
+  name: string;
+  headerImage?: string;
+  tinyImage?: string;
+}
+
+export interface SteamAchievementFetchResponse {
+  success: boolean;
+  appId?: number;
+  gameName?: string;
+  achievements: Achievement[];
+  error?: string;
 }
 
 export interface IgdbSearchResult {

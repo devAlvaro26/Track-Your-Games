@@ -831,6 +831,54 @@ export const translationTable = {
     es: "Desafíos específicos para registrar tu progreso al 100% en este título.",
     en: "Specific challenges to track your 100% completion progress.",
   },
+  fetchSteamAchievements: {
+    es: "Obtener Logros de Steam",
+    en: "Fetch Steam Achievements",
+  },
+  steamAppIdLabel: {
+    es: "Steam App ID (ID del juego en Steam)",
+    en: "Steam App ID",
+  },
+  steamAppIdPlaceholder: {
+    es: "Ej: 620 (Portal 2), 1086940 (Baldur's Gate 3)",
+    en: "E.g. 620 (Portal 2), 1086940 (Baldur's Gate 3)",
+  },
+  syncSteamBtn: {
+    es: "Importar de Steam",
+    en: "Import from Steam",
+  },
+  syncingSteam: {
+    es: "Obteniendo lista de logros desde Steam...",
+    en: "Fetching achievements from Steam...",
+  },
+  steamImportSuccess: {
+    es: "¡Se importaron {count} logros de Steam con éxito!",
+    en: "Imported {count} Steam achievements successfully!",
+  },
+  steamImportError: {
+    es: "No se pudieron obtener los logros de Steam. Comprueba el App ID o el título.",
+    en: "Could not fetch Steam achievements. Please verify the App ID or game title.",
+  },
+  markAllCompleted: {
+    es: "Marcar Todos como Completados",
+    en: "Mark All as Completed",
+  },
+  markAllLocked: {
+    es: "Desmarcar Todos",
+    en: "Uncheck All",
+  },
+  steamConnectedNotice: {
+    es: "Conectado a la API de Steam (App ID: {id})",
+    en: "Connected to Steam API (App ID: {id})",
+  },
+  steamSearchTitle: {
+    es: "Buscar App ID en Steam",
+    en: "Search Steam App ID",
+  },
+  steamSearchPlaceholder: {
+    es: "Buscar juego en Steam por nombre...",
+    en: "Search game on Steam by title...",
+  },
   addAchievementBtn: {
     es: "Añadir Logro",
     en: "Add Achievement",

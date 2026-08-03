@@ -300,6 +300,186 @@ app.post("/api/igdb/search", async (req: express.Request, res: express.Response)
   }
 });
 
+/**
+ * Helper to parse Steam community achievements XML
+ */
+function parseSteamAchievementsXml(xmlText: string) {
+  const achievements: any[] = [];
+  const achievementBlocks = xmlText.split(/<achievement\s*[^>]*>/gi);
+
+  for (let i = 1; i < achievementBlocks.length; i++) {
+    const block = achievementBlocks[i].split("</achievement>")[0];
+    if (!block) continue;
+
+    const extractTag = (tagName: string) => {
+      const match = block.match(new RegExp(`<${tagName}>(?:<!\\[CDATA\\[(.*?)\\]\\]>|(.*?))</${tagName}>`, "s"));
+      if (!match) return "";
+      return (match[1] !== undefined ? match[1] : match[2] || "").trim();
+    };
+
+    const name = extractTag("name");
+    const apiname = extractTag("apiname");
+    const description = extractTag("description");
+    const iconClosed = extractTag("iconClosed");
+    const iconOpen = extractTag("iconOpen");
+
+    if (name || apiname) {
+      achievements.push({
+        id: apiname || name || `ach_${i}`,
+        name: name || apiname,
+        description: description,
+        difficulty: "Medio" as const,
+        unlocked: false,
+        icon: iconOpen || undefined,
+        iconLocked: iconClosed || undefined,
+        steamApiName: apiname || undefined,
+      });
+    }
+  }
+
+  return achievements;
+}
+
+// Search Steam store for App ID
+app.post("/api/steam/search", async (req: express.Request, res: express.Response) => {
+  const lang = req.body?.lang || "en";
+  const isEs = lang === "es";
+  const query = req.body?.query;
+
+  if (!query || typeof query !== "string" || !query.trim()) {
+    return res.status(400).json({ error: isEs ? "Se requiere el término de búsqueda." : "Search query required." });
+  }
+
+  try {
+    const steamLang = isEs ? "spanish" : "english";
+    const url = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(query.trim())}&l=${steamLang}&cc=ES`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return res.status(502).json({ error: isEs ? "Error al consultar la tienda de Steam." : "Steam Store request failed." });
+    }
+
+    const data = await response.json();
+    const items = data.items || [];
+
+    const results = items.map((item: any) => ({
+      appId: item.id,
+      name: item.name,
+      headerImage: item.tiny_image ? item.tiny_image.replace("capsule_sm_120", "header") : undefined,
+      tinyImage: item.tiny_image,
+    }));
+
+    return res.json({ results });
+  } catch (err: any) {
+    console.error("Error in /api/steam/search:", err);
+    return res.status(500).json({ error: err.message || "Error searching Steam store." });
+  }
+});
+
+// Fetch Steam game achievements
+app.post("/api/steam/achievements", async (req: express.Request, res: express.Response) => {
+  const lang = req.body?.lang || "en";
+  const isEs = lang === "es";
+  let appId = req.body?.appId ? Number(req.body.appId) : undefined;
+  const title = req.body?.title;
+
+  try {
+    // 1. If appId is not explicitly provided, search Steam store by title first
+    if (!appId && title && typeof title === "string") {
+      const steamLang = isEs ? "spanish" : "english";
+      const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(title.trim())}&l=${steamLang}&cc=ES`;
+      const searchRes = await fetch(searchUrl);
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.items && searchData.items.length > 0) {
+          appId = searchData.items[0].id;
+        }
+      }
+    }
+
+    if (!appId) {
+      return res.status(404).json({
+        success: false,
+        error: isEs
+          ? "No se pudo identificar el App ID de Steam para este juego. Introduce el App ID manualmente."
+          : "Could not identify Steam App ID for this game. Please enter Steam App ID manually.",
+      });
+    }
+
+    const steamLang = isEs ? "spanish" : "english";
+    let achievements: any[] = [];
+    let gameName = title || "";
+
+    // 2. Try Steam Web API if STEAM_API_KEY is configured
+    const steamApiKey = process.env.STEAM_API_KEY;
+    if (steamApiKey) {
+      try {
+        const webApiUrl = `https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${steamApiKey}&appid=${appId}&l=${steamLang}`;
+        const webApiRes = await fetch(webApiUrl);
+        if (webApiRes.ok) {
+          const webData = await webApiRes.json();
+          if (webData?.game?.availableGameStats?.achievements) {
+            gameName = webData.game.gameName || gameName;
+            achievements = webData.game.availableGameStats.achievements.map((ach: any) => ({
+              id: ach.name,
+              name: ach.displayName || ach.name,
+              description: ach.description || "",
+              difficulty: "Medio" as const,
+              unlocked: false,
+              icon: ach.icon || undefined,
+              iconLocked: ach.icongray || undefined,
+              steamApiName: ach.name,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Steam Web API call failed, falling back to community XML:", err);
+      }
+    }
+
+    // 3. Fallback to public Steam Community XML endpoint if no key or no achievements returned yet
+    if (achievements.length === 0) {
+      const xmlUrl = `https://steamcommunity.com/stats/${appId}/achievements/?xml=1`;
+      const xmlRes = await fetch(xmlUrl, {
+        headers: {
+          "Accept-Language": isEs ? "es-ES,es;q=0.9,en;q=0.8" : "en-US,en;q=0.9",
+        },
+      });
+
+      if (xmlRes.ok) {
+        const xmlText = await xmlRes.text();
+        const parsedAchievements = parseSteamAchievementsXml(xmlText);
+        if (parsedAchievements.length > 0) {
+          achievements = parsedAchievements;
+        }
+      }
+    }
+
+    if (achievements.length === 0) {
+      return res.status(404).json({
+        success: false,
+        appId,
+        error: isEs
+          ? `No se encontraron logros en Steam para el App ID ${appId}. Puede que el juego no tenga logros en Steam o el ID no sea correcto.`
+          : `No achievements found on Steam for App ID ${appId}.`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      appId,
+      gameName,
+      achievements,
+    });
+  } catch (err: any) {
+    console.error("Error in /api/steam/achievements:", err);
+    return res.status(500).json({
+      success: false,
+      error: isEs ? `Error interno al consultar Steam: ${err.message}` : `Steam API internal error: ${err.message}`,
+    });
+  }
+});
+
 async function startServer() {
   if (process.env.VERCEL) return;
 

@@ -39,6 +39,7 @@ export function formatGameFromDb(row: any): Game {
     igdbId: row.igdb_id ? Number(row.igdb_id) : undefined,
     igdbRating: row.igdb_rating ? Number(row.igdb_rating) : undefined,
     igdbUrl: row.igdb_url || undefined,
+    steamAppId: row.steam_app_id ? Number(row.steam_app_id) : undefined,
     achievements: Array.isArray(row.achievements) ? row.achievements : [],
     notes: row.notes || undefined,
   };
@@ -67,6 +68,7 @@ export function formatGameForDb(game: Game, userId: string): any {
     igdb_id: game.igdbId || null,
     igdb_rating: game.igdbRating || null,
     igdb_url: game.igdbUrl || null,
+    steam_app_id: game.steamAppId || null,
     achievements: game.achievements || [],
     notes: game.notes || "",
     updated_at: new Date().toISOString(),

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Game, Achievement, GameStatus, Language, IgdbSearchResult } from "../types";
+import { Game, Achievement, GameStatus, Language, IgdbSearchResult, SteamSearchResult } from "../types";
 import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { ConsolePicker } from "./ConsolePicker";
 import { IgdbSearchModal } from "./IgdbSearchModal";
+import { SteamSearchModal } from "./SteamSearchModal";
 import { getTranslation, translateGenre, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
 import * as Icons from "lucide-react";
@@ -75,6 +76,97 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   const [editIgdbUrl, setEditIgdbUrl] = useState<string | undefined>(game.igdbUrl);
   const [editNotes, setEditNotes] = useState(game.notes || "");
   const [editPlatforms, setEditPlatforms] = useState<string[]>(game.platforms);
+  const [editSteamAppId, setEditSteamAppId] = useState<string>(game.steamAppId ? String(game.steamAppId) : "");
+
+  // Steam Achievements state
+  const [showSteamModal, setShowSteamModal] = useState(false);
+  const [isFetchingSteam, setIsFetchingSteam] = useState(false);
+  const [steamNotice, setSteamNotice] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  // Fetch Steam Achievements automatically
+  const handleFetchSteamAchievements = async (overrideAppId?: number) => {
+    setIsFetchingSteam(true);
+    setSteamNotice(null);
+
+    const targetAppId = overrideAppId || (editSteamAppId ? Number(editSteamAppId) : game.steamAppId);
+
+    try {
+      const res = await fetch("/api/steam/achievements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appId: targetAppId || undefined,
+          title: game.title,
+          lang: language,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !Array.isArray(data.achievements)) {
+        setSteamNotice({
+          type: "error",
+          msg: data.error || t.steamImportError,
+        });
+        setIsFetchingSteam(false);
+        return;
+      }
+
+      // Merge fetched achievements preserving local unlocked statuses
+      const existingMap = new Map(game.achievements.map((a) => [a.id || a.steamApiName || a.name, a]));
+
+      const mergedAchievements = data.achievements.map((newAch: any) => {
+        const key = newAch.id || newAch.steamApiName || newAch.name;
+        const existing = existingMap.get(key);
+        if (existing) {
+          return {
+            ...newAch,
+            unlocked: existing.unlocked,
+            unlockedAt: existing.unlockedAt,
+          };
+        }
+        return newAch;
+      });
+
+      const updatedGame: Game = {
+        ...game,
+        steamAppId: data.appId || targetAppId,
+        achievements: mergedAchievements,
+      };
+
+      if (data.appId) {
+        setEditSteamAppId(String(data.appId));
+      }
+
+      onUpdate(updatedGame);
+
+      setSteamNotice({
+        type: "success",
+        msg: t.steamImportSuccess.replace("{count}", String(mergedAchievements.length)),
+      });
+    } catch (err: any) {
+      setSteamNotice({
+        type: "error",
+        msg: t.steamImportError,
+      });
+    } finally {
+      setIsFetchingSteam(false);
+    }
+  };
+
+  // Mark all achievements as completed or locked
+  const handleSetAllAchievementsStatus = (unlocked: boolean) => {
+    const updatedAchievements = game.achievements.map((a) => ({
+      ...a,
+      unlocked,
+      unlockedAt: unlocked ? new Date().toISOString().split("T")[0] : undefined,
+    }));
+
+    onUpdate({
+      ...game,
+      achievements: updatedAchievements,
+    });
+  };
 
   // Toggle achievement unlock status
   const handleToggleAchievement = (achievementId: string) => {
@@ -124,6 +216,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
       igdbId: editIgdbId,
       igdbRating: editIgdbRating,
       igdbUrl: editIgdbUrl,
+      steamAppId: editSteamAppId ? Number(editSteamAppId) : undefined,
       platforms: editPlatforms,
       notes: editNotes.trim(),
     });
@@ -423,21 +516,83 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   </div>
 
                   {/* Achievements Progress & Checklist */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-gray-400 flex items-center gap-1.5">
-                        <Icons.Trophy className="w-3.5 h-3.5 text-indigo-500" />
-                        {t.achievementsObtainedTitle} ({unlockedCount}/{totalAchievements})
-                      </h3>
-                      {totalAchievements > 0 && (
-                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                          {progressPercent}% {t.percentCompletedText}
-                        </span>
-                      )}
+                  <div className="space-y-3">
+                    {/* Header & Steam Action Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-neutral-200 dark:border-white/10">
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-gray-200 flex items-center gap-1.5">
+                          <Icons.Trophy className="w-4 h-4 text-amber-500" />
+                          {t.achievementsObtainedTitle} ({unlockedCount}/{totalAchievements})
+                        </h3>
+                        {totalAchievements > 0 && (
+                          <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
+                            {progressPercent}% {t.percentCompletedText}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Action buttons stacked in rows */}
+                      <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                        {/* Top row: Steam Sync and Search */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Sync Steam Achievements */}
+                          <button
+                            type="button"
+                            onClick={() => handleFetchSteamAchievements()}
+                            disabled={isFetchingSteam}
+                            className="h-8 px-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm rounded-none shrink-0"
+                            title={t.fetchSteamAchievements}
+                          >
+                            {isFetchingSteam ? (
+                              <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Icons.Download className="w-3.5 h-3.5" />
+                            )}
+                            <span>{t.syncSteamBtn}</span>
+                          </button>
+
+                          {/* Search Steam App ID */}
+                          <button
+                            type="button"
+                            onClick={() => setShowSteamModal(true)}
+                            className="h-8 px-3 text-xs font-bold text-neutral-700 dark:text-gray-200 bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1.5 rounded-none shrink-0"
+                            title={t.steamSearchTitle}
+                          >
+                            <Icons.Search className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{t.steamSearchTitle}</span>
+                          </button>
+                        </div>
+
+                        {/* Bottom row: Mark All / Uncheck All controls centered below top row */}
+                        {totalAchievements > 0 && (
+                          <div className="self-center h-8 flex items-center bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 rounded-none overflow-hidden shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleSetAllAchievementsStatus(true)}
+                              className="h-full px-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer flex items-center gap-1"
+                              title={t.markAllCompleted}
+                            >
+                              <Icons.CheckCheck className="w-3.5 h-3.5" />
+                              <span className="text-[11px] font-bold">{language === "es" ? "Marcar todos" : "Mark all"}</span>
+                            </button>
+                            <div className="w-[1px] h-4 bg-neutral-300 dark:bg-white/10" />
+                            <button
+                              type="button"
+                              onClick={() => handleSetAllAchievementsStatus(false)}
+                              className="h-full px-2.5 text-xs font-bold text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center gap-1"
+                              title={t.markAllLocked}
+                            >
+                              <Icons.X className="w-3.5 h-3.5" />
+                              <span className="text-[11px] font-bold">{language === "es" ? "Desmarcar todos" : "Uncheck all"}</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
+                    {/* Progress Bar */}
                     {totalAchievements > 0 && (
-                      <div className="w-full bg-neutral-200 dark:bg-[#1b1b1f] h-2.5 rounded-none overflow-hidden mb-4 border border-neutral-300 dark:border-white/10">
+                      <div className="w-full bg-neutral-200 dark:bg-[#1b1b1f] h-2.5 rounded-none overflow-hidden border border-neutral-300 dark:border-white/10">
                         <div
                           className="bg-indigo-600 h-full rounded-none transition-all duration-500"
                           style={{ width: `${progressPercent}%` }}
@@ -445,55 +600,130 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       </div>
                     )}
 
+                    {/* Notice message */}
+                    {steamNotice && (
+                      <div
+                        className={`p-3 text-xs font-bold border flex items-center gap-2 ${
+                          steamNotice.type === "success"
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                            : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {steamNotice.type === "success" ? (
+                          <Icons.CheckCircle2 className="w-4 h-4 shrink-0" />
+                        ) : (
+                          <Icons.AlertCircle className="w-4 h-4 shrink-0" />
+                        )}
+                        <span>{steamNotice.msg}</span>
+                      </div>
+                    )}
+
                     {game.achievements.length === 0 ? (
-                      <div className="text-center py-4 bg-white dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-xs text-neutral-400 p-4">
-                        {t.noAchievementsDetailHint}
+                      <div className="text-center py-6 bg-white dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-xs text-neutral-400 p-4 space-y-2">
+                        <Icons.Trophy className="w-8 h-8 mx-auto text-neutral-300 dark:text-neutral-600" />
+                        <p>{t.noAchievementsDetailHint}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleFetchSteamAchievements()}
+                          disabled={isFetchingSteam}
+                          className="mt-2 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                        >
+                          {isFetchingSteam ? (
+                            <Icons.Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Icons.Download className="w-4 h-4" />
+                          )}
+                          <span>{t.syncSteamBtn}</span>
+                        </button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="achievements-checklist-grid">
-                        {game.achievements.map((ach) => (
-                          <div
-                            key={ach.id}
-                            onClick={() => handleToggleAchievement(ach.id)}
-                            className={`p-3.5 rounded-none border transition-all cursor-pointer flex gap-3 items-start select-none ${ach.unlocked
-                              ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
-                              : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
+                        {game.achievements.map((ach) => {
+                          const displayIcon = ach.unlocked
+                            ? ach.icon || ach.iconLocked
+                            : ach.iconLocked || ach.icon;
+
+                          return (
+                            <div
+                              key={ach.id}
+                              onClick={() => handleToggleAchievement(ach.id)}
+                              className={`p-3 rounded-none border transition-all cursor-pointer flex gap-3 items-center select-none ${
+                                ach.unlocked
+                                  ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
+                                  : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"
                               }`}
-                          >
-                            <div className="mt-0.5">
-                              {ach.unlocked ? (
-                                <div className="p-1 bg-indigo-600 text-white rounded-none">
-                                  <Icons.Check className="w-3.5 h-3.5 stroke-[3]" />
-                                </div>
-                              ) : (
-                                <div className="p-1 border-2 border-neutral-300 dark:border-white/20 rounded-none w-[22px] h-[22px]" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-center gap-2 mb-0.5">
-                                <h4 className={`text-xs font-bold truncate ${ach.unlocked ? "text-indigo-900 dark:text-indigo-300" : "text-neutral-800 dark:text-neutral-200"}`}>
-                                  {ach.name}
-                                </h4>
-                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none ${ach.difficulty === "Fácil"
-                                  ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40"
-                                  : ach.difficulty === "Medio"
-                                    ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40"
-                                    : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
-                                  }`}>
-                                  {ach.difficulty === "Fácil" ? t.difficultyEasy : ach.difficulty === "Medio" ? t.difficultyMedium : t.difficultyHard}
-                                </span>
+                            >
+                              {/* Steam Achievement Icon or Checkbox */}
+                              <div className="relative shrink-0">
+                                {displayIcon ? (
+                                  <div className="relative">
+                                    <img
+                                      src={displayIcon}
+                                      alt={ach.name}
+                                      className={`w-11 h-11 object-cover border ${
+                                        ach.unlocked
+                                          ? "border-indigo-500 shadow-sm"
+                                          : "border-neutral-300 dark:border-neutral-700 grayscale opacity-50"
+                                      }`}
+                                      loading="lazy"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                    {ach.unlocked && (
+                                      <div className="absolute -top-1 -right-1 p-0.5 bg-indigo-600 text-white rounded-none shadow-md">
+                                        <Icons.Check className="w-3 h-3 stroke-[3]" />
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="mt-0.5">
+                                    {ach.unlocked ? (
+                                      <div className="p-1 bg-indigo-600 text-white rounded-none">
+                                        <Icons.Check className="w-3.5 h-3.5 stroke-[3]" />
+                                      </div>
+                                    ) : (
+                                      <div className="p-1 border-2 border-neutral-300 dark:border-white/20 rounded-none w-[22px] h-[22px]" />
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                              <p className="text-[11px] text-neutral-500 dark:text-[#CCCCCC] line-clamp-2 leading-snug">
-                                {ach.description}
-                              </p>
-                              {ach.unlocked && ach.unlockedAt && (
-                                <span className="text-[9px] text-indigo-600/70 dark:text-indigo-400/70 font-semibold block mt-1">
-                                  {t.unlockedOnDate} {new Date(ach.unlockedAt).toLocaleDateString(locale)}
-                                </span>
-                              )}
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-center gap-2 mb-0.5">
+                                  <h4
+                                    className={`text-xs font-bold truncate ${
+                                      ach.unlocked ? "text-indigo-900 dark:text-indigo-300" : "text-neutral-800 dark:text-neutral-200"
+                                    }`}
+                                  >
+                                    {ach.name}
+                                  </h4>
+                                  <span
+                                    className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none shrink-0 ${
+                                      ach.difficulty === "Fácil"
+                                        ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40"
+                                        : ach.difficulty === "Medio"
+                                        ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40"
+                                        : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
+                                    }`}
+                                  >
+                                    {ach.difficulty === "Fácil"
+                                      ? t.difficultyEasy
+                                      : ach.difficulty === "Medio"
+                                      ? t.difficultyMedium
+                                      : t.difficultyHard}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-neutral-500 dark:text-[#CCCCCC] line-clamp-2 leading-snug">
+                                  {ach.description}
+                                </p>
+                                {ach.unlocked && ach.unlockedAt && (
+                                  <span className="text-[9px] text-indigo-600/70 dark:text-indigo-400/70 font-semibold block mt-1">
+                                    {t.unlockedOnDate} {new Date(ach.unlockedAt).toLocaleDateString(locale)}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -844,6 +1074,46 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     </div>
                   </div>
 
+                  {/* Steam App ID field */}
+                  <div className="space-y-1.5 p-3 bg-neutral-100 dark:bg-[#18181c] border border-neutral-200 dark:border-white/10 rounded-none">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold uppercase text-neutral-700 dark:text-gray-300 flex items-center gap-1.5">
+                        <Icons.Gamepad2 className="w-4 h-4 text-sky-500" />
+                        <span>{t.steamAppIdLabel || "Steam App ID"}</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowSteamModal(true)}
+                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Icons.Search className="w-3.5 h-3.5" />
+                        <span>{t.steamSearchTitle || "Buscar ID en Steam"}</span>
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={editSteamAppId}
+                        onChange={(e) => setEditSteamAppId(e.target.value)}
+                        placeholder={t.steamAppIdPlaceholder || "Ej. 620 (Portal 2)"}
+                        className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#121212] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleFetchSteamAchievements(editSteamAppId ? Number(editSteamAppId) : undefined)}
+                        disabled={isFetchingSteam}
+                        className="px-3 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+                      >
+                        {isFetchingSteam ? (
+                          <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Icons.Download className="w-3.5 h-3.5" />
+                        )}
+                        <span>{t.syncSteamBtn || "Obtener Logros"}</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Description */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
@@ -904,6 +1174,19 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
           language={language}
           onClose={() => setShowIgdbModal(false)}
           onSelectGame={handleSelectIgdbGame}
+        />
+      )}
+
+      {showSteamModal && (
+        <SteamSearchModal
+          initialQuery={editTitle || game.title}
+          language={language}
+          onClose={() => setShowSteamModal(false)}
+          onSelectGame={(result) => {
+            setShowSteamModal(false);
+            setEditSteamAppId(String(result.appId));
+            handleFetchSteamAchievements(result.appId);
+          }}
         />
       )}
 

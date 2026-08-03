@@ -1,8 +1,9 @@
 import React, { useState, FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Game, GameStatus, Language, IgdbSearchResult } from "../types";
+import { Game, GameStatus, Language, IgdbSearchResult, SteamSearchResult, Achievement } from "../types";
 import { ConsolePicker } from "./ConsolePicker";
 import { IgdbSearchModal } from "./IgdbSearchModal";
+import { SteamSearchModal } from "./SteamSearchModal";
 import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { getTranslation, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
@@ -61,7 +62,39 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
   const [igdbRating, setIgdbRating] = useState<number | undefined>(undefined);
   const [igdbUrl, setIgdbUrl] = useState<string | undefined>(undefined);
 
+  // Steam metadata & achievements
+  const [steamAppId, setSteamAppId] = useState<number | undefined>(undefined);
+  const [showSteamModal, setShowSteamModal] = useState(false);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [isFetchingSteam, setIsFetchingSteam] = useState(false);
+  const [steamNotice, setSteamNotice] = useState<string | null>(null);
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Handle Steam selection and auto-fetch achievements
+  const handleSelectSteamGame = async (result: SteamSearchResult) => {
+    setShowSteamModal(false);
+    setSteamAppId(result.appId);
+    setIsFetchingSteam(true);
+    setSteamNotice(null);
+
+    try {
+      const res = await fetch("/api/steam/achievements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appId: result.appId, title: result.name || title, lang: language }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.achievements)) {
+        setAchievements(data.achievements);
+        setSteamNotice(t.steamImportSuccess.replace("{count}", String(data.achievements.length)));
+      }
+    } catch (err) {
+      console.error("Error fetching steam achievements in add form:", err);
+    } finally {
+      setIsFetchingSteam(false);
+    }
+  };
 
   // Handle IGDB Game Selection
   const handleSelectIgdbGame = (result: IgdbSearchResult) => {
@@ -112,7 +145,8 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
       igdbId,
       igdbRating,
       igdbUrl,
-      achievements: [],
+      steamAppId,
+      achievements: achievements || [],
       notes: notes.trim() || undefined,
     };
 
@@ -157,27 +191,65 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="p-3.5 sm:p-6 space-y-3.5 sm:space-y-6 max-h-[85vh] overflow-y-auto">
-            {/* Quick IGDB Search Banner */}
-            <div className="p-2.5 sm:p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Icons.Search className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200 truncate">
-                    {t.autoImportIgdb || "Import data automatically"}
-                  </p>
-                  <p className="text-[10px] sm:text-[11px] text-indigo-700 dark:text-indigo-400 hidden sm:block">
-                    {t.autoImportDesc || "Search IGDB database for official details and cover"}
-                  </p>
+            {/* Quick IGDB / Steam Search Banners */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="p-2.5 sm:p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Icons.Search className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200 truncate">
+                      {t.autoImportIgdb || "Importar de IGDB"}
+                    </p>
+                    <p className="text-[10px] text-indigo-700 dark:text-indigo-400 truncate">
+                      {t.autoImportDesc || "Portada y datos oficiales"}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowIgdbModal(true)}
+                  className="px-2.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
+                >
+                  {t.searchIgdb || "Buscar IGDB"}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowIgdbModal(true)}
-                className="px-3 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
-              >
-                {t.searchIgdb || "Search IGDB"}
-              </button>
+
+              <div className="p-2.5 sm:p-3 bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-500/20 rounded-none flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Icons.Gamepad2 className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-sky-950 dark:text-sky-200 truncate">
+                      {t.steamSearchTitle || "Buscar ID en Steam"}
+                    </p>
+                    <p className="text-[10px] text-sky-700 dark:text-sky-400 truncate">
+                      {achievements.length > 0
+                        ? `${achievements.length} logros cargados`
+                        : "Carga automática de logros"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSteamModal(true)}
+                  disabled={isFetchingSteam}
+                  className="px-2.5 py-1.5 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm disabled:opacity-50 flex items-center gap-1"
+                >
+                  {isFetchingSteam ? (
+                    <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Icons.Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>Steam</span>
+                </button>
+              </div>
             </div>
+
+            {steamNotice && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+                <Icons.CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{steamNotice}</span>
+              </div>
+            )}
 
             {errorMsg && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-none text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
@@ -512,13 +584,21 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
         </motion.div>
       </div>
 
-      {/* IGDB Search Modal */}
+      {/* IGDB & Steam Search Modals */}
       <AnimatePresence>
         {showIgdbModal && (
           <IgdbSearchModal
             initialQuery={title}
             onClose={() => setShowIgdbModal(false)}
             onSelectGame={handleSelectIgdbGame}
+            language={language}
+          />
+        )}
+        {showSteamModal && (
+          <SteamSearchModal
+            initialQuery={title}
+            onClose={() => setShowSteamModal(false)}
+            onSelectGame={handleSelectSteamGame}
             language={language}
           />
         )}
