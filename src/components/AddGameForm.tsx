@@ -5,6 +5,7 @@ import { ConsolePicker } from "./ConsolePicker";
 import { IgdbSearchModal } from "./IgdbSearchModal";
 import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { getTranslation, translateSymbolLabel } from "../translations";
+import { VideoGameBarcode } from "./VideoGameBarcode";
 import * as Icons from "lucide-react";
 
 interface AddGameFormProps {
@@ -422,15 +423,31 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase text-neutral-600 dark:text-gray-300">
-                  {t.barcodeLabel || "Barcode / Serial"}
+                  {t.barcodeLabel || "Código de Barras (EAN / UPC)"}
                 </label>
                 <input
                   type="text"
                   value={barcode}
                   onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="EAN / UPC / ISBN"
-                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
+                  placeholder={t.barcodePlaceholder || "EAN / UPC (ej. 0045496598518)"}
+                  className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono"
                 />
+
+                {/* Live Barcode Preview in Add Game Form */}
+                {barcode.trim() !== "" && (
+                  <div className="mt-2 p-2.5 bg-neutral-100 dark:bg-[#18181c] border border-neutral-200 dark:border-white/10 rounded-none">
+                    <p className="text-[9px] font-mono font-bold uppercase text-neutral-500 dark:text-neutral-400 mb-1">
+                      {t.barcodePreviewLabel || "Vista Previa de Caja / Cartucho"}
+                    </p>
+                    <VideoGameBarcode
+                      barcode={barcode}
+                      platform={platforms[0]}
+                      variant="retail-sticker"
+                      size="sm"
+                      className="mx-auto"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">

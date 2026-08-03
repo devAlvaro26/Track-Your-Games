@@ -5,6 +5,7 @@ import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { ConsolePicker } from "./ConsolePicker";
 import { IgdbSearchModal } from "./IgdbSearchModal";
 import { getTranslation, translateGenre, translateSymbolLabel } from "../translations";
+import { VideoGameBarcode } from "./VideoGameBarcode";
 import * as Icons from "lucide-react";
 
 interface GameDetailModalProps {
@@ -145,60 +146,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
     setEditImportNotice(t.igdbImportSuccess.replace("{name}", selected.name || ""));
   };
 
-  // Helper to render vector EAN-13 barcode
-  const renderBarcodeSVG = (code: string) => {
-    const cleanCode = code.replace(/[^0-9]/g, "") || "0000000000000";
-    const bars: boolean[] = [];
-    bars.push(true, false, true);
-
-    for (let i = 0; i < cleanCode.length; i++) {
-      const digit = parseInt(cleanCode[i] || "0");
-      const pattern = [
-        [true, false, true, false, false],
-        [true, true, false, false, true],
-        [true, false, true, true, false],
-        [false, true, true, false, true],
-        [true, false, false, true, true],
-        [false, true, false, true, true],
-        [true, true, false, true, false],
-        [true, false, true, false, true],
-        [false, false, true, true, true],
-        [true, true, true, false, false],
-      ][digit % 10];
-
-      bars.push(...pattern);
-      if (i === 5) {
-        bars.push(false, true, false, true, false);
-      }
-    }
-    bars.push(true, false, true);
-
-    return (
-      <div className="flex flex-col items-center bg-white p-3 rounded-none border border-neutral-300 shadow-sm max-w-[180px] mx-auto select-none">
-        <svg viewBox="0 0 100 40" className="w-full h-10">
-          <g fill="#000000">
-            {bars.map((isBlack, index) => {
-              if (isBlack) {
-                return (
-                  <rect
-                    key={index}
-                    x={(index * 1.1) + 2}
-                    y="1"
-                    width="0.9"
-                    height="32"
-                  />
-                );
-              }
-              return null;
-            })}
-          </g>
-        </svg>
-        <div className="font-mono text-[9px] tracking-[3px] text-black mt-1 text-center font-bold">
-          {cleanCode.substring(0, 1)} {cleanCode.substring(1, 7)} {cleanCode.substring(7, 13)}
-        </div>
-      </div>
-    );
-  };
+  // Primary platform helper
+  const primaryPlatform = game.platforms && game.platforms.length > 0 ? game.platforms[0] : "PC";
 
   // Achievement ratios
   const totalAchievements = game.achievements.length;
@@ -366,18 +315,24 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   <div className="z-10 mt-auto pt-2.5 sm:pt-4 border-t border-white/15 space-y-2 sm:space-y-3">
                     {game.barcode && game.barcode.trim() !== "" ? (
                       <div>
-                        <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-white/50 text-center mb-0.5 sm:mb-1">
-                          {t.officialBarcodeTitle}
+                        <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-white/50 text-center mb-1">
+                          {t.officialBarcodeTitle || "CÓDIGO DE BARRAS OFICIAL"}
                         </p>
-                        {renderBarcodeSVG(game.barcode)}
+                        <VideoGameBarcode
+                          barcode={game.barcode}
+                          platform={primaryPlatform}
+                          variant="retail-sticker"
+                          size="md"
+                          className="mx-auto"
+                        />
                       </div>
                     ) : (
-                      <div className="text-center py-1 sm:py-2">
-                        <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-white/40 mb-0.5">
-                          {t.officialBarcodeTitle}
+                      <div className="text-center py-2 px-3 bg-black/30 border border-white/10 rounded-none max-w-[210px] mx-auto">
+                        <p className="text-[9px] uppercase font-bold tracking-widest text-white/50 mb-1">
+                          {t.officialBarcodeTitle || "CÓDIGO DE BARRAS OFICIAL"}
                         </p>
-                        <p className="text-[11px] sm:text-xs text-white/50 italic font-mono">
-                          {t.noBarcodeText}
+                        <p className="text-[10px] text-white/60 italic font-mono">
+                          {t.noBarcodeText || "Sin código de barras"}
                         </p>
                       </div>
                     )}
@@ -855,9 +810,25 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editBarcode}
                         onChange={(e) => setEditBarcode(e.target.value)}
-                        placeholder="EAN / UPC / ISBN"
-                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
+                        placeholder="EAN / UPC / ISBN (ej. 0045496598518)"
+                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono"
                       />
+
+                      {/* Barcode Preview in Edit Mode */}
+                      {editBarcode.trim() !== "" && (
+                        <div className="mt-2 p-2.5 bg-neutral-100 dark:bg-[#18181c] border border-neutral-200 dark:border-white/10 rounded-none">
+                          <p className="text-[9px] font-mono font-bold uppercase text-neutral-500 dark:text-neutral-400 mb-1">
+                            {t.barcodePreviewLabel || "Vista Previa de Caja / Cartucho"}
+                          </p>
+                          <VideoGameBarcode
+                            barcode={editBarcode}
+                            platform={editPlatforms[0]}
+                            variant="retail-sticker"
+                            size="sm"
+                            className="mx-auto"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">

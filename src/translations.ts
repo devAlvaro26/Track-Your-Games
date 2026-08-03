@@ -711,6 +711,18 @@ export const translationTable = {
     es: "Ej: 0045496598518 (12-13 números)",
     en: "E.g. 0045496598518 (12-13 digits)",
   },
+  generateBarcodeBtn: {
+    es: "Generar EAN-13 Real",
+    en: "Generate Real EAN-13",
+  },
+  barcodeCopiedToast: {
+    es: "¡Código de barras copiado!",
+    en: "Barcode copied to clipboard!",
+  },
+  barcodePreviewLabel: {
+    es: "Vista Previa de Caja / Cartucho",
+    en: "Box / Cartridge Preview",
+  },
   descriptionLabel: {
     es: "Descripción",
     en: "Description",
