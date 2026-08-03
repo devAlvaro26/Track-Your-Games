@@ -141,6 +141,14 @@ export const translationTable = {
     es: "Perfil de Usuario",
     en: "User Profile",
   },
+  profileOf: {
+    es: "Perfil de {name}",
+    en: "{name}'s Profile",
+  },
+  profile: {
+    es: "Perfil",
+    en: "Profile",
+  },
   cloudSynced: {
     es: "Datos guardados en la nube",
     en: "Data saved in cloud",
@@ -1084,6 +1092,80 @@ export const translationTable = {
   symbolRocket: {
     es: "Cohete (Espacial/Ciencia Ficción)",
     en: "Rocket (Sci-Fi/Space)",
+  },
+
+  // --- ADDITIONAL LABELS & HELPER STRINGS ---
+  achievementsLoaded: {
+    es: "{count} logros cargados",
+    en: "{count} achievements loaded",
+  },
+  autoLoadAchievements: {
+    es: "Carga automática de logros",
+    en: "Auto-load achievements",
+  },
+  noCustomPhoto: {
+    es: "Sin foto personalizada",
+    en: "No custom photo",
+  },
+  collectorDefault: {
+    es: "Coleccionista",
+    en: "Collector",
+  },
+  invalidServerResponse: {
+    es: "Respuesta no válida del servidor local.",
+    en: "Invalid response from local server.",
+  },
+  igdbHtmlError: {
+    es: "Respuesta no válida del servidor (HTML). Por favor verifica que las claves de la API de IGDB/Twitch estén configuradas en .env.",
+    en: "Invalid response from server (HTML). Please verify IGDB/Twitch API credentials in .env.",
+  },
+  igdbJsonError: {
+    es: "La API de IGDB no devolvió una respuesta JSON válida. Verifica las credenciales de Twitch/IGDB en .env.",
+    en: "IGDB API did not return a valid JSON response. Please check Twitch/IGDB credentials in .env.",
+  },
+  cannotParseServerResponse: {
+    es: "No se pudo interpretar la respuesta del servidor.",
+    en: "Could not parse server response.",
+  },
+  hideUrl: {
+    es: "Ocultar URL",
+    en: "Hide URL",
+  },
+  steamSearchError: {
+    es: "Error al buscar en Steam.",
+    en: "Error searching Steam.",
+  },
+  serverConnError: {
+    es: "Error de conexión con el servidor.",
+    en: "Connection error with server.",
+  },
+  steamSearchSubtitle: {
+    es: "Busca cualquier título para vincular su ID de Steam",
+    en: "Search any title to link its Steam ID",
+  },
+  search: {
+    es: "Buscar",
+    en: "Search",
+  },
+  searchingSteamStore: {
+    es: "Buscando en la tienda de Steam...",
+    en: "Searching Steam store...",
+  },
+  noSteamGamesFound: {
+    es: "No se encontraron juegos en Steam para tu búsqueda.",
+    en: "No Steam games found for your query.",
+  },
+  select: {
+    es: "Seleccionar",
+    en: "Select",
+  },
+  copyBarcode: {
+    es: "COPIAR",
+    en: "COPY",
+  },
+  copiedBarcode: {
+    es: "COPIADO",
+    en: "COPIED",
   },
 
   // --- COMMON BUTTONS & LABELS ---

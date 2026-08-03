@@ -573,7 +573,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                               title={t.markAllCompleted}
                             >
                               <Icons.CheckCheck className="w-3.5 h-3.5" />
-                              <span className="text-[11px] font-bold">{language === "es" ? "Marcar todos" : "Mark all"}</span>
+                              <span className="text-[11px] font-bold">{t.markAllCompleted}</span>
                             </button>
                             <div className="w-[1px] h-4 bg-neutral-300 dark:bg-white/10" />
                             <button
@@ -583,7 +583,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                               title={t.markAllLocked}
                             >
                               <Icons.X className="w-3.5 h-3.5" />
-                              <span className="text-[11px] font-bold">{language === "es" ? "Desmarcar todos" : "Uncheck all"}</span>
+                              <span className="text-[11px] font-bold">{t.markAllLocked}</span>
                             </button>
                           </div>
                         )}

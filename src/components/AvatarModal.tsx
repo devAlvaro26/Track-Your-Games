@@ -54,7 +54,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
           {/* User Name Header */}
           <div className="space-y-1 mt-1">
             <h3 className="text-lg font-black tracking-wider uppercase text-neutral-900 dark:text-white">
-              {username || "Coleccionista"}
+              {username || t.collectorDefault || "Coleccionista"}
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-mono">
               {t.avatarLabel}
@@ -73,7 +73,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
               <div className="flex flex-col items-center gap-3 text-indigo-400">
                 <Icons.Library className="w-24 h-24 stroke-[1.5]" />
                 <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">
-                  Sin foto personalizada
+                  {t.noCustomPhoto || "Sin foto personalizada"}
                 </span>
               </div>
             )}

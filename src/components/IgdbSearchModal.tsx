@@ -36,9 +36,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         } catch (e) {
           return {
             configured: false,
-            error: language === "es"
-              ? "Respuesta no válida del servidor local."
-              : "Invalid response from local server.",
+            error: t.invalidServerResponse,
           };
         }
       })
@@ -77,11 +75,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         data = JSON.parse(responseText);
       } catch (parseErr) {
         console.error("IGDB search returned non-JSON response:", responseText.slice(0, 100));
-        setError(
-          language === "es"
-            ? "Respuesta no válida del servidor (HTML). Por favor verifica que las claves de la API de IGDB/Twitch estén configuradas en .env."
-            : "Invalid response from server (HTML). Please verify IGDB/Twitch API credentials in .env."
-        );
+        setError(t.igdbHtmlError);
         setResults([]);
         return;
       }
@@ -89,9 +83,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
       if (!res.ok || data.error) {
         let errMessage = data.error || t.igdbDefaultError;
         if (typeof errMessage === "string" && (errMessage.includes("Unexpected token") || errMessage.includes("is not valid JSON"))) {
-          errMessage = language === "es"
-            ? "La API de IGDB no devolvió una respuesta JSON válida. Verifica las credenciales de Twitch/IGDB en .env."
-            : "IGDB API did not return a valid JSON response. Please check Twitch/IGDB credentials in .env.";
+          errMessage = t.igdbJsonError;
         }
         setError(errMessage);
         setResults([]);
@@ -119,9 +111,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
       console.error("Error searching IGDB:", err);
       let errMsg = err?.message || t.aiConnectionError;
       if (typeof errMsg === "string" && (errMsg.includes("Unexpected token") || errMsg.includes("is not valid JSON"))) {
-        errMsg = language === "es"
-          ? "No se pudo interpretar la respuesta del servidor."
-          : "Could not parse server response.";
+        errMsg = t.cannotParseServerResponse;
       }
       setError(errMsg);
       setResults([]);

@@ -333,6 +333,7 @@ export default function App() {
               avatarUrl={settings.avatarUrl}
               username={settings.username}
               size="sm"
+              language={settings.language}
               onClick={() => setIsAvatarModalOpen(true)}
             />
             <div>
@@ -382,6 +383,7 @@ export default function App() {
                       avatarUrl={settings.avatarUrl}
                       username={settings.username}
                       size="md"
+                      language={settings.language}
                       onClick={() => {
                         setIsAvatarModalOpen(true);
                         setIsMobileMenuOpen(false);
@@ -552,6 +554,7 @@ export default function App() {
               avatarUrl={settings.avatarUrl}
               username={settings.username}
               size="md"
+              language={settings.language}
               onClick={() => setIsAvatarModalOpen(true)}
             />
             <div className="min-w-0 flex-1">

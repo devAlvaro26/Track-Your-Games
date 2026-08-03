@@ -223,8 +223,8 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                     </p>
                     <p className="text-[10px] text-sky-700 dark:text-sky-400 truncate">
                       {achievements.length > 0
-                        ? `${achievements.length} logros cargados`
-                        : "Carga automática de logros"}
+                        ? (t.achievementsLoaded || "{count} logros cargados").replace("{count}", String(achievements.length))
+                        : (t.autoLoadAchievements || "Carga automática de logros")}
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import * as Icons from "lucide-react";
+import { Language } from "../types";
+import { getTranslation } from "../translations";
 
 interface VideoGameBarcodeProps {
   barcode?: string;
@@ -9,6 +11,7 @@ interface VideoGameBarcodeProps {
   showCopyButton?: boolean;
   showScanAnimation?: boolean;
   showRegionBadge?: boolean;
+  language?: Language;
   className?: string;
   onCopy?: (code: string) => void;
 }
@@ -182,9 +185,11 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
   showCopyButton = true,
   showScanAnimation = true,
   showRegionBadge = true,
+  language = "es",
   className = "",
   onCopy,
 }) => {
+  const t = getTranslation(language);
   const [copied, setCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -436,12 +441,12 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
             {copied ? (
               <>
                 <Icons.Check className="w-2.5 h-2.5 stroke-[3] text-emerald-500" />
-                <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">COPIADO</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{t.copiedBarcode || "COPIADO"}</span>
               </>
             ) : (
               <>
                 <Icons.Copy className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100" />
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity">COPIAR</span>
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity">{t.copyBarcode || "COPIAR"}</span>
               </>
             )}
           </div>

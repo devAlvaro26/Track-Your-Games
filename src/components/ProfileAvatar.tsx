@@ -1,10 +1,13 @@
 import React from "react";
 import * as Icons from "lucide-react";
+import { Language } from "../types";
+import { getTranslation } from "../translations";
 
 interface ProfileAvatarProps {
   avatarUrl?: string;
   username?: string;
   size?: "sm" | "md" | "lg";
+  language?: Language;
   onClick?: () => void;
   className?: string;
 }
@@ -13,9 +16,12 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   avatarUrl,
   username = "",
   size = "md",
+  language = "es",
   onClick,
   className = "",
 }) => {
+  const t = getTranslation(language);
+
   const sizeClasses = {
     sm: "w-8 h-8 text-xs",
     md: "w-10 h-10 text-sm",
@@ -31,12 +37,16 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   const containerClass = `relative shrink-0 overflow-hidden ${sizeClasses[size]} ${onClick ? "cursor-pointer hover:opacity-90 active:scale-95 transition-all" : ""
     } ${className}`;
 
+  const titleText = username
+    ? (t.profileOf || "Perfil de {name}").replace("{name}", username)
+    : t.profile || "Perfil";
+
   if (avatarUrl) {
     return (
       <div
         className={`${containerClass} bg-indigo-600 border-2 border-indigo-500/60 shadow-md flex items-center justify-center`}
         onClick={onClick}
-        title={username ? `Perfil de ${username}` : "Perfil"}
+        title={titleText}
         id="profile-avatar-img-container"
       >
         <img
@@ -56,7 +66,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     <div
       className={`${containerClass} bg-indigo-600 text-white shadow-md flex items-center justify-center font-black`}
       onClick={onClick}
-      title={username ? `Perfil de ${username}` : "Perfil"}
+      title={titleText}
       id="profile-avatar-default-container"
     >
       <Icons.Library className={iconSizes[size]} />

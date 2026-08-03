@@ -40,13 +40,13 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        setError(data.error || (language === "es" ? "Error al buscar en Steam." : "Error searching Steam."));
+        setError(data.error || t.steamSearchError || "Error al buscar en Steam.");
         setResults([]);
       } else {
         setResults(data.results || []);
       }
     } catch (err: any) {
-      setError(err.message || (language === "es" ? "Error de conexión con el servidor." : "Connection error with server."));
+      setError(err.message || t.serverConnError || "Error de conexión con el servidor.");
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -78,7 +78,7 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
                 {t.steamSearchTitle || "Buscar App ID en Steam"}
               </h2>
               <p className="text-xs text-neutral-500 dark:text-gray-400">
-                {language === "es" ? "Busca cualquier título para vincula su ID de Steam" : "Search any title to link its Steam ID"}
+                {t.steamSearchSubtitle || "Busca cualquier título para vincular su ID de Steam"}
               </p>
             </div>
           </div>
@@ -120,7 +120,7 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
               ) : (
                 <Icons.Search className="w-4 h-4" />
               )}
-              <span>{language === "es" ? "Buscar" : "Search"}</span>
+              <span>{t.search || "Buscar"}</span>
             </button>
           </form>
         </div>
@@ -137,13 +137,13 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
           {isLoading && (
             <div className="py-12 flex flex-col items-center justify-center text-neutral-400 gap-2">
               <Icons.Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-              <p className="text-xs font-medium">{language === "es" ? "Buscando en la tienda de Steam..." : "Searching Steam store..."}</p>
+              <p className="text-xs font-medium">{t.searchingSteamStore || "Buscando en la tienda de Steam..."}</p>
             </div>
           )}
 
           {!isLoading && !error && results.length === 0 && query.trim() !== "" && (
             <div className="py-12 text-center text-neutral-400 text-xs">
-              {language === "es" ? "No se encontraron juegos en Steam para tu búsqueda." : "No Steam games found for your query."}
+              {t.noSteamGamesFound || "No se encontraron juegos en Steam para tu búsqueda."}
             </div>
           )}
 
@@ -180,7 +180,7 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
                   type="button"
                   className="px-3 py-1.5 text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50 group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0"
                 >
-                  {language === "es" ? "Seleccionar" : "Select"}
+                  {t.select || "Seleccionar"}
                 </button>
               </div>
             ))}
