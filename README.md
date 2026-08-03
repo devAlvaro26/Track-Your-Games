@@ -1,4 +1,7 @@
-# Track‑It 🎮
+<div align="center">
+  <img src="public/tyg_logo.png" alt="Track-Your-GamesLogo" width="128" />
+  <h1>Track Your Games</h1>
+</div>
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
@@ -11,7 +14,7 @@
 
 ## Overview
 
-**Track‑It** is a modern web application designed to organize, catalog, and track your personal video game collection. It features native integration with the **IGDB API v4**, optional cloud persistence via **Supabase**, a full vector branding catalog for over 60 video game consoles, custom profile avatars, detailed library analytics, and multi-language support (English and Spanish).
+**Track-Your-Games** is a modern web application designed to organize, catalog, and track your personal video game collection. It features native integration with the **IGDB API v4**, optional cloud persistence via **Supabase**, a full vector branding catalog for over 60 video game consoles, custom profile avatars, detailed library analytics, and multi-language support (English and Spanish).
 
 ---
 
@@ -62,7 +65,7 @@
 ├── api/                       # Vercel serverless function entrypoint
 │   └── index.ts
 ├── public/
-│   └── trackit_logo.png       # Application branding logo icon
+│   └── tyg_logo.png       # Application branding logo icon
 ├── server.ts                  # Express server (IGDB API proxy + Vite static server)
 ├── src/
 │   ├── App.tsx                # Main application component and user interface
@@ -106,8 +109,8 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/devAlvaro26/track-it.git
-   cd track-it
+   git clone https://github.com/devAlvaro26/track-your-games.git
+   cd track-your-games
    ```
 
 2. **Install dependencies:**
@@ -154,11 +157,11 @@ To enable cloud storage and user accounts:
 To install this application on your Android device, follow these steps:
 
 1. **Open your browser and navigate to this link**
-   - https://track-it-pi-gold.vercel.app
+   - https://track-your-games.vercel.app
 2. **Click on the "Install app" button**
    - If you don't see the button, click on the browser's menu (three dots) and select "Install app"
 3. **Open the app**
-   - After installation, you can find **Track-It** in your app drawer
+   - After installation, you can find **TYG** in your app drawer
 
 ## License
 

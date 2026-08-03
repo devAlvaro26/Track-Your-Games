@@ -1,6 +1,6 @@
 {
-  "name": "Track-It",
-  "description": "Una biblioteca digital donde poder registrar y hacer seguimiento de tus juegos favoritos.",
+  "name": "Track Your Games",
+  "description": "A digital library to track and organize all your favorite games.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }
