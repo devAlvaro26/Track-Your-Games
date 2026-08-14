@@ -18,7 +18,7 @@ export interface Game {
   description: string;
   genre: string;
   platforms: string[];
-  releaseDate: string; // release date / year
+  releaseDate: string; // dd/mm/yyyy or year
   barcode: string; // barcode string
   acquisitionDate: string; // user acquisition date
   rating: number; // 1-5 stars
@@ -55,7 +55,7 @@ export interface IgdbSearchResult {
   name: string;
   summary?: string;
   storyline?: string;
-  firstReleaseDate?: string; // YYYY-MM-DD or year
+  firstReleaseDate?: string; // dd/mm/yyyy or year
   genres: string[];
   platforms: string[];
   coverUrl?: string;

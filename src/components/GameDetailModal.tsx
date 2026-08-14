@@ -159,7 +159,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
     const updatedAchievements = game.achievements.map((a) => ({
       ...a,
       unlocked,
-      unlockedAt: unlocked ? new Date().toISOString().split("T")[0] : undefined,
+      unlockedAt: unlocked ? (() => {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        return `${day}/${month}/${year}`;
+      })() : undefined,
     }));
 
     onUpdate({
@@ -176,7 +182,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
         return {
           ...ach,
           unlocked: nextUnlocked,
-          unlockedAt: nextUnlocked ? new Date().toISOString().split("T")[0] : undefined,
+          unlockedAt: nextUnlocked ? (() => {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            return `${day}/${month}/${year}`;
+          })() : undefined,
         };
       }
       return ach;
@@ -715,11 +727,6 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                 <p className="text-[11px] text-neutral-500 dark:text-[#CCCCCC] line-clamp-2 leading-snug">
                                   {ach.description}
                                 </p>
-                                {ach.unlocked && ach.unlockedAt && (
-                                  <span className="text-[9px] text-indigo-600/70 dark:text-indigo-400/70 font-semibold block mt-1">
-                                    {t.unlockedOnDate} {new Date(ach.unlockedAt).toLocaleDateString(locale)}
-                                  </span>
-                                )}
                               </div>
                             </div>
                           );
@@ -866,7 +873,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editReleaseDate}
                         onChange={(e) => setEditReleaseDate(e.target.value)}
-                        placeholder="YYYY-MM-DD or 2023"
+                        placeholder="dd/mm/yyyy"
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -1066,9 +1073,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         {t.acquisitionDateLabel || "Fecha de Adquisición"}
                       </label>
                       <input
-                        type="date"
+                        type="text"
                         value={editAcquisitionDate}
                         onChange={(e) => setEditAcquisitionDate(e.target.value)}
+                        placeholder="dd/mm/yyyy"
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                       />
                     </div>

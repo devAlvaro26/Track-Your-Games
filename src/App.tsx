@@ -294,7 +294,16 @@ export default function App() {
         return b.rating - a.rating;
       }
       if (sortBy === "acquisitionDate") {
-        return new Date(b.acquisitionDate || 0).getTime() - new Date(a.acquisitionDate || 0).getTime();
+        const parseDate = (dateStr: string | undefined): Date => {
+          if (!dateStr) return new Date(0);
+          const parts = dateStr.split('/');
+          if (parts.length === 3) {
+            const [day, month, year] = parts.map(Number);
+            return new Date(year, month - 1, day);
+          }
+          return new Date(0);
+        };
+        return parseDate(b.acquisitionDate).getTime() - parseDate(a.acquisitionDate).getTime();
       }
       return 0;
     });

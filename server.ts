@@ -266,7 +266,13 @@ app.post("/api/igdb/search", async (req: express.Request, res: express.Response)
       name: g.name,
       summary: g.summary || g.storyline || "",
       firstReleaseDate: g.first_release_date
-        ? new Date(g.first_release_date * 1000).toISOString().split("T")[0]
+        ? (() => {
+            const date = new Date(g.first_release_date * 1000);
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const year = date.getUTCFullYear();
+            return `${day}/${month}/${year}`;
+          })()
         : "",
       genres: g.genres ? g.genres.map((gen: any) => gen.name) : [],
       platforms: g.platforms ? g.platforms.map((p: any) => p.name) : [],

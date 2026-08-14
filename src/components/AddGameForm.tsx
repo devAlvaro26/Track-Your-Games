@@ -45,9 +45,13 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
   const [platforms, setPlatforms] = useState<string[]>([]);
   const [releaseDate, setReleaseDate] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [acquisitionDate, setAcquisitionDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [acquisitionDate, setAcquisitionDate] = useState(() => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    return `${day}/${month}/${year}`;
+  });
   const [rating, setRating] = useState<number>(0);
   const [playTime, setPlayTime] = useState<number>(0);
   const [status, setStatus] = useState<GameStatus>("Pendiente");
@@ -102,7 +106,13 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
       platforms: platforms.length > 0 ? platforms : ["PC"],
       releaseDate: releaseDate.trim(),
       barcode: barcode.trim(),
-      acquisitionDate: acquisitionDate || new Date().toISOString().split("T")[0],
+      acquisitionDate: acquisitionDate || (() => {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        return `${day}/${month}/${year}`;
+      })(),
       rating: Number(rating) || 0,
       playTime: Number(playTime) || 0,
       status,
@@ -255,7 +265,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   type="text"
                   value={releaseDate}
                   onChange={(e) => setReleaseDate(e.target.value)}
-                  placeholder="YYYY-MM-DD or 2023"
+                  placeholder="dd/mm/yyyy"
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -455,9 +465,10 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   {t.acquisitionDateLabel || "Acquisition Date"}
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   value={acquisitionDate}
                   onChange={(e) => setAcquisitionDate(e.target.value)}
+                  placeholder="dd/mm/yyyy"
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>

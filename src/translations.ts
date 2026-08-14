@@ -708,8 +708,8 @@ export const translationTable = {
     en: "Release",
   },
   releasePlaceholder: {
-    es: "Ej: 2023 o 2023-05-12",
-    en: "E.g. 2023 or 2023-05-12",
+    es: "Ej: dd/mm/yyyy",
+    en: "E.g. dd/mm/yyyy",
   },
   barcodeLabel: {
     es: "Código de Barras (EAN / UPC)",
