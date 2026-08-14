@@ -351,6 +351,10 @@ export const translationTable = {
     es: "Jugando",
     en: "Playing",
   },
+  statusPlayed: {
+    es: "Jugados",
+    en: "Played",
+  },
   statusCompleted: {
     es: "Completados",
     en: "Completed",
@@ -428,6 +432,10 @@ export const translationTable = {
   statusPlayingTag: {
     es: "Jugando",
     en: "Playing",
+  },
+  statusPlayedTag: {
+    es: "Jugado",
+    en: "Played",
   },
   statusCompletedTag: {
     es: "Completado",

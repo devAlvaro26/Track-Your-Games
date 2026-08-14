@@ -474,6 +474,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         <option value="Pendiente">{t.statusPendingTag}</option>
                         <option value="Deseados">{t.statusWishlistTag || "Quiero Jugar"}</option>
                         <option value="Jugando">{t.statusPlayingTag}</option>
+                        <option value="Jugado">{t.statusPlayedTag || "Jugado"}</option>
                         <option value="Completado">{t.statusCompletedTag}</option>
                         <option value="Favoritos">{t.statusFavoriteTag}</option>
                       </select>
@@ -832,6 +833,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         <option value="Pendiente">{t.statusPending || t.statusPendingTag || "Pendiente"}</option>
                         <option value="Deseados">{t.statusWishlist || t.statusWishlistTag || "Quiero Jugar"}</option>
                         <option value="Jugando">{t.statusPlaying || t.statusPlayingTag || "Jugando"}</option>
+                        <option value="Jugado">{t.statusPlayed || t.statusPlayedTag || "Jugado"}</option>
                         <option value="Completado">{t.statusCompleted || t.statusCompletedTag || "Completado"}</option>
                         <option value="Favoritos">{t.statusFavorites || t.statusFavoriteTag || "Favoritos"}</option>
                       </select>

@@ -224,6 +224,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   <option value="Pendiente">{t.statusPending || "Pending"}</option>
                   <option value="Deseados">{t.wishlistOption || "Quiero Jugar (Lista de Deseos)"}</option>
                   <option value="Jugando">{t.statusPlaying || "Playing"}</option>
+                  <option value="Jugado">{t.statusPlayed || "Played"}</option>
                   <option value="Completado">{t.statusCompleted || "Completed"}</option>
                   <option value="Favoritos">{t.statusFavorites || "Favorite"}</option>
                 </select>

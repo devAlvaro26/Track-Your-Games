@@ -31,6 +31,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
     Deseados: { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag || "Quiero Jugar" },
     "Quiero Jugar": { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag || "Quiero Jugar" },
     Jugando: { bg: "bg-sky-500/90 text-sky-950", text: "text-sky-200", label: t.statusPlayingTag || "Jugando" },
+    Jugado: { bg: "bg-teal-500/90 text-teal-950", text: "text-teal-200", label: t.statusPlayedTag || "Jugado" },
     Completado: { bg: "bg-emerald-500/90 text-emerald-950", text: "text-emerald-200", label: t.statusCompletedTag || "Completado" },
     Favoritos: { bg: "bg-rose-500/90 text-rose-950", text: "text-rose-200", label: t.statusFavoriteTag || "Favoritos" },
   };

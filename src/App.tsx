@@ -258,6 +258,7 @@ export default function App() {
   // Counts for each collection category
   const countAll = games.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar").length;
   const countPlaying = games.filter((g) => g.status === "Jugando").length;
+  const countPlayed = games.filter((g) => g.status === "Jugado").length;
   const countPending = games.filter((g) => g.status === "Pendiente").length;
   const countWishlist = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
   const countCompleted = games.filter((g) => g.status === "Completado").length;
@@ -315,6 +316,7 @@ export default function App() {
   const collectionTabs = [
     { id: "All", label: t.allStatuses || "Todos los Juegos", icon: Icons.LayoutGrid, count: countAll },
     { id: "Jugando", label: t.statusPlaying || "Jugando", icon: Icons.PlayCircle, count: countPlaying },
+    { id: "Jugado", label: t.statusPlayed || "Jugados", icon: Icons.CheckCircle, count: countPlayed },
     { id: "Pendiente", label: t.statusPending || "Pendientes", icon: Icons.Bookmark, count: countPending },
     { id: "Deseados", label: t.statusWishlist || "Quiero Jugar", icon: Icons.Heart, count: countWishlist },
     { id: "Completado", label: t.statusCompleted || "Completados", icon: Icons.CheckCircle2, count: countCompleted },

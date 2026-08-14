@@ -10,7 +10,7 @@ export interface Achievement {
   steamApiName?: string;
 }
 
-export type GameStatus = "Pendiente" | "Jugando" | "Completado" | "Favoritos" | "Deseados" | "Quiero Jugar";
+export type GameStatus = "Pendiente" | "Jugando" | "Jugado" | "Completado" | "Favoritos" | "Deseados" | "Quiero Jugar";
 
 export interface Game {
   id: string;
