@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { Game, AppSettings } from "../types";
+import { Game, AppSettings, GameStatus } from "../types";
+import { normalizeGame, isFavoriteGame } from "./gameFavorite";
 
 // Get database environment variables
 const env = (import.meta as any).env || {};
@@ -21,7 +22,7 @@ export const db: SupabaseClient | null = isDatabaseConfigured
  * Format a database game row into client-side Game interface
  */
 export function formatGameFromDb(row: any): Game {
-  return {
+  const normalized = normalizeGame({
     id: row.id,
     title: row.title,
     description: row.description || "",
@@ -32,7 +33,8 @@ export function formatGameFromDb(row: any): Game {
     acquisitionDate: row.acquisition_date || "",
     rating: Number(row.rating) || 0,
     playTime: Number(row.play_time) || 0,
-    status: row.status || "Pendiente",
+    status: (row.status as GameStatus | undefined) || "Pendiente",
+    favorite: row.favorite ?? (row.status === "Favoritos"),
     coverColor: row.cover_color || "#171717",
     coverSymbol: row.cover_symbol || "gamepad",
     coverImage: row.cover_image || undefined,
@@ -42,6 +44,11 @@ export function formatGameFromDb(row: any): Game {
     steamAppId: row.steam_app_id ? Number(row.steam_app_id) : undefined,
     achievements: Array.isArray(row.achievements) ? row.achievements : [],
     notes: row.notes || undefined,
+  });
+
+  return {
+    ...normalized,
+    favorite: isFavoriteGame(normalized),
   };
 }
 
@@ -49,28 +56,30 @@ export function formatGameFromDb(row: any): Game {
  * Format client-side Game interface into database row payload
  */
 export function formatGameForDb(game: Game, userId: string): any {
+  const normalized = normalizeGame(game);
   return {
-    id: game.id,
+    id: normalized.id,
     user_id: userId,
-    title: game.title,
-    description: game.description || "",
-    genre: game.genre || "",
-    platforms: game.platforms || [],
-    release_date: game.releaseDate || "",
-    barcode: game.barcode || "",
-    acquisition_date: game.acquisitionDate || "",
-    rating: game.rating || 0,
-    play_time: game.playTime || 0,
-    status: game.status || "Pendiente",
-    cover_color: game.coverColor || "#171717",
-    cover_symbol: game.coverSymbol || "gamepad",
-    cover_image: game.coverImage || "",
-    igdb_id: game.igdbId || null,
-    igdb_rating: game.igdbRating || null,
-    igdb_url: game.igdbUrl || null,
-    steam_app_id: game.steamAppId || null,
-    achievements: game.achievements || [],
-    notes: game.notes || "",
+    title: normalized.title,
+    description: normalized.description || "",
+    genre: normalized.genre || "",
+    platforms: normalized.platforms || [],
+    release_date: normalized.releaseDate || "",
+    barcode: normalized.barcode || "",
+    acquisition_date: normalized.acquisitionDate || "",
+    rating: normalized.rating || 0,
+    play_time: normalized.playTime || 0,
+    status: normalized.status || "Pendiente",
+    favorite: Boolean(normalized.favorite),
+    cover_color: normalized.coverColor || "#171717",
+    cover_symbol: normalized.coverSymbol || "gamepad",
+    cover_image: normalized.coverImage || "",
+    igdb_id: normalized.igdbId || null,
+    igdb_rating: normalized.igdbRating || null,
+    igdb_url: normalized.igdbUrl || null,
+    steam_app_id: normalized.steamAppId || null,
+    achievements: normalized.achievements || [],
+    notes: normalized.notes || "",
     updated_at: new Date().toISOString(),
   };
 }

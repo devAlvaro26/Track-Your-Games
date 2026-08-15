@@ -21,6 +21,7 @@ import {
 import * as Icons from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
+import { normalizeGame, isFavoriteGame } from "./lib/gameFavorite";
 
 export default function App() {
   // App Settings state (theme, language, username, avatarUrl)
@@ -50,7 +51,7 @@ export default function App() {
     const saved = localStorage.getItem("game_library_user");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        return JSON.parse(saved).map((game: any) => normalizeGame(game) as Game);
       } catch (e) {
         console.error("Error loading games from localStorage", e);
       }
@@ -262,7 +263,7 @@ export default function App() {
   const countPending = games.filter((g) => g.status === "Pendiente").length;
   const countWishlist = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
   const countCompleted = games.filter((g) => g.status === "Completado").length;
-  const countFavorites = games.filter((g) => g.status === "Favoritos").length;
+  const countFavorites = games.filter((g) => isFavoriteGame(g)).length;
 
   // Filter & Sort logic
   const filteredGames = games
@@ -277,9 +278,11 @@ export default function App() {
       const matchesStatus =
         statusFilter === "All"
           ? (game.status !== "Deseados" && game.status !== "Quiero Jugar")
-          : game.status === statusFilter ||
-          (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
-          (statusFilter === "Quiero Jugar" && game.status === "Deseados");
+          : statusFilter === "Favoritos"
+            ? isFavoriteGame(game)
+            : game.status === statusFilter ||
+              (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
+              (statusFilter === "Quiero Jugar" && game.status === "Deseados");
       const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
 
       return matchesSearch && matchesStatus && matchesPlatform;

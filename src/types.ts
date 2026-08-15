@@ -10,7 +10,7 @@ export interface Achievement {
   steamApiName?: string;
 }
 
-export type GameStatus = "Pendiente" | "Jugando" | "Jugado" | "Completado" | "Favoritos" | "Deseados" | "Quiero Jugar";
+export type GameStatus = "Pendiente" | "Jugando" | "Jugado" | "Completado" | "Deseados" | "Quiero Jugar";
 
 export interface Game {
   id: string;
@@ -24,6 +24,7 @@ export interface Game {
   rating: number; // 1-5 stars
   playTime: number; // in hours
   status: GameStatus;
+  favorite?: boolean;
   coverColor: string; // Hex color for fallback covers
   coverSymbol: string; // Lucide icon name for fallback covers
   coverImage?: string; // User-provided or IGDB official cover image URL

@@ -4,6 +4,7 @@ import { Game, Achievement, GameStatus, Language, IgdbSearchResult, SteamSearchR
 import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { ConsolePicker } from "./ConsolePicker";
 import { IgdbSearchModal } from "./IgdbSearchModal";
+import { isFavoriteGame } from "../lib/gameFavorite";
 import { SteamSearchModal } from "./SteamSearchModal";
 import { getTranslation, translateGenre, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
@@ -68,6 +69,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   const [editRating, setEditRating] = useState(game.rating);
   const [editPlayTime, setEditPlayTime] = useState(game.playTime);
   const [editStatus, setEditStatus] = useState(game.status);
+  const [editFavorite, setEditFavorite] = useState(isFavoriteGame(game));
   const [editCoverColor, setEditCoverColor] = useState(game.coverColor);
   const [editCoverSymbol, setEditCoverSymbol] = useState(game.coverSymbol);
   const [editCoverImage, setEditCoverImage] = useState(game.coverImage || "");
@@ -222,6 +224,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
       rating: editRating,
       playTime: Number(editPlayTime),
       status: editStatus,
+      favorite: editFavorite,
       coverColor: editCoverColor,
       coverSymbol: editCoverSymbol,
       coverImage: editCoverImage.trim() || undefined,
@@ -476,8 +479,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         <option value="Jugando">{t.statusPlayingTag}</option>
                         <option value="Jugado">{t.statusPlayedTag || "Jugado"}</option>
                         <option value="Completado">{t.statusCompletedTag}</option>
-                        <option value="Favoritos">{t.statusFavoriteTag}</option>
                       </select>
+                      <label className="mt-2 flex items-center gap-2 text-[10px] font-bold uppercase text-neutral-600 dark:text-gray-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isFavoriteGame(game)}
+                          onChange={(e) => handleSaveQuickEdits("favorite", e.target.checked)}
+                          className="h-4 w-4 accent-rose-500"
+                        />
+                        {t.statusFavoriteTag || "Favorite"}
+                      </label>
                     </div>
 
                     <div className="bg-white dark:bg-[#1b1b1f] p-3.5 rounded-none border border-neutral-300 dark:border-white/10 shadow-sm">
@@ -835,8 +846,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         <option value="Jugando">{t.statusPlaying || t.statusPlayingTag || "Jugando"}</option>
                         <option value="Jugado">{t.statusPlayed || t.statusPlayedTag || "Jugado"}</option>
                         <option value="Completado">{t.statusCompleted || t.statusCompletedTag || "Completado"}</option>
-                        <option value="Favoritos">{t.statusFavorites || t.statusFavoriteTag || "Favoritos"}</option>
                       </select>
+                      <label className="mt-2 flex items-center gap-2 text-[11px] font-bold uppercase text-neutral-600 dark:text-gray-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editFavorite}
+                          onChange={(e) => setEditFavorite(e.target.checked)}
+                          className="h-4 w-4 accent-rose-500"
+                        />
+                        {t.statusFavoriteTag || "Favorite"}
+                      </label>
                     </div>
                   </div>
 

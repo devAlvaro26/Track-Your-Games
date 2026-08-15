@@ -55,6 +55,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
   const [rating, setRating] = useState<number>(0);
   const [playTime, setPlayTime] = useState<number>(0);
   const [status, setStatus] = useState<GameStatus>("Pendiente");
+  const [favorite, setFavorite] = useState(false);
   const [coverColor, setCoverColor] = useState(COLOR_PRESETS[0]);
   const [coverSymbol, setCoverSymbol] = useState("gamepad");
   const [coverImage, setCoverImage] = useState("");
@@ -116,6 +117,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
       rating: Number(rating) || 0,
       playTime: Number(playTime) || 0,
       status,
+      favorite,
       coverColor,
       coverSymbol,
       coverImage: coverImage.trim() || undefined,
@@ -226,8 +228,16 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   <option value="Jugando">{t.statusPlaying || "Playing"}</option>
                   <option value="Jugado">{t.statusPlayed || "Played"}</option>
                   <option value="Completado">{t.statusCompleted || "Completed"}</option>
-                  <option value="Favoritos">{t.statusFavorites || "Favorite"}</option>
                 </select>
+                <label className="mt-2 flex items-center gap-2 text-[11px] font-bold uppercase text-neutral-600 dark:text-gray-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={favorite}
+                    onChange={(e) => setFavorite(e.target.checked)}
+                    className="h-4 w-4 accent-rose-500"
+                  />
+                  {t.statusFavoriteTag || "Favorite"}
+                </label>
               </div>
             </div>
 

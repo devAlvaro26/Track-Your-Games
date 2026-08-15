@@ -1,6 +1,7 @@
 import React from "react";
 import { Game, Language } from "../types";
 import { getTranslation } from "../translations";
+import { isFavoriteGame } from "../lib/gameFavorite";
 import * as Icons from "lucide-react";
 
 interface LibraryStatsPanelProps {
@@ -16,7 +17,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   const totalGames = ownedGames.length;
 
   const completedGames = games.filter((g) => g.status === "Completado").length;
-  const favoritesGames = games.filter((g) => g.status === "Favoritos").length;
+  const favoritesGames = games.filter((g) => isFavoriteGame(g)).length;
   const playingGames = games.filter((g) => g.status === "Jugando").length;
   const pendingGames = games.filter((g) => g.status === "Pendiente").length;
   const wishlistGames = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
@@ -32,7 +33,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
     unlockedAchievementsCount += g.achievements.filter((a) => a.unlocked).length;
   });
 
-  const completionRate = totalGames > 0 ? Math.round(((completedGames + favoritesGames) / totalGames) * 100) : 0;
+  const completionRate = totalGames > 0 ? Math.round((completedGames / totalGames) * 100) : 0;
   const achievementsRate = totalAchievementsCount > 0 ? Math.round((unlockedAchievementsCount / totalAchievementsCount) * 100) : 0;
 
   return (

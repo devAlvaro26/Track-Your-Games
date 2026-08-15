@@ -8,8 +8,8 @@ import { Language } from "./types";
 export const translationTable = {
   // --- HEADER & APP BRANDING ---
   appTitle: {
-    es: "Mi biblioteca",
-    en: "My Library",
+    es: "TYG",
+    en: "TYG",
   },
   welcomeUser: {
     es: "Colección de",

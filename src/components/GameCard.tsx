@@ -4,6 +4,7 @@ import { Game, Language } from "../types";
 import { GameIcon } from "./GameIcon";
 import { ConsoleBanner } from "./ConsoleBanner";
 import { getTranslation, translateGenre } from "../translations";
+import { isFavoriteGame } from "../lib/gameFavorite";
 import * as Icons from "lucide-react";
 
 interface GameCardProps {
@@ -25,6 +26,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
     ? Math.round((unlockedAchievements / totalAchievements) * 100)
     : 0;
 
+  const isFavorite = isFavoriteGame(game);
+
   // Status badge styling
   const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
     Pendiente: { bg: "bg-amber-500/90 text-amber-950", text: "text-amber-200", label: t.statusPendingTag || "Pendiente" },
@@ -33,7 +36,6 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
     Jugando: { bg: "bg-sky-500/90 text-sky-950", text: "text-sky-200", label: t.statusPlayingTag || "Jugando" },
     Jugado: { bg: "bg-teal-500/90 text-teal-950", text: "text-teal-200", label: t.statusPlayedTag || "Jugado" },
     Completado: { bg: "bg-emerald-500/90 text-emerald-950", text: "text-emerald-200", label: t.statusCompletedTag || "Completado" },
-    Favoritos: { bg: "bg-rose-500/90 text-rose-950", text: "text-rose-200", label: t.statusFavoriteTag || "Favoritos" },
   };
 
   const statusStyle = statusConfig[game.status] || { bg: "bg-slate-700 text-white", text: "text-white", label: game.status };
@@ -100,6 +102,12 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
             {game.title}
           </h3>
         </div>
+
+        {isFavorite && (
+          <div className="absolute right-2 top-2 z-20 rounded-none bg-rose-500/90 p-1.5 shadow-md border border-white/20">
+            <Icons.Star className="w-3.5 h-3.5 fill-amber-200 text-amber-200" />
+          </div>
+        )}
       </div>
 
       {/* 3. BOTTOM LAUNCHER STATS BAR (e.g. 🏆 0/49  0%) */}
