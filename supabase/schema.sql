@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS public.games (
   rating NUMERIC DEFAULT 0,
   play_time NUMERIC DEFAULT 0,
   status TEXT DEFAULT 'Pendiente',
+  favorite BOOLEAN DEFAULT FALSE,
   cover_color TEXT DEFAULT '#171717',
   cover_symbol TEXT DEFAULT 'gamepad',
   cover_image TEXT DEFAULT '',
@@ -38,7 +39,8 @@ CREATE TABLE IF NOT EXISTS public.games (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- SQL statement to execute if updating an existing database table:
+-- SQL statements to execute if updating an existing database table:
+-- ALTER TABLE public.games ADD COLUMN IF NOT EXISTS favorite BOOLEAN DEFAULT FALSE;
 -- ALTER TABLE public.games ADD COLUMN IF NOT EXISTS steam_app_id INT;
 
 -- 3. ENABLE ROW LEVEL SECURITY (RLS)
