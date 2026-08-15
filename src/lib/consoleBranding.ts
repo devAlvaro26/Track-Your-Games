@@ -68,7 +68,7 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     else if (p.includes("vita")) name = "PS VITA";
     else if (p.includes("psp")) name = "PSP";
 
-    const isBlackBanner = name === "PS1" || name === "PS2";
+    const isBlackBanner = name === "PS1" || name === "PS2" || name === "PS3" || name === "PSP";
 
     return {
       brandKey: "playstation",
@@ -108,10 +108,14 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     else if (p.includes("3ds")) name = "NINTENDO 3DS";
     else if (p.includes("gba") || p.includes("game boy advance")) name = "GBA";
 
+    const isBlueBanner = name === "WII U";
+
     return {
       brandKey: "nintendo",
       displayName: name,
-      bannerBg: "bg-gradient-to-r from-[#E60012] via-[#C4000F] to-[#80000A]",
+      bannerBg: isBlueBanner
+        ? "bg-gradient-to-r from-[#1E3A8A] via-[#2563EB] to-[#0F172A]"
+        : "bg-gradient-to-r from-[#E60012] via-[#C4000F] to-[#80000A]",
       bannerTextColor: "text-white font-black",
       accentBorder: "border-[#E60012]/50",
       badgeBg: "bg-black/40",
