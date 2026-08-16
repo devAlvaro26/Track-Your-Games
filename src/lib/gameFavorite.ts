@@ -1,20 +1,31 @@
 import type { Game, GameStatus } from '../types';
 
-export function hasLegacyFavoriteStatus(game: { favorite?: boolean; status?: string | GameStatus }): boolean {
+/**
+ * Checks if a game record has the legacy 'Favoritos' string stored in its status field.
+ */
+export function isLegacyFavoriteStatus(status?: string | GameStatus): boolean {
+  return status === 'Favoritos';
+}
+
+/**
+ * Checks if a game is marked as a favorite.
+ */
+export function isFavoriteGame(game?: { favorite?: boolean; status?: string | GameStatus } | null): boolean {
+  if (!game) return false;
   return Boolean(game.favorite || game.status === 'Favoritos');
 }
 
+/**
+ * Normalizes a game object ensuring valid status and favorite flag.
+ */
 export function normalizeGame<T extends Partial<Game>>(game: T): T & Pick<Game, 'favorite' | 'status'> {
-  const legacyFavorite = hasLegacyFavoriteStatus(game as any);
-  const normalizedStatus = legacyFavorite ? 'Pendiente' : (game.status ?? 'Pendiente');
+  const isLegacy = isLegacyFavoriteStatus(game.status);
+  const favorite = Boolean(game.favorite || isLegacy);
+  const normalizedStatus = isLegacy ? 'Pendiente' : (game.status ?? 'Pendiente');
 
   return {
     ...game,
     status: normalizedStatus as GameStatus,
-    favorite: Boolean(game.favorite || legacyFavorite),
+    favorite,
   };
-}
-
-export function isFavoriteGame(game: Pick<Game, 'favorite' | 'status'>): boolean {
-  return Boolean(game.favorite || hasLegacyFavoriteStatus(game as any));
 }
