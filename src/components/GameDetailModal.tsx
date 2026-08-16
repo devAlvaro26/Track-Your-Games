@@ -556,15 +556,15 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       </div>
 
                       {/* Action buttons stacked in rows */}
-                      <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                      <div className="flex flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto shrink-0">
                         {/* Top row: Steam Sync and Search */}
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                           {/* Sync Steam Achievements */}
                           <button
                             type="button"
                             onClick={() => handleFetchSteamAchievements()}
                             disabled={isFetchingSteam}
-                            className="h-8 px-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm rounded-none shrink-0"
+                            className="h-8.5 sm:h-8 px-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm rounded-none w-full sm:w-auto shrink-0"
                             title={t.fetchSteamAchievements}
                           >
                             {isFetchingSteam ? (
@@ -579,7 +579,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           <button
                             type="button"
                             onClick={() => setShowSteamModal(true)}
-                            className="h-8 px-3 text-xs font-bold text-neutral-700 dark:text-gray-200 bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1.5 rounded-none shrink-0"
+                            className="h-8.5 sm:h-8 px-3 text-xs font-bold text-neutral-700 dark:text-gray-200 bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center justify-center gap-1.5 rounded-none w-full sm:w-auto shrink-0"
                             title={t.steamSearchTitle}
                           >
                             <Icons.Search className="w-3.5 h-3.5 text-indigo-500" />
@@ -589,11 +589,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
 
                         {/* Bottom row: Mark All / Uncheck All controls centered below top row */}
                         {totalAchievements > 0 && (
-                          <div className="self-center h-8 flex items-center bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 rounded-none overflow-hidden shrink-0">
+                          <div className="self-stretch sm:self-center h-8.5 sm:h-8 flex items-center justify-center bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 rounded-none overflow-hidden shrink-0">
                             <button
                               type="button"
                               onClick={() => handleSetAllAchievementsStatus(true)}
-                              className="h-full px-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer flex items-center gap-1"
+                              className="h-full flex-1 sm:flex-initial px-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer flex items-center justify-center gap-1"
                               title={t.markAllCompleted}
                             >
                               <Icons.CheckCheck className="w-3.5 h-3.5" />
@@ -603,7 +603,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             <button
                               type="button"
                               onClick={() => handleSetAllAchievementsStatus(false)}
-                              className="h-full px-2.5 text-xs font-bold text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center gap-1"
+                              className="h-full flex-1 sm:flex-initial px-2.5 text-xs font-bold text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center justify-center gap-1"
                               title={t.markAllLocked}
                             >
                               <Icons.X className="w-3.5 h-3.5" />
@@ -779,7 +779,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
 
                 <form onSubmit={handleSaveFullEdit} className="p-3.5 sm:p-6 space-y-3.5 sm:space-y-6 max-h-[80vh] overflow-y-auto">
                   {/* Quick IGDB Search Banner */}
-                  <div className="p-2.5 sm:p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-row items-center justify-between gap-2">
+                  <div className="p-2.5 sm:p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-none flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Icons.Search className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                       <div className="min-w-0">
@@ -794,7 +794,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     <button
                       type="button"
                       onClick={() => setShowIgdbModal(true)}
-                      className="px-3 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm"
+                      className="w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors cursor-pointer shrink-0 shadow-sm text-center"
                     >
                       {t.searchIgdb || "Buscar en IGDB"}
                     </button>
@@ -1104,34 +1104,34 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   </div>
 
                   {/* Steam App ID field */}
-                  <div className="space-y-1.5 p-3 bg-neutral-100 dark:bg-[#18181c] border border-neutral-200 dark:border-white/10 rounded-none">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold uppercase text-neutral-700 dark:text-gray-300 flex items-center gap-1.5">
-                        <Icons.Gamepad2 className="w-4 h-4 text-sky-500" />
-                        <span>{t.steamAppIdLabel || "Steam App ID"}</span>
+                  <div className="space-y-2 p-3 sm:p-3.5 bg-neutral-100 dark:bg-[#18181c] border border-neutral-200 dark:border-white/10 rounded-none">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+                      <label className="text-xs font-bold uppercase text-neutral-700 dark:text-gray-300 flex items-center gap-1.5 min-w-0">
+                        <Icons.Gamepad2 className="w-4 h-4 text-sky-500 shrink-0" />
+                        <span className="truncate">{t.steamAppIdLabel || "Steam App ID"}</span>
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowSteamModal(true)}
-                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer shrink-0 self-start sm:self-auto"
                       >
                         <Icons.Search className="w-3.5 h-3.5" />
                         <span>{t.steamSearchTitle || "Buscar ID en Steam"}</span>
                       </button>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="number"
                         value={editSteamAppId}
                         onChange={(e) => setEditSteamAppId(e.target.value)}
                         placeholder={t.steamAppIdPlaceholder || "Ej. 620 (Portal 2)"}
-                        className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#121212] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono"
+                        className="w-full sm:flex-1 min-w-0 px-3 py-2 text-sm bg-white dark:bg-[#121212] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono"
                       />
                       <button
                         type="button"
                         onClick={() => handleFetchSteamAchievements(editSteamAppId ? Number(editSteamAppId) : undefined)}
                         disabled={isFetchingSteam}
-                        className="px-3 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+                        className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-none transition-colors flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50 whitespace-nowrap shadow-sm"
                       >
                         {isFetchingSteam ? (
                           <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1172,18 +1172,18 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   </div>
 
                   {/* Submit & Cancel Buttons */}
-                  <div className="flex items-center justify-end gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t border-neutral-200 dark:border-white/10">
+                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t border-neutral-200 dark:border-white/10">
                     <button
                       type="button"
                       onClick={() => setIsEditing(false)}
-                      className="px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 border border-neutral-300 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-none transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-neutral-600 dark:text-gray-300 border border-neutral-300 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-none transition-colors cursor-pointer text-center"
                     >
                       {t.cancelBtn || t.cancel || "Cancelar"}
                     </button>
                     <button
                       type="submit"
                       disabled={!editTitle.trim()}
-                      className="px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 rounded-none shadow-sm transition-all cursor-pointer flex items-center gap-2"
+                      className="w-full sm:w-auto px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 rounded-none shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
                       <Icons.Check className="w-4 h-4 stroke-[3]" />
                       <span>{t.saveSettings || t.save || "Guardar Cambios"}</span>
