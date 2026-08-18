@@ -16,6 +16,7 @@ interface GameDetailModalProps {
   onUpdate: (game: Game) => void;
   onDelete: (id: string) => void;
   language?: Language;
+  readOnly?: boolean;
 }
 
 const COLOR_PRESETS = [
@@ -32,7 +33,7 @@ const COLOR_PRESETS = [
   "#475569", // Slate
 ];
 
-export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose, onUpdate, onDelete, language = "en" }) => {
+export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose, onUpdate, onDelete, language = "en", readOnly = false }) => {
   const t = getTranslation(language);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -325,26 +326,34 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="p-1.5 rounded-none bg-black/40 hover:bg-black/60 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
-                        title={t.edit}
-                        id="btn-edit-mode"
-                      >
-                        <Icons.Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`${t.confirmDeleteGame}`)) {
-                            onDelete(game.id);
-                          }
-                        }}
-                        className="p-1.5 rounded-none bg-black/40 hover:bg-rose-600/90 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
-                        title={t.delete}
-                        id="btn-delete-game"
-                      >
-                        <Icons.Trash className="w-4 h-4" />
-                      </button>
+                      {readOnly ? (
+                        <span className="px-2 py-1 bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold uppercase rounded-none tracking-wider flex items-center gap-1">
+                          <Icons.Eye className="w-3 h-3" />
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setIsEditing(true)}
+                            className="p-1.5 rounded-none bg-black/40 hover:bg-black/60 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
+                            title={t.edit}
+                            id="btn-edit-mode"
+                          >
+                            <Icons.Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`${t.confirmDeleteGame}`)) {
+                                onDelete(game.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-none bg-black/40 hover:bg-rose-600/90 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
+                            title={t.delete}
+                            id="btn-delete-game"
+                          >
+                            <Icons.Trash className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={onClose}
                         className="p-1.5 rounded-none bg-black/40 hover:bg-black/60 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
@@ -469,23 +478,28 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         <Icons.Play className="w-3 h-3 text-sky-500" />
                         {t.statusLabel}
                       </p>
-                      <select
-                        value={game.status}
-                        onChange={(e) => handleSaveQuickEdits("status", e.target.value as GameStatus)}
-                        className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none cursor-pointer w-full"
-                      >
-                        <option value="Pendiente">{t.statusPendingTag}</option>
-                        <option value="Deseados">{t.statusWishlistTag || "Quiero Jugar"}</option>
-                        <option value="Jugando">{t.statusPlayingTag}</option>
-                        <option value="Jugado">{t.statusPlayedTag || "Jugado"}</option>
-                        <option value="Completado">{t.statusCompletedTag}</option>
-                      </select>
-                      <label className="mt-2 flex items-center gap-2 text-[10px] font-bold uppercase text-neutral-600 dark:text-gray-300 cursor-pointer">
+                      {readOnly ? (
+                        <p className="text-sm font-bold text-neutral-800 dark:text-white py-0.5">{game.status}</p>
+                      ) : (
+                        <select
+                          value={game.status}
+                          onChange={(e) => handleSaveQuickEdits("status", e.target.value as GameStatus)}
+                          className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none cursor-pointer w-full"
+                        >
+                          <option value="Pendiente">{t.statusPendingTag}</option>
+                          <option value="Deseados">{t.statusWishlistTag || "Quiero Jugar"}</option>
+                          <option value="Jugando">{t.statusPlayingTag}</option>
+                          <option value="Jugado">{t.statusPlayedTag || "Jugado"}</option>
+                          <option value="Completado">{t.statusCompletedTag}</option>
+                        </select>
+                      )}
+                      <label className={`mt-2 flex items-center gap-2 text-[10px] font-bold uppercase ${readOnly ? "text-neutral-500 cursor-default" : "text-neutral-600 dark:text-gray-300 cursor-pointer"}`}>
                         <input
                           type="checkbox"
                           checked={isFavoriteGame(game)}
-                          onChange={(e) => handleSaveQuickEdits("favorite", e.target.checked)}
-                          className="h-4 w-4 accent-rose-500"
+                          disabled={readOnly}
+                          onChange={(e) => !readOnly && handleSaveQuickEdits("favorite", e.target.checked)}
+                          className="h-4 w-4 accent-rose-500 disabled:opacity-50"
                         />
                         {t.statusFavoriteTag || "Favorite"}
                       </label>
@@ -497,13 +511,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         {t.playHoursLabel}
                       </p>
                       <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          min="0"
-                          value={game.playTime}
-                          onChange={(e) => handleSaveQuickEdits("playTime", Math.max(0, Number(e.target.value)))}
-                          className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none w-14 border-b border-dashed border-neutral-300 dark:border-white/20"
-                        />
+                        {readOnly ? (
+                          <span className="text-sm font-bold text-neutral-800 dark:text-white">{game.playTime}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            min="0"
+                            value={game.playTime}
+                            onChange={(e) => handleSaveQuickEdits("playTime", Math.max(0, Number(e.target.value)))}
+                            className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none w-14 border-b border-dashed border-neutral-300 dark:border-white/20"
+                          />
+                        )}
                         <span className="text-xs text-neutral-500 font-semibold">{t.hours}</span>
                       </div>
                     </div>
@@ -517,8 +535,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
-                            onClick={() => handleSaveQuickEdits("rating", star)}
-                            className="cursor-pointer hover:scale-110 transition-transform"
+                            disabled={readOnly}
+                            onClick={() => !readOnly && handleSaveQuickEdits("rating", star)}
+                            className={`${readOnly ? "cursor-default" : "cursor-pointer hover:scale-110"} transition-transform`}
                           >
                             <Icons.Star
                               className={`w-4 h-4 ${star <= game.rating ? "text-amber-400 fill-amber-400" : "text-neutral-300 dark:text-gray-700"}`}
@@ -555,63 +574,65 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         )}
                       </div>
 
-                      {/* Action buttons stacked in rows */}
-                      <div className="flex flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto shrink-0">
-                        {/* Top row: Steam Sync and Search */}
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                          {/* Sync Steam Achievements */}
-                          <button
-                            type="button"
-                            onClick={() => handleFetchSteamAchievements()}
-                            disabled={isFetchingSteam}
-                            className="h-8.5 sm:h-8 px-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm rounded-none w-full sm:w-auto shrink-0"
-                            title={t.fetchSteamAchievements}
-                          >
-                            {isFetchingSteam ? (
-                              <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Icons.Download className="w-3.5 h-3.5" />
-                            )}
-                            <span>{t.syncSteamBtn}</span>
-                          </button>
-
-                          {/* Search Steam App ID */}
-                          <button
-                            type="button"
-                            onClick={() => setShowSteamModal(true)}
-                            className="h-8.5 sm:h-8 px-3 text-xs font-bold text-neutral-700 dark:text-gray-200 bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center justify-center gap-1.5 rounded-none w-full sm:w-auto shrink-0"
-                            title={t.steamSearchTitle}
-                          >
-                            <Icons.Search className="w-3.5 h-3.5 text-indigo-500" />
-                            <span>{t.steamSearchTitle}</span>
-                          </button>
-                        </div>
-
-                        {/* Bottom row: Mark All / Uncheck All controls centered below top row */}
-                        {totalAchievements > 0 && (
-                          <div className="self-stretch sm:self-center h-8.5 sm:h-8 flex items-center justify-center bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 rounded-none overflow-hidden shrink-0">
+                      {/* Action buttons stacked in rows (hidden in readOnly mode) */}
+                      {!readOnly && (
+                        <div className="flex flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto shrink-0">
+                          {/* Top row: Steam Sync and Search */}
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                            {/* Sync Steam Achievements */}
                             <button
                               type="button"
-                              onClick={() => handleSetAllAchievementsStatus(true)}
-                              className="h-full flex-1 sm:flex-initial px-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer flex items-center justify-center gap-1"
-                              title={t.markAllCompleted}
+                              onClick={() => handleFetchSteamAchievements()}
+                              disabled={isFetchingSteam}
+                              className="h-8.5 sm:h-8 px-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm rounded-none w-full sm:w-auto shrink-0"
+                              title={t.fetchSteamAchievements}
                             >
-                              <Icons.CheckCheck className="w-3.5 h-3.5" />
-                              <span className="text-[11px] font-bold">{t.markAllCompleted}</span>
+                              {isFetchingSteam ? (
+                                <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Icons.Download className="w-3.5 h-3.5" />
+                              )}
+                              <span>{t.syncSteamBtn}</span>
                             </button>
-                            <div className="w-[1px] h-4 bg-neutral-300 dark:bg-white/10" />
+
+                            {/* Search Steam App ID */}
                             <button
                               type="button"
-                              onClick={() => handleSetAllAchievementsStatus(false)}
-                              className="h-full flex-1 sm:flex-initial px-2.5 text-xs font-bold text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center justify-center gap-1"
-                              title={t.markAllLocked}
+                              onClick={() => setShowSteamModal(true)}
+                              className="h-8.5 sm:h-8 px-3 text-xs font-bold text-neutral-700 dark:text-gray-200 bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center justify-center gap-1.5 rounded-none w-full sm:w-auto shrink-0"
+                              title={t.steamSearchTitle}
                             >
-                              <Icons.X className="w-3.5 h-3.5" />
-                              <span className="text-[11px] font-bold">{t.markAllLocked}</span>
+                              <Icons.Search className="w-3.5 h-3.5 text-indigo-500" />
+                              <span>{t.steamSearchTitle}</span>
                             </button>
                           </div>
-                        )}
-                      </div>
+
+                          {/* Bottom row: Mark All / Uncheck All controls centered below top row */}
+                          {totalAchievements > 0 && (
+                            <div className="self-stretch sm:self-center h-8.5 sm:h-8 flex items-center justify-center bg-neutral-100 dark:bg-[#222228] border border-neutral-300 dark:border-white/10 rounded-none overflow-hidden shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleSetAllAchievementsStatus(true)}
+                                className="h-full flex-1 sm:flex-initial px-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                                title={t.markAllCompleted}
+                              >
+                                <Icons.CheckCheck className="w-3.5 h-3.5" />
+                                <span className="text-[11px] font-bold">{t.markAllCompleted}</span>
+                              </button>
+                              <div className="w-[1px] h-4 bg-neutral-300 dark:bg-white/10" />
+                              <button
+                                type="button"
+                                onClick={() => handleSetAllAchievementsStatus(false)}
+                                className="h-full flex-1 sm:flex-initial px-2.5 text-xs font-bold text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                                title={t.markAllLocked}
+                              >
+                                <Icons.X className="w-3.5 h-3.5" />
+                                <span className="text-[11px] font-bold">{t.markAllLocked}</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Progress Bar */}
@@ -670,8 +691,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           return (
                             <div
                               key={ach.id}
-                              onClick={() => handleToggleAchievement(ach.id)}
-                              className={`p-3 rounded-none border transition-all cursor-pointer flex gap-3 items-center select-none ${
+                              onClick={() => !readOnly && handleToggleAchievement(ach.id)}
+                              className={`p-3 rounded-none border transition-all flex gap-3 items-center select-none ${
+                                readOnly ? "cursor-default" : "cursor-pointer"
+                              } ${
                                 ach.unlocked
                                   ? "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800/60"
                                   : "bg-white dark:bg-[#1b1b1f] border-neutral-300 dark:border-white/10 hover:border-neutral-400 dark:hover:border-white/20"

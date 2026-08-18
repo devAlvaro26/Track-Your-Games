@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Language } from "../types";
 import { getTranslation } from "../translations";
-import { db, isDatabaseConfigured } from "../lib/database";
+import { db, isDatabaseConfigured, saveUserProfile } from "../lib/database";
 import * as Icons from "lucide-react";
 import { motion } from "motion/react";
 
@@ -56,19 +56,28 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
         if (error) throw error;
 
         if (data.user) {
+          const resolvedUsername =
+            data.user.user_metadata?.username ||
+            (data.user.email ? data.user.email.split("@")[0] : "");
+
+          if (resolvedUsername) {
+            await saveUserProfile(data.user.id, { username: resolvedUsername });
+          }
+
           setSuccessMsg(t.loginSuccess);
           setTimeout(() => {
-            onSuccess(data.user);
+            onSuccess(data.user, resolvedUsername);
             onClose();
           }, 800);
         }
       } else {
+        const cleanUsername = username.trim();
         const { data, error } = await db.auth.signUp({
           email: email.trim(),
           password: password.trim(),
           options: {
             data: {
-              username: username.trim(),
+              username: cleanUsername,
             },
           },
         });
@@ -76,9 +85,12 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
         if (error) throw error;
 
         if (data.user) {
+          // Immediately persist username to profiles table
+          await saveUserProfile(data.user.id, { username: cleanUsername });
+
           setSuccessMsg(t.signupSuccess);
           setTimeout(() => {
-            onSuccess(data.user, username.trim());
+            onSuccess(data.user, cleanUsername);
             onClose();
           }, 1000);
         }

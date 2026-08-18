@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Game, AppSettings, Language } from "./types";
+import { Game, AppSettings, Language, FriendProfile } from "./types";
 import { GameCard } from "./components/GameCard";
 import { GameDetailModal } from "./components/GameDetailModal";
 import { AddGameForm } from "./components/AddGameForm";
@@ -8,6 +8,8 @@ import { SettingsModal } from "./components/SettingsModal";
 import { AuthModal } from "./components/AuthModal";
 import { ProfileAvatar } from "./components/ProfileAvatar";
 import { AvatarModal } from "./components/AvatarModal";
+import { FriendsModal } from "./components/FriendsModal";
+import { FriendLibraryBanner } from "./components/FriendLibraryBanner";
 import { getTranslation, translateGenre } from "./translations";
 import {
   db,
@@ -17,6 +19,8 @@ import {
   deleteGameFromDb,
   fetchUserProfile,
   saveUserProfile,
+  fetchFriendGames,
+  fetchFriendships,
 } from "./lib/database";
 import * as Icons from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -65,9 +69,16 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileStatusFilterOpen, setIsMobileStatusFilterOpen] = useState(false);
+
+  // Friend library viewing state
+  const [activeFriend, setActiveFriend] = useState<FriendProfile | null>(null);
+  const [friendGames, setFriendGames] = useState<Game[]>([]);
+  const [isLoadingFriendGames, setIsLoadingFriendGames] = useState(false);
+  const [incomingFriendRequestsCount, setIncomingFriendRequestsCount] = useState(0);
 
   // Search, filter and sorting state
   const [searchQuery, setSearchQuery] = useState("");
@@ -147,7 +158,9 @@ export default function App() {
       }
 
       const profile = await fetchUserProfile(userId);
-      if (profile) {
+      const fallbackName = defaultUsername || (user?.email ? user.email.split("@")[0] : "");
+
+      if (profile && profile.username && profile.username.trim()) {
         setSettings((prev) => ({
           ...prev,
           username: profile.username || prev.username,
@@ -155,14 +168,34 @@ export default function App() {
           theme: (profile.theme as "light" | "dark") || prev.theme,
           avatarUrl: profile.avatar_url || prev.avatarUrl,
         }));
-      } else if (defaultUsername) {
-        setSettings((prev) => ({ ...prev, username: defaultUsername }));
+      } else {
+        const resolvedName = fallbackName || settings.username || "Gamer";
+        setSettings((prev) => ({ ...prev, username: resolvedName }));
+        if (isDatabaseConfigured) {
+          saveUserProfile(userId, {
+            username: resolvedName,
+            language: settings.language,
+            theme: settings.theme,
+          });
+        }
       }
+
+      // Refresh friend requests count
+      refreshFriendRequestsCount(userId);
     } catch (err: any) {
       console.warn("Could not load user data from database:", err?.message || err);
     } finally {
       setSyncLoading(false);
       setAuthLoading(false);
+    }
+  };
+
+  const refreshFriendRequestsCount = async (userId: string) => {
+    try {
+      const data = await fetchFriendships(userId);
+      setIncomingFriendRequestsCount(data.incoming.length);
+    } catch (e) {
+      console.warn("Could not refresh friend requests:", e);
     }
   };
 
@@ -173,6 +206,9 @@ export default function App() {
     }
     setUser(null);
     setGames([]);
+    setActiveFriend(null);
+    setFriendGames([]);
+    setIncomingFriendRequestsCount(0);
     localStorage.removeItem("game_library_user");
   };
 
@@ -188,6 +224,32 @@ export default function App() {
       });
     }
     loadUserData(authUser.id, authUsername);
+  };
+
+  // Friend Library view handlers
+  const handleViewFriendLibrary = async (friend: FriendProfile) => {
+    setActiveFriend(friend);
+    setIsLoadingFriendGames(true);
+    setStatusFilter("All");
+    setPlatformFilter("All");
+    setSearchQuery("");
+    try {
+      const g = await fetchFriendGames(friend.id);
+      setFriendGames(g);
+    } catch (e) {
+      console.warn("Could not load friend games:", e);
+      setFriendGames([]);
+    } finally {
+      setIsLoadingFriendGames(false);
+    }
+  };
+
+  const handleBackToMyLibrary = () => {
+    setActiveFriend(null);
+    setFriendGames([]);
+    setStatusFilter("All");
+    setPlatformFilter("All");
+    setSearchQuery("");
   };
 
   const toggleTheme = () => {
@@ -254,19 +316,20 @@ export default function App() {
     }
   };
 
-  const selectedGame = games.find((g) => g.id === selectedGameId);
+  const currentDisplayGames = activeFriend ? friendGames : games;
+  const selectedGame = currentDisplayGames.find((g) => g.id === selectedGameId);
 
   // Counts for each collection category
-  const countAll = games.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar").length;
-  const countPlaying = games.filter((g) => g.status === "Jugando").length;
-  const countPlayed = games.filter((g) => g.status === "Jugado").length;
-  const countPending = games.filter((g) => g.status === "Pendiente").length;
-  const countWishlist = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
-  const countCompleted = games.filter((g) => g.status === "Completado").length;
-  const countFavorites = games.filter((g) => isFavoriteGame(g)).length;
+  const countAll = currentDisplayGames.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar").length;
+  const countPlaying = currentDisplayGames.filter((g) => g.status === "Jugando").length;
+  const countPlayed = currentDisplayGames.filter((g) => g.status === "Jugado").length;
+  const countPending = currentDisplayGames.filter((g) => g.status === "Pendiente").length;
+  const countWishlist = currentDisplayGames.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
+  const countCompleted = currentDisplayGames.filter((g) => g.status === "Completado").length;
+  const countFavorites = currentDisplayGames.filter((g) => isFavoriteGame(g)).length;
 
   // Filter & Sort logic
-  const filteredGames = games
+  const filteredGames = currentDisplayGames
     .filter((game) => {
       const query = searchQuery.trim().toLowerCase();
       const matchesSearch =
@@ -313,7 +376,7 @@ export default function App() {
     });
 
   // Extract all available platforms in the library
-  const allPlatforms = Array.from(new Set(games.flatMap((g) => g.platforms))).sort();
+  const allPlatforms = Array.from(new Set(currentDisplayGames.flatMap((g) => g.platforms))).sort();
 
   // Helper for collection tabs configuration
   const collectionTabs = [
@@ -335,11 +398,14 @@ export default function App() {
           {/* Hamburger Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center"
+            className="p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center relative"
             title="Abrir menú"
             id="btn-open-mobile-menu"
           >
             <Icons.Menu className="w-5 h-5 stroke-[2.5]" />
+            {incomingFriendRequestsCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
+            )}
           </button>
 
           <div className="flex items-center gap-2.5">
@@ -366,15 +432,41 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Friends button on mobile top bar */}
           <button
-            onClick={() => setIsAddOpen(true)}
-            className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center gap-1"
-            title={t.addGame}
-            id="btn-mobile-add-game"
+            onClick={() => setIsFriendsModalOpen(true)}
+            className="p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer relative"
+            title={t.friendsTitle}
+            id="btn-mobile-friends"
           >
-            <Icons.Plus className="w-4 h-4 stroke-[3]" />
-            <span className="hidden sm:inline">{t.addGame}</span>
+            <Icons.Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            {incomingFriendRequestsCount > 0 && (
+              <span className="absolute -top-1 -right-1 px-1 py-0.2 bg-rose-500 text-white text-[9px] font-black rounded-none">
+                {incomingFriendRequestsCount}
+              </span>
+            )}
           </button>
+
+          {activeFriend ? (
+            <button
+              onClick={handleBackToMyLibrary}
+              className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center gap-1"
+              title={t.backToMyLibrary}
+            >
+              <Icons.ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.homeLibrary}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center gap-1"
+              title={t.addGame}
+              id="btn-mobile-add-game"
+            >
+              <Icons.Plus className="w-4 h-4 stroke-[3]" />
+              <span className="hidden sm:inline">{t.addGame}</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -437,6 +529,23 @@ export default function App() {
                     <p className="text-xs font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-500 px-2">
                       {t.navigation}
                     </p>
+
+                    {/* Active Friend Banner Button in Mobile Menu if active */}
+                    {activeFriend && (
+                      <button
+                        onClick={() => {
+                          handleBackToMyLibrary();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-none text-sm font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 transition-all cursor-pointer"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Icons.ArrowLeft className="w-4 h-4" />
+                          <span>{t.backToMyLibrary}</span>
+                        </span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => {
                         setStatusFilter("All");
@@ -449,11 +558,30 @@ export default function App() {
                     >
                       <span className="flex items-center gap-3">
                         <Icons.Home className="w-5 h-5" />
-                        <span>{t.homeLibrary}</span>
+                        <span>{activeFriend ? t.friendLibraryTitle.replace("{name}", activeFriend.username) : t.homeLibrary}</span>
                       </span>
                       <span className="text-xs font-mono font-bold px-2 py-0.5 bg-black/10 dark:bg-white/10 rounded">
                         {countAll}
                       </span>
+                    </button>
+
+                    {/* Friends Button in Mobile Menu */}
+                    <button
+                      onClick={() => {
+                        setIsFriendsModalOpen(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-none text-sm font-bold transition-all cursor-pointer border bg-neutral-50 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icons.Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        <span>{t.friendsTitle}</span>
+                      </span>
+                      {incomingFriendRequestsCount > 0 && (
+                        <span className="text-xs font-bold px-2 py-0.5 bg-rose-500 text-white rounded font-mono animate-pulse">
+                          {incomingFriendRequestsCount} {t.friendRequests}
+                        </span>
+                      )}
                     </button>
                   </div>
 
@@ -495,16 +623,29 @@ export default function App() {
 
               {/* Bottom Actions inside mobile menu */}
               <div className="pt-5 border-t border-neutral-200 dark:border-white/10 space-y-3">
-                <button
-                  onClick={() => {
-                    setIsAddOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
-                >
-                  <Icons.Plus className="w-5 h-5 stroke-[3]" />
-                  <span>{t.addGame}</span>
-                </button>
+                {activeFriend ? (
+                  <button
+                    onClick={() => {
+                      handleBackToMyLibrary();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
+                  >
+                    <Icons.ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+                    <span>{t.backToMyLibrary}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsAddOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
+                  >
+                    <Icons.Plus className="w-5 h-5 stroke-[3]" />
+                    <span>{t.addGame}</span>
+                  </button>
+                )}
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -596,8 +737,24 @@ export default function App() {
               <p className="text-[10px] font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-500 px-2 mb-2">
                 {t.navigation}
               </p>
+
+              {/* Active Friend Banner Button in Desktop Sidebar if active */}
+              {activeFriend && (
+                <button
+                  onClick={handleBackToMyLibrary}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600/20 transition-all cursor-pointer mb-1"
+                >
+                  <span className="flex items-center gap-2">
+                    <Icons.ArrowLeft className="w-4 h-4" />
+                    <span>{t.backToMyLibrary}</span>
+                  </span>
+                </button>
+              )}
+
               <button
-                onClick={() => setStatusFilter("All")}
+                onClick={() => {
+                  setStatusFilter("All");
+                }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border ${statusFilter === "All"
                   ? "bg-indigo-600 text-white border-indigo-500 shadow"
                   : "bg-transparent text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white"
@@ -605,9 +762,26 @@ export default function App() {
               >
                 <span className="flex items-center gap-2">
                   <Icons.Home className="w-4 h-4" />
-                  <span>{t.homeLibrary}</span>
+                  <span>{activeFriend ? t.friendLibraryTitle.replace("{name}", activeFriend.username) : t.homeLibrary}</span>
                 </span>
                 <span className="text-[10px] font-mono opacity-80">{countAll}</span>
+              </button>
+
+              {/* Friends button in Desktop Sidebar */}
+              <button
+                onClick={() => setIsFriendsModalOpen(true)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border bg-transparent text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white"
+                id="sidebar-friends-btn"
+              >
+                <span className="flex items-center gap-2">
+                  <Icons.Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span>{t.friendsTitle}</span>
+                </span>
+                {incomingFriendRequestsCount > 0 && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 bg-rose-500 text-white rounded font-bold animate-pulse">
+                    {incomingFriendRequestsCount}
+                  </span>
+                )}
               </button>
             </div>
 
@@ -645,15 +819,26 @@ export default function App() {
         {/* Bottom Sidebar Action Controls */}
         <div className="pt-4 border-t border-neutral-200 dark:border-white/10 space-y-2 shrink-0">
 
-          {/* Add Game Button */}
-          <button
-            onClick={() => setIsAddOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
-            id="sidebar-add-game"
-          >
-            <Icons.Plus className="w-4 h-4 stroke-[3]" />
-            <span>{t.addGame}</span>
-          </button>
+          {/* Add Game Button / Back to Library */}
+          {activeFriend ? (
+            <button
+              onClick={handleBackToMyLibrary}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
+              id="sidebar-back-my-library"
+            >
+              <Icons.ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+              <span>{t.backToMyLibrary}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
+              id="sidebar-add-game"
+            >
+              <Icons.Plus className="w-4 h-4 stroke-[3]" />
+              <span>{t.addGame}</span>
+            </button>
+          )}
 
           {/* Theme & Settings Buttons */}
           <div className="grid grid-cols-2 gap-2">
@@ -832,11 +1017,31 @@ export default function App() {
         {/* MAIN BODY CONTENT */}
         <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 flex-1 overflow-y-auto min-h-0">
 
+          {/* FRIEND LIBRARY ACTIVE BANNER */}
+          {activeFriend && (
+            <FriendLibraryBanner
+              friend={activeFriend}
+              language={settings.language}
+              onBackToMyLibrary={handleBackToMyLibrary}
+              totalGames={friendGames.length}
+              completedGames={friendGames.filter((g) => g.status === "Completado").length}
+              totalHours={friendGames.reduce((acc, g) => acc + (g.playTime || 0), 0)}
+            />
+          )}
+
           {/* Sync indicator */}
           {syncLoading && (
             <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-none text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
               <Icons.Loader2 className="w-4 h-4 animate-spin" />
               <span>{t.syncingData}</span>
+            </div>
+          )}
+
+          {/* Loading Friend Games Indicator */}
+          {isLoadingFriendGames && (
+            <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-none text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
+              <Icons.Loader2 className="w-4 h-4 animate-spin" />
+              <span>{t.loadingFriendLibrary}</span>
             </div>
           )}
 
@@ -847,7 +1052,7 @@ export default function App() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <LibraryStatsPanel games={games} language={settings.language} />
+              <LibraryStatsPanel games={currentDisplayGames} language={settings.language} />
             </motion.div>
           )}
 
@@ -926,7 +1131,7 @@ export default function App() {
           <AnimatePresence mode="wait">
             {filteredGames.length === 0 ? (
               <motion.div
-                key={`empty-${statusFilter}`}
+                key={`empty-${statusFilter}-${activeFriend?.id || "mine"}`}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -938,9 +1143,13 @@ export default function App() {
                   <Icons.Gamepad2 size={36} />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">{t.noGamesMatch}</h3>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                    {activeFriend ? t.friendHasNoGames : t.noGamesMatch}
+                  </h3>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
-                    {t.noGamesMatchDesc}
+                    {activeFriend
+                      ? `${activeFriend.username} ${t.noGamesMatchDesc}`
+                      : t.noGamesMatchDesc}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -955,17 +1164,27 @@ export default function App() {
                   >
                     {t.resetFilters}
                   </button>
-                  <button
-                    onClick={() => setIsAddOpen(true)}
-                    className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow"
-                  >
-                    + {t.addGame}
-                  </button>
+                  {activeFriend ? (
+                    <button
+                      onClick={handleBackToMyLibrary}
+                      className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow flex items-center gap-1.5"
+                    >
+                      <Icons.ArrowLeft size={14} />
+                      {t.backToMyLibrary}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsAddOpen(true)}
+                      className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow"
+                    >
+                      + {t.addGame}
+                    </button>
+                  )}
                 </div>
               </motion.div>
             ) : (
               <motion.div
-                key={`grid-${statusFilter}`}
+                key={`grid-${statusFilter}-${activeFriend?.id || "mine"}`}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -995,6 +1214,28 @@ export default function App() {
         </footer>
 
       </main>
+
+      {/* FRIENDS MODAL OVERLAY */}
+      <AnimatePresence>
+        {isFriendsModalOpen && (
+          <FriendsModal
+            isOpen={isFriendsModalOpen}
+            onClose={() => {
+              setIsFriendsModalOpen(false);
+              if (user) {
+                refreshFriendRequestsCount(user.id);
+              }
+            }}
+            currentUserId={user?.id || null}
+            currentUsername={settings.username || (user?.email ? user.email.split("@")[0] : "Gamer")}
+            language={settings.language}
+            onViewFriendLibrary={(friend) => {
+              setIsFriendsModalOpen(false);
+              handleViewFriendLibrary(friend);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* SETTINGS MODAL OVERLAY */}
       <AnimatePresence>
@@ -1039,6 +1280,7 @@ export default function App() {
           <GameDetailModal
             game={selectedGame}
             language={settings.language}
+            readOnly={Boolean(activeFriend)}
             onClose={() => setSelectedGameId(null)}
             onUpdate={handleUpdateGame}
             onDelete={handleDeleteGame}

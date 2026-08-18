@@ -1217,6 +1217,180 @@ export const translationTable = {
     es: "Integrado con la API oficial de IGDB.",
     en: "Integrated with official IGDB API.",
   },
+
+  // --- FRIENDS & COMMUNITY ---
+  friends: {
+    es: "Amigos",
+    en: "Friends",
+  },
+  friendsTitle: {
+    es: "Amigos y Comunidad",
+    en: "Friends & Community",
+  },
+  friendsSubtitle: {
+    es: "Conecta con otros jugadores, envía solicitudes y explora sus colecciones de videojuegos.",
+    en: "Connect with other gamers, send requests and explore their video game collections.",
+  },
+  myFriends: {
+    es: "Mis Amigos",
+    en: "My Friends",
+  },
+  friendRequests: {
+    es: "Solicitudes",
+    en: "Requests",
+  },
+  incomingRequests: {
+    es: "Recibidas",
+    en: "Received",
+  },
+  outgoingRequests: {
+    es: "Enviadas",
+    en: "Sent",
+  },
+  addFriend: {
+    es: "Añadir Amigo",
+    en: "Add Friend",
+  },
+  searchUserPlaceholder: {
+    es: "Buscar por nombre de usuario...",
+    en: "Search by username...",
+  },
+  sendFriendRequest: {
+    es: "Enviar Solicitud",
+    en: "Send Request",
+  },
+  friendRequestSent: {
+    es: "Solicitud enviada",
+    en: "Request sent",
+  },
+  alreadyFriends: {
+    es: "Ya sois amigos",
+    en: "Already friends",
+  },
+  requestPending: {
+    es: "Pendiente",
+    en: "Pending",
+  },
+  acceptRequest: {
+    es: "Aceptar",
+    en: "Accept",
+  },
+  rejectRequest: {
+    es: "Rechazar",
+    en: "Reject",
+  },
+  cancelRequest: {
+    es: "Cancelar",
+    en: "Cancel",
+  },
+  removeFriend: {
+    es: "Eliminar Amigo",
+    en: "Remove Friend",
+  },
+  confirmRemoveFriend: {
+    es: "¿Estás seguro de que quieres eliminar a este amigo de tu lista?",
+    en: "Are you sure you want to remove this friend from your list?",
+  },
+  viewLibrary: {
+    es: "Ver Colección",
+    en: "View Collection",
+  },
+  noFriendsYet: {
+    es: "Aún no tienes amigos añadidos",
+    en: "No friends added yet",
+  },
+  noFriendsDesc: {
+    es: "¡Busca a otros jugadores en la pestaña 'Añadir Amigo' para compartir y ver sus bibliotecas de juegos!",
+    en: "Search for other gamers in the 'Add Friend' tab to share and explore each other's libraries!",
+  },
+  noIncomingRequests: {
+    es: "No tienes solicitudes de amistad pendientes",
+    en: "No pending incoming friend requests",
+  },
+  noOutgoingRequests: {
+    es: "No has enviado solicitudes pendientes",
+    en: "No pending outgoing friend requests",
+  },
+  userNotFound: {
+    es: "No se encontró ningún jugador con ese nombre",
+    en: "No player found with that username",
+  },
+  searchingUsers: {
+    es: "Buscando jugadores...",
+    en: "Searching players...",
+  },
+  myFriendCode: {
+    es: "Comparte tu nombre de usuario para que te añadan:",
+    en: "Share your username so friends can find you:",
+  },
+  copyUsername: {
+    es: "Copiar",
+    en: "Copy",
+  },
+  copied: {
+    es: "¡Copiado!",
+    en: "Copied!",
+  },
+  viewingFriendLibrary: {
+    es: "Viendo la colección de",
+    en: "Viewing collection of",
+  },
+  friendLibraryTitle: {
+    es: "Biblioteca de {name}",
+    en: "{name}'s Library",
+  },
+  friendLibraryMode: {
+    es: "Colección de Amigo",
+    en: "Friend's Collection",
+  },
+  backToMyLibrary: {
+    es: "Volver a Mi Biblioteca",
+    en: "Back to My Library",
+  },
+  friendHasNoGames: {
+    es: "Este amigo aún no ha añadido ningún juego a su colección.",
+    en: "This friend hasn't added any games to their collection yet.",
+  },
+  loadingFriendLibrary: {
+    es: "Cargando la colección de tu amigo...",
+    en: "Loading your friend's collection...",
+  },
+  cannotAddSelf: {
+    es: "No puedes enviarte una solicitud de amistad a ti mismo.",
+    en: "You cannot send a friend request to yourself.",
+  },
+  mustBeLoggedInFriends: {
+    es: "Inicia sesión con tu cuenta para conectar con amigos y ver sus bibliotecas en la nube.",
+    en: "Sign in with your account to connect with friends and view their cloud libraries.",
+  },
+  friendAddedSuccess: {
+    es: "¡Solicitud aceptada! Ahora sois amigos.",
+    en: "Request accepted! You are now friends.",
+  },
+  friendRemovedSuccess: {
+    es: "Amigo eliminado de tu lista.",
+    en: "Friend removed from your list.",
+  },
+  friendRequestSentSuccess: {
+    es: "¡Solicitud de amistad enviada con éxito!",
+    en: "Friend request sent successfully!",
+  },
+  friendGamesCount: {
+    es: "juegos",
+    en: "games",
+  },
+  gamesInLibrary: {
+    es: "juegos en biblioteca",
+    en: "games in library",
+  },
+  friendStatsOverview: {
+    es: "Resumen de la colección",
+    en: "Collection summary",
+  },
+  friendSearchPrompt: {
+    es: "Escribe al menos 2 caracteres para buscar usuarios registrados...",
+    en: "Type at least 2 characters to search registered users...",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof translationTable;

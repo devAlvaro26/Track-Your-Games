@@ -87,3 +87,27 @@ export interface LibraryStats {
   totalAchievementsUnlocked: number;
   totalAchievements: number;
 }
+
+export type FriendshipStatus = "pending" | "accepted" | "rejected";
+
+export interface FriendProfile {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+  bio?: string;
+  favoriteConsole?: string;
+  gamesCount?: number;
+  completedCount?: number;
+  totalHours?: number;
+}
+
+export interface Friendship {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: FriendshipStatus;
+  createdAt: string;
+  updatedAt?: string;
+  friendProfile: FriendProfile;
+  isSender: boolean;
+}
