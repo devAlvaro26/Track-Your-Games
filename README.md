@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/tyg_logo.png" alt="Track-Your-GamesLogo" width="128" />
+  <img src="public/tyg_logo.png" alt="Track Your Games logo" width="128" />
   <h1>Track Your Games</h1>
 </div>
 
@@ -7,163 +7,114 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database_%26_Auth-3ECF8E?logo=supabase)](https://supabase.com/)
-
----
 
 ## Overview
 
-**Track-Your-Games** is a modern web application designed to organize, catalog, and track your personal video game collection. It features native integration with the **IGDB API v4**, optional cloud persistence via **Supabase**, a full vector branding catalog for over 60 video game consoles, custom profile avatars, detailed library analytics, and multi-language support (English and Spanish).
+Track Your Games is a React application for organizing a personal video game library. It supports guest usage with browser storage and optional accounts with Supabase, while an Express server provides the external API integrations used by the interface.
 
----
+## Features
 
-## Key Features
-
-- **Comprehensive Library Management**:
-  - Categorize by play status: *Playing*, *Backlog / Wishlist*, *Completed*, and *Favorites*.
-  - Detailed metadata tracking: platforms, genres, personal ratings (1-10 stars), hours played, acquisition date, personal notes, custom game icons, and interactive achievements/trophies list.
-  - Barcode / EAN code entry field for physical games.
-
-- **IGDB API v4 Search & Integration**:
-  - Real-time video game search powered by a secure Express backend proxy.
-  - Automatic import of high-resolution cover art (`t_cover_big_2x`), game summaries, release dates, and global IGDB community ratings.
-
-- **Console Identity & Vector Branding**:
-  - Extensive collection of vector logos and badges for over 60 gaming platforms and systems (PlayStation, Nintendo, Xbox, Sega, PC, Atari, Retro, and Arcade).
-  - Categorized console picker featuring official manufacturer color schemes and dynamic console banners.
-
-- **Dual Storage (Cloud + Local Storage)**:
-  - **Cloud Mode (Supabase)**: User authentication (sign up & sign in) with isolated user data using Row Level Security (RLS).
-  - **Local / Guest Mode**: Instant out-of-the-box usage saving data locally via `localStorage` without requiring account creation.
-
-- **Profile Customization & Avatars**:
-  - Customizable user profile avatar with a gallery of gaming avatars and icons.
-
-- **Library Analytics & Statistics**:
-  - Visual metrics for your game collection: total games tracked, total playtime, average user rating, breakdown by platform, top genres, and completion rate.
-
-- **Multilingual Support & Customization**:
-  - Languages: English (`en`) and Spanish (`es`) with dynamic interface and genre translations.
-  - Persistent Light and Dark mode.
-  - Advanced filtering by console or status, instant search, and sorting by title, hours played, rating, or purchase date.
-
----
+- Add and edit games with platforms, genres, release and acquisition dates, ratings, play time, notes, cover art, barcode, and status.
+- Track statuses including pending, playing, played, completed, and wishlist, plus a separate favorite flag.
+- Search IGDB through the server proxy and import summaries, platforms, genres, release dates, cover art, and ratings.
+- Search Steam for an App ID and import Steam achievements. The server uses `STEAM_API_KEY` when available and falls back to the public Steam Community XML endpoint.
+- Browse a console picker with categorized platforms, console logos, manufacturer colors, and dynamic banners.
+- Review library statistics such as total games, play time, average rating, platform and genre breakdowns, and completion rate.
+- Create a profile with a username and avatar, switch between English and Spanish, and use light or dark theme.
+- Add friends, manage incoming and outgoing requests, and view an accepted friend's library.
+- Use the app without an account through `localStorage`, or sign in to sync games and profiles through Supabase with Row Level Security.
 
 ## Tech Stack
 
-- **Frontend**: React 19, TypeScript, Vite 8, Tailwind CSS v4, Motion (Framer Motion), Lucide React, Vercel Analytics.
-- **Backend / API Proxy**: Express 5, Node.js, Vercel Serverless Functions.
-- **Database & Auth**: Supabase JS v2, PostgreSQL with Row Level Security.
-
----
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS v4, Motion, Lucide React, and Vercel Analytics.
+- **Server:** Express 5 running the Vite middleware in development and serving the production build, with a Vercel function adapter in `api/index.ts`.
+- **Integrations:** IGDB API v4 through Twitch OAuth, Steam Store and Steam achievements endpoints.
+- **Database and auth:** Supabase JS v2 and PostgreSQL with Row Level Security.
 
 ## Project Structure
 
-```
+```text
 .
-├── api/                       # Vercel serverless function entrypoint
-│   └── index.ts
-├── public/
-│   └── tyg_logo.png       # Application branding logo icon
-├── server.ts                  # Express server (IGDB API proxy + Vite static server)
+├── api/index.ts                 # Vercel serverless entrypoint
+├── public/tyg_logo.png          # Application logo
+├── server.ts                    # Express server, API routes, and Vite integration
 ├── src/
-│   ├── App.tsx                # Main application component and user interface
-│   ├── components/            # UI components and modals
-│   │   ├── AddGameForm.tsx    # Modal form to add or edit video games
-│   │   ├── AuthModal.tsx      # Supabase authentication modal
-│   │   ├── AvatarModal.tsx    # Custom avatar selector modal for user profiles
-│   │   ├── ConsoleBanner.tsx  # Console brand banner display
-│   │   ├── ConsoleLogo.tsx    # Dynamic console logo renderer
-│   │   ├── ConsolePicker.tsx  # Interactive console platform selector
-│   │   ├── GameCard.tsx       # Individual game card display
-│   │   ├── GameDetailModal.tsx# Game details, playtime tracker, achievements & notes
-│   │   ├── GameIcon.tsx       # Custom game icon selector component
-│   │   ├── IgdbSearchModal.tsx# IGDB API live search modal
-│   │   ├── LibraryStatsPanel.tsx # Library analytics & statistical graphs
-│   │   ├── ProfileAvatar.tsx  # Profile avatar image/icon renderer
-│   │   └── SettingsModal.tsx  # User preferences (language, theme, avatar, auth)
-│   ├── consoles.ts            # Console definitions, logos, and categories
-│   ├── translations.ts        # Translation strings (English / Spanish)
-│   ├── types.ts               # Shared TypeScript interface definitions
-│   └── lib/
-│       ├── consoleBranding.ts # Console branding & color palette mapping
-│       ├── database.ts        # Supabase client & fallback local persistence
-│       └── svg/               # Vector SVG console logos
-├── supabase/
-│   └── schema.sql             # SQL database schema and RLS policies for Supabase
-├── vercel.json                # Vercel deployment configuration
-└── .env.example               # Environment variables template
+│   ├── App.tsx                  # Application state and main library view
+│   ├── components/              # Library, search, auth, profile, friends, and settings UI
+│   ├── consoles.ts              # Console definitions and categories
+│   ├── translations.ts          # English and Spanish translations
+│   ├── types.ts                 # Shared TypeScript types
+│   └── lib/                     # Persistence, favorite normalization, and branding helpers
+├── supabase/schema.sql          # Tables, indexes, triggers, and RLS policies
+├── vercel.json                  # Vercel API rewrite
+├── package.json                 # Scripts and dependencies
+└── vite.config.ts               # Vite, React, and Tailwind configuration
 ```
-
----
 
 ## Getting Started
 
-### Prerequisites
+### Requirements
 
-- **Node.js** (v18 or higher)
-- **npm** (v9 or higher)
+- Node.js 18 or newer
+- npm 9 or newer
 
-### Setup Instructions
+### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/devAlvaro26/track-your-games.git
-   cd track-your-games
-   ```
+```bash
+git clone https://github.com/devAlvaro26/track-your-games.git
+cd track-your-games
+npm install
+```
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+Create a `.env` file in the project root only if you want external integrations or cloud accounts. No `.env.example` file is currently included.
 
-3. **Configure environment variables:**
-   Create a `.env` file from the provided example template:
-   ```bash
-   cp .env.example .env
-   ```
-   Set up your credentials based on the features you want to enable:
-   ```env
-   # Twitch / IGDB API Credentials (Required for IGDB live search)
-   TWITCH_CLIENT_ID="your_client_id"
-   TWITCH_CLIENT_SECRET="your_client_secret"
+```env
+# Required for IGDB search. IGDB uses Twitch OAuth client credentials.
+TWITCH_CLIENT_ID=your_client_id
+TWITCH_CLIENT_SECRET=your_client_secret
 
-   # Supabase Credentials (Optional for cloud sync and user accounts)
-   VITE_DATABASE_URL="https://your-project.supabase.co"
-   VITE_DATABASE_ANON_KEY="your_anon_key"
-   ```
+# Optional: enables the Supabase database, authentication, and friends features.
+VITE_DATABASE_URL=https://your-project.supabase.co
+VITE_DATABASE_ANON_KEY=your_anon_key
 
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
+# Optional: enables the Steam Web API achievement lookup before XML fallback.
+STEAM_API_KEY=your_steam_api_key
+```
 
----
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The app and API are available at `http://localhost:3000` by default. Set `PORT` to use another port.
+
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Starts Express with Vite middleware and the API routes. |
+| `npm run build` | Creates the Vite production build in `dist/`. |
+| `npm run lint` | Runs TypeScript checking without emitting files. |
+| `npm run start` | Starts the production server using `dist/server.cjs` when that artifact is provided by the deployment workflow. |
+| `npm run clean` | Removes `dist` and `server.js` on environments that support `rm -rf`. |
 
 ## Supabase Setup (Optional)
 
-To enable cloud storage and user accounts:
-
 1. Create a project at [Supabase](https://supabase.com).
-2. Open the **SQL Editor** tab in the Supabase Dashboard.
-3. Run the SQL script found in `supabase/schema.sql`.
-4. Copy your project credentials into `VITE_DATABASE_URL` and `VITE_DATABASE_ANON_KEY` in your `.env` file.
+2. Open the Supabase SQL Editor.
+3. Run [`supabase/schema.sql`](supabase/schema.sql).
+4. Set `VITE_DATABASE_URL` and `VITE_DATABASE_ANON_KEY` in `.env`.
 
----
+Without these variables, the app remains usable in guest mode and stores the local library in the browser. With Supabase enabled, authentication, profiles, cloud game storage, and friend relationships use the tables and RLS policies defined in the schema.
 
-## Android Install
+## Deployment
 
-To install this application on your Android device, follow these steps:
-
-1. **Open your browser and navigate to this link**
-   - https://track-your-games.vercel.app
-2. **Click on the "Install app" button**
-   - If you don't see the button, click on the browser's menu (three dots) and select "Install app"
-3. **Open the app**
-   - After installation, you can find **TYG** in your app drawer
+The repository includes a Vercel rewrite that sends `/api/*` requests to `api/index.ts`. Configure the required environment variables in the deployment provider before enabling IGDB, Steam Web API, or Supabase features.
 
 ## License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
