@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { IgdbSearchResult, Language } from "../types";
 import { getTranslation } from "../translations";
+import { normalizePlatformName } from "../consoles";
 import * as Icons from "lucide-react";
 import { motion } from "motion/react";
 
@@ -93,12 +94,19 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         return;
       }
 
-      setResults(data.games || []);
+      const normalizedGames = (data.games || []).map((g: any) => ({
+        ...g,
+        platforms: Array.isArray(g.platforms)
+          ? Array.from(new Set(g.platforms.map(normalizePlatformName).filter(Boolean)))
+          : [],
+      }));
+
+      setResults(normalizedGames);
       if (data.configured !== undefined) {
         setIsConfigured(data.configured);
       }
 
-      if (data.games && data.games.length > 0) {
+      if (normalizedGames && normalizedGames.length > 0) {
         setSearchNotice(
           t.igdbSearchSuccessNotice.replace("{count}", String(data.games.length))
         );

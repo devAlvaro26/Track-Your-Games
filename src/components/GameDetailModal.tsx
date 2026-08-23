@@ -8,6 +8,7 @@ import { isFavoriteGame } from "../lib/gameFavorite";
 import { SteamSearchModal } from "./SteamSearchModal";
 import { getTranslation, translateGenre, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
+import { normalizePlatformName } from "../consoles";
 import * as Icons from "lucide-react";
 
 interface GameDetailModalProps {
@@ -214,6 +215,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   // Full save from editing form
   const handleSaveFullEdit = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanPlatforms = Array.from(new Set(editPlatforms.map(normalizePlatformName).filter(Boolean)));
+
     onUpdate({
       ...game,
       title: editTitle.trim(),
@@ -233,7 +236,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
       igdbRating: editIgdbRating,
       igdbUrl: editIgdbUrl,
       steamAppId: editSteamAppId ? Number(editSteamAppId) : undefined,
-      platforms: editPlatforms,
+      platforms: cleanPlatforms.length > 0 ? cleanPlatforms : ["PC"],
       notes: editNotes.trim(),
     });
     setIsEditing(false);
@@ -246,7 +249,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
     if (selected.summary) setEditDescription(selected.summary);
     if (selected.firstReleaseDate) setEditReleaseDate(selected.firstReleaseDate);
     if (selected.genres && selected.genres.length > 0) setEditGenre(selected.genres[0]);
-    if (selected.platforms && selected.platforms.length > 0) setEditPlatforms(selected.platforms);
+    if (selected.platforms && selected.platforms.length > 0) {
+      setEditPlatforms(Array.from(new Set(selected.platforms.map(normalizePlatformName).filter(Boolean))));
+    }
     if (selected.coverUrl) setEditCoverImage(selected.coverUrl);
     if (selected.id) setEditIgdbId(selected.id);
     if (selected.rating) setEditIgdbRating(selected.rating);

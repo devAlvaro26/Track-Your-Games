@@ -6,6 +6,7 @@ import { IgdbSearchModal } from "./IgdbSearchModal";
 import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { getTranslation, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
+import { normalizePlatformName } from "../consoles";
 import * as Icons from "lucide-react";
 
 interface AddGameFormProps {
@@ -76,7 +77,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
       setGenre(result.genres.join(", "));
     }
     if (result.platforms && result.platforms.length > 0) {
-      setPlatforms(result.platforms);
+      setPlatforms(Array.from(new Set(result.platforms.map(normalizePlatformName).filter(Boolean))));
     }
     if (result.firstReleaseDate) {
       setReleaseDate(result.firstReleaseDate);
@@ -100,11 +101,13 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
       return;
     }
 
+    const cleanPlatforms = Array.from(new Set((platforms.length > 0 ? platforms : ["PC"]).map(normalizePlatformName).filter(Boolean)));
+
     const newGame: Omit<Game, "id"> = {
       title: title.trim(),
       description: description.trim(),
       genre: genre.trim(),
-      platforms: platforms.length > 0 ? platforms : ["PC"],
+      platforms: cleanPlatforms.length > 0 ? cleanPlatforms : ["PC"],
       releaseDate: releaseDate.trim(),
       barcode: barcode.trim(),
       acquisitionDate: acquisitionDate || (() => {

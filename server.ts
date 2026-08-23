@@ -122,6 +122,35 @@ function formatIgdbCoverUrl(raw: any): string | undefined {
   return undefined;
 }
 
+/**
+ * Normalizes platform names from IGDB (e.g. "PC (Microsoft Windows)" -> "PC")
+ */
+function normalizePlatformName(name: string): string {
+  if (!name) return "";
+  const trimmed = name.trim();
+  if (
+    /^pc\s*\((microsoft\s*)?windows\)$/i.test(trimmed) ||
+    /^pc\s+(microsoft\s*)?windows$/i.test(trimmed) ||
+    /^microsoft\s*windows$/i.test(trimmed) ||
+    /^windows\s*pc$/i.test(trimmed) ||
+    trimmed.toLowerCase() === "pc (microsoft windows)" ||
+    trimmed.toLowerCase() === "pc microsoft windows" ||
+    trimmed.toLowerCase() === "microsoft windows" ||
+    trimmed.toLowerCase() === "windows"
+  ) {
+    return "PC";
+  }
+  if (
+    /^mac\s*\((apple\s*)?macos\)$/i.test(trimmed) ||
+    /^mac\s*os(\s*x)?$/i.test(trimmed) ||
+    /^macintosh$/i.test(trimmed) ||
+    /^macos$/i.test(trimmed)
+  ) {
+    return "Mac / macOS";
+  }
+  return trimmed;
+}
+
 export const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -275,7 +304,9 @@ app.post("/api/igdb/search", async (req: express.Request, res: express.Response)
           })()
         : "",
       genres: g.genres ? g.genres.map((gen: any) => gen.name) : [],
-      platforms: g.platforms ? g.platforms.map((p: any) => p.name) : [],
+      platforms: g.platforms
+        ? Array.from(new Set(g.platforms.map((p: any) => normalizePlatformName(p.name)).filter(Boolean)))
+        : [],
       coverUrl: formatIgdbCoverUrl(g.cover),
       rating: g.total_rating || g.rating ? Math.round(g.total_rating || g.rating) : undefined,
       url: g.url || `https://www.igdb.com/games/${g.id}`,

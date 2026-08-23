@@ -104,6 +104,10 @@ const PLATFORM_TO_SVG: Record<string, string> = {
 
   // PC & Portable
   pc: "publisher_steam",
+  "pc (microsoft windows)": "publisher_steam",
+  "pc microsoft windows": "publisher_steam",
+  "microsoft windows": "publisher_steam",
+  windows: "publisher_steam",
   steam: "publisher_steam",
   "steam-deck": "publisher_steam",
   "steam deck": "publisher_steam",

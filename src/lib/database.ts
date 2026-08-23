@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Game, AppSettings, GameStatus, FriendProfile, Friendship } from "../types";
 import { normalizeGame, isFavoriteGame } from "./gameFavorite";
+import { normalizePlatformName } from "../consoles";
 
 // Get database environment variables
 const env = (import.meta as any).env || {};
@@ -22,29 +23,36 @@ export const db: SupabaseClient | null = isDatabaseConfigured
  * Format a database game row into client-side Game interface
  */
 export function formatGameFromDb(row: any): Game {
-  const normalized = normalizeGame({
-    id: row.id,
-    title: row.title,
-    description: row.description || "",
-    genre: row.genre || "",
-    platforms: Array.isArray(row.platforms) ? row.platforms : [],
-    releaseDate: row.release_date || "",
-    barcode: row.barcode || "",
-    acquisitionDate: row.acquisition_date || "",
+  const rawPlatforms = Array.isArray(row.platforms) ? row.platforms : [];
+  const normalizedPlatforms: string[] = Array.from(
+    new Set(rawPlatforms.map((p: any) => normalizePlatformName(String(p))).filter(Boolean))
+  );
+
+  const baseGame: Game = {
+    id: String(row.id || ""),
+    title: String(row.title || ""),
+    description: String(row.description || ""),
+    genre: String(row.genre || ""),
+    platforms: normalizedPlatforms.length > 0 ? normalizedPlatforms : ["PC"],
+    releaseDate: String(row.release_date || ""),
+    barcode: String(row.barcode || ""),
+    acquisitionDate: String(row.acquisition_date || ""),
     rating: Number(row.rating) || 0,
     playTime: Number(row.play_time) || 0,
     status: (row.status as GameStatus | undefined) || "Pendiente",
-    favorite: row.favorite ?? (row.status === "Favoritos"),
-    coverColor: row.cover_color || "#171717",
-    coverSymbol: row.cover_symbol || "gamepad",
-    coverImage: row.cover_image || undefined,
+    favorite: Boolean(row.favorite ?? (row.status === "Favoritos")),
+    coverColor: String(row.cover_color || "#171717"),
+    coverSymbol: String(row.cover_symbol || "gamepad"),
+    coverImage: row.cover_image ? String(row.cover_image) : undefined,
     igdbId: row.igdb_id ? Number(row.igdb_id) : undefined,
     igdbRating: row.igdb_rating ? Number(row.igdb_rating) : undefined,
-    igdbUrl: row.igdb_url || undefined,
+    igdbUrl: row.igdb_url ? String(row.igdb_url) : undefined,
     steamAppId: row.steam_app_id ? Number(row.steam_app_id) : undefined,
     achievements: Array.isArray(row.achievements) ? row.achievements : [],
-    notes: row.notes || undefined,
-  });
+    notes: row.notes ? String(row.notes) : undefined,
+  };
+
+  const normalized = normalizeGame(baseGame);
 
   return {
     ...normalized,
@@ -57,13 +65,18 @@ export function formatGameFromDb(row: any): Game {
  */
 export function formatGameForDb(game: Game, userId: string): any {
   const normalized = normalizeGame(game);
+  const rawPlatforms = Array.isArray(normalized.platforms) ? normalized.platforms : [];
+  const normalizedPlatforms: string[] = Array.from(
+    new Set(rawPlatforms.map((p) => normalizePlatformName(String(p))).filter(Boolean))
+  );
+
   return {
     id: normalized.id,
     user_id: userId,
     title: normalized.title,
     description: normalized.description || "",
     genre: normalized.genre || "",
-    platforms: normalized.platforms || [],
+    platforms: normalizedPlatforms.length > 0 ? normalizedPlatforms : ["PC"],
     release_date: normalized.releaseDate || "",
     barcode: normalized.barcode || "",
     acquisition_date: normalized.acquisitionDate || "",

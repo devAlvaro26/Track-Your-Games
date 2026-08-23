@@ -128,9 +128,10 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     p.includes("steam") ||
     p.includes("deck") ||
     p.includes("mac") ||
-    p.includes("linux")
+    p.includes("linux") ||
+    p.includes("windows")
   ) {
-    let name = "PC / STEAM";
+    let name = "PC";
     if (p.includes("deck")) name = "STEAM DECK";
     else if (p.includes("mac")) name = "MAC";
     else if (p.includes("linux")) name = "LINUX";

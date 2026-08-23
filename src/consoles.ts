@@ -105,3 +105,38 @@ export const CONSOLES_LIST: ConsoleInfo[] = [
 ];
 
 export const ALL_CONSOLE_NAMES: string[] = CONSOLES_LIST.map((c) => c.name);
+
+/**
+ * Normalizes platform names from external APIs (like IGDB "PC (Microsoft Windows)")
+ * or legacy inputs into clean standard names (e.g. "PC").
+ */
+export function normalizePlatformName(name: string): string {
+  if (!name) return "";
+  const trimmed = name.trim();
+
+  // Normalize any variation of PC / Microsoft Windows
+  if (
+    /^pc\s*\((microsoft\s*)?windows\)$/i.test(trimmed) ||
+    /^pc\s+(microsoft\s*)?windows$/i.test(trimmed) ||
+    /^microsoft\s*windows$/i.test(trimmed) ||
+    /^windows\s*pc$/i.test(trimmed) ||
+    trimmed.toLowerCase() === "pc (microsoft windows)" ||
+    trimmed.toLowerCase() === "pc microsoft windows" ||
+    trimmed.toLowerCase() === "microsoft windows" ||
+    trimmed.toLowerCase() === "windows"
+  ) {
+    return "PC";
+  }
+
+  // Normalize Mac / macOS
+  if (
+    /^mac\s*\((apple\s*)?macos\)$/i.test(trimmed) ||
+    /^mac\s*os(\s*x)?$/i.test(trimmed) ||
+    /^macintosh$/i.test(trimmed) ||
+    /^macos$/i.test(trimmed)
+  ) {
+    return "Mac / macOS";
+  }
+
+  return trimmed;
+}
