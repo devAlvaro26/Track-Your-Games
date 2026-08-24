@@ -53,7 +53,16 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
         scale: { duration: 0.2 },
       }}
       onClick={onClick}
-      className="group relative flex flex-col w-full rounded-none sm:rounded-sm overflow-hidden bg-white dark:bg-[#161618] border border-slate-300 dark:border-white/10 shadow-md hover:shadow-2xl hover:border-indigo-500 cursor-pointer transition-all select-none"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${game.title} - ${primaryPlatform} (${statusStyle.label})`}
+      className="group relative flex flex-col w-full rounded-none sm:rounded-sm overflow-hidden bg-white dark:bg-[#161618] border border-slate-300 dark:border-white/10 shadow-md hover:shadow-2xl hover:border-indigo-500 cursor-pointer transition-all select-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
       id={`card-${game.id}`}
     >
       {/* 1. TOP CONSOLE INTEGRATED HEADER BANNER (SOLO LOGO DE CONSOLA) */}
@@ -74,6 +83,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
             alt={game.title}
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";

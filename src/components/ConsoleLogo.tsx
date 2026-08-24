@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 interface ConsoleLogoProps {
   platformName?: string;
@@ -7,12 +7,29 @@ interface ConsoleLogoProps {
   className?: string;
 }
 
-// Vite eager import of all 600+ SVG files from src/lib/svg/ as raw text
-const svgModules = import.meta.glob("../lib/svg/*.svg", {
-  eager: true,
+// Vite dynamic (lazy) import of all SVG files from src/lib/svg/ as async functions
+const svgLoaders = import.meta.glob("../lib/svg/*.svg", {
   query: "?raw",
   import: "default",
-}) as Record<string, string>;
+}) as Record<string, () => Promise<string>>;
+
+// Global in-memory cache for resolved raw SVGs
+const svgCache = new Map<string, string>();
+const inFlightRequests = new Map<string, Promise<string | null>>();
+
+// Pre-build index for fast matching without eager bundle loading
+const keyLookup = new Map<string, string>();
+const allSvgKeys = Object.keys(svgLoaders);
+
+for (const key of allSvgKeys) {
+  // Key looks like '../lib/svg/playstation5_flat.svg'
+  const baseName = key.replace("../lib/svg/", "").replace(".svg", "").toLowerCase();
+  keyLookup.set(baseName, key);
+  const sanitized = baseName.replace(/[^a-z0-9]/g, "");
+  if (sanitized && !keyLookup.has(sanitized)) {
+    keyLookup.set(sanitized, key);
+  }
+}
 
 // Mapping dictionary from platform name / ID to SVG filename in src/lib/svg
 const PLATFORM_TO_SVG: Record<string, string> = {
@@ -157,8 +174,8 @@ const PLATFORM_TO_SVG: Record<string, string> = {
   vectrex: "vectrex",
 };
 
-// Helper to resolve an SVG raw content string for a given platform name or brand key
-function resolveSvgContent(platformName?: string, brandKey?: string): string | null {
+// Helper to resolve the SVG key path in the module loaders
+function resolveSvgKey(platformName?: string, brandKey?: string): string | null {
   const p = (platformName || "").toLowerCase().trim();
   const b = (brandKey || "").toLowerCase().trim();
 
@@ -166,27 +183,35 @@ function resolveSvgContent(platformName?: string, brandKey?: string): string | n
   const filename = PLATFORM_TO_SVG[p] || PLATFORM_TO_SVG[b];
   if (filename) {
     const key = `../lib/svg/${filename}.svg`;
-    if (svgModules[key]) {
-      return svgModules[key];
+    if (svgLoaders[key]) {
+      return key;
     }
   }
 
-  // 2. Fuzzy match in svgModules keys
+  // 2. Direct keyLookup match
+  if (p && keyLookup.has(p)) {
+    return keyLookup.get(p)!;
+  }
   const sanitized = p.replace(/[^a-z0-9]/g, "");
+  if (sanitized && keyLookup.has(sanitized)) {
+    return keyLookup.get(sanitized)!;
+  }
+
+  // 3. Partial match
   if (sanitized) {
-    for (const key of Object.keys(svgModules)) {
-      const base = key.replace("../lib/svg/", "").replace(".svg", "").replace(/[^a-z0-9]/g, "");
-      if (base === sanitized || base.includes(sanitized) || sanitized.includes(base)) {
-        return svgModules[key];
+    for (const [name, key] of keyLookup.entries()) {
+      if (name.includes(sanitized) || sanitized.includes(name)) {
+        return key;
       }
     }
   }
 
-  // 3. Fallback brand match
+  // 4. Fallback brand match
   if (b && b !== "generic") {
-    for (const key of Object.keys(svgModules)) {
-      if (key.includes(b)) {
-        return svgModules[key];
+    if (keyLookup.has(b)) return keyLookup.get(b)!;
+    for (const [name, key] of keyLookup.entries()) {
+      if (name.includes(b)) {
+        return key;
       }
     }
   }
@@ -198,10 +223,39 @@ function resolveSvgContent(platformName?: string, brandKey?: string): string | n
 function adaptSvgString(rawSvg: string): string {
   if (!rawSvg) return "";
 
-  // Make sure SVG paths use fill="currentColor" or preserve strokes so they respond to dark/light theme
   return rawSvg
     .replace(/fill="(?:#fff|#ffffff|#000|#000000)"/gi, 'fill="currentColor"')
     .replace(/stroke="(?:#fff|#ffffff|#000|#000000)"/gi, 'stroke="currentColor"');
+}
+
+// Async loader with in-flight deduplication and caching
+async function loadSvgContent(key: string): Promise<string | null> {
+  if (svgCache.has(key)) {
+    return svgCache.get(key)!;
+  }
+
+  const loader = svgLoaders[key];
+  if (!loader) return null;
+
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key)!;
+  }
+
+  const promise = loader()
+    .then((raw) => {
+      const adapted = adaptSvgString(raw);
+      svgCache.set(key, adapted);
+      inFlightRequests.delete(key);
+      return adapted;
+    })
+    .catch((err) => {
+      console.warn("Failed to load SVG dynamically:", key, err);
+      inFlightRequests.delete(key);
+      return null;
+    });
+
+  inFlightRequests.set(key, promise);
+  return promise;
 }
 
 export const ConsoleLogo: React.FC<ConsoleLogoProps> = ({
@@ -211,29 +265,57 @@ export const ConsoleLogo: React.FC<ConsoleLogoProps> = ({
   className = "",
 }) => {
   const dimHeight = typeof size === "number" ? `${size}px` : size;
+  const targetKey = resolveSvgKey(platformName, brandKey);
 
-  const rawSvg = resolveSvgContent(platformName, brandKey);
+  const [svgContent, setSvgContent] = useState<string | null>(() => {
+    if (targetKey && svgCache.has(targetKey)) {
+      return svgCache.get(targetKey)!;
+    }
+    return null;
+  });
 
-  if (rawSvg) {
-    const adapted = adaptSvgString(rawSvg);
+  useEffect(() => {
+    if (!targetKey) {
+      setSvgContent(null);
+      return;
+    }
+
+    if (svgCache.has(targetKey)) {
+      setSvgContent(svgCache.get(targetKey)!);
+      return;
+    }
+
+    let isMounted = true;
+    loadSvgContent(targetKey).then((content) => {
+      if (isMounted && content) {
+        setSvgContent(content);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [targetKey]);
+
+  if (svgContent) {
     return (
       <span
         className={`inline-flex items-center justify-center sm:justify-start max-w-full overflow-hidden [&_svg]:h-full [&_svg]:w-auto [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:block [&_path]:fill-current [&_g]:fill-current ${className}`}
         style={{ height: dimHeight, maxHeight: dimHeight }}
-        dangerouslySetInnerHTML={{ __html: adapted }}
+        dangerouslySetInnerHTML={{ __html: svgContent }}
         aria-label={platformName || "Console Logo"}
       />
     );
   }
 
-  // Fallback Minimalist Gamepad SVG if no file match is found
+  // Fallback Minimalist Gamepad SVG if no file match is found or while loading
   return (
     <svg
       viewBox="0 0 24 24"
       style={{ height: dimHeight, maxHeight: dimHeight, width: "auto" }}
       fill="currentColor"
-      className={`shrink-0 transition-transform max-w-full max-h-full ${className}`}
-      aria-label="Gaming Console"
+      className={`shrink-0 transition-transform max-w-full max-h-full opacity-80 ${className}`}
+      aria-label={platformName || "Gaming Console"}
     >
       <path d="M17 4H7C4.24 4 2 6.24 2 9v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V9c0-2.76-2.24-5-5-5zm-8 7H8v1H7v-1H6v-1h1V9h1v1h1v1zm7.5 1c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm1.5-2c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
     </svg>

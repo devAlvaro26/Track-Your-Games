@@ -1,15 +1,68 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TYG</title>
+  <title>TYG - Track Your Games</title>
+  <meta name="description" content="TYG (Track Your Games) - Tu biblioteca digital y organizador de videojuegos personal. " />
+  <meta name="keywords" content="videojuegos, tracking, biblioteca de juegos, steam, igdb, coleccionismo, logros, playstation, nintendo, xbox, pc" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#141417" />
+  <meta name="color-scheme" content="dark light" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://track-your-games.vercel.app" />
+
+  <!-- Icons -->
   <link rel="icon" type="image/png" href="/tyg_logo.png" />
   <link rel="apple-touch-icon" href="/tyg_logo.png" />
+
+  <!-- Resource Preconnects for Fast Asset & Image Loading -->
+  <link rel="preconnect" href="https://images.igdb.com" crossorigin />
+  <link rel="dns-prefetch" href="https://images.igdb.com" />
+  <link rel="preconnect" href="https://steamcdn-a.akamaihd.net" crossorigin />
+  <link rel="dns-prefetch" href="https://steamcdn-a.akamaihd.net" />
+  <link rel="preconnect" href="https://shared.akamai.steamstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://shared.akamai.steamstatic.com" />
+  <link rel="preconnect" href="https://cdn.cloudflare.steamstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdn.cloudflare.steamstatic.com" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://track-your-games.vercel.app" />
+  <meta property="og:title" content="TYG - Track Your Games | Biblioteca de Videojuegos" />
+  <meta property="og:description" content="Organiza tu colección de videojuegos, registra horas jugadas, logros de Steam y estados de juego en un solo lugar." />
+  <meta property="og:image" content="https://track-your-games.vercel.app/tyg_logo.png" />
+  <meta property="og:site_name" content="TYG - Track Your Games" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:url" content="https://track-your-games.vercel.app" />
+  <meta name="twitter:title" content="TYG - Track Your Games | Biblioteca de Videojuegos" />
+  <meta name="twitter:description" content="Organiza tu colección de videojuegos, registra horas jugadas, logros de Steam y estados de juego en un solo lugar." />
+  <meta name="twitter:image" content="https://track-your-games.vercel.app/tyg_logo.png" />
+
+  <!-- Structured Data JSON-LD -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Track Your Games (TYG)",
+      "url": "https://track-your-games.vercel.app",
+      "description": "Tu biblioteca digital y organizador de videojuegos personal. Registra tus horas, estados, plataformas y logros de Steam.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
 </head>
 
-<body>
+<body className="antialiased">
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>

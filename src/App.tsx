@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Game, AppSettings, Language, FriendProfile } from "./types";
 import { GameCard } from "./components/GameCard";
-import { GameDetailModal } from "./components/GameDetailModal";
-import { AddGameForm } from "./components/AddGameForm";
-import { LibraryStatsPanel } from "./components/LibraryStatsPanel";
-import { SettingsModal } from "./components/SettingsModal";
-import { AuthModal } from "./components/AuthModal";
 import { ProfileAvatar } from "./components/ProfileAvatar";
-import { AvatarModal } from "./components/AvatarModal";
-import { FriendsModal } from "./components/FriendsModal";
 import { FriendLibraryBanner } from "./components/FriendLibraryBanner";
 import { getTranslation, translateGenre } from "./translations";
 import {
@@ -26,6 +19,29 @@ import * as Icons from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { normalizeGame, isFavoriteGame } from "./lib/gameFavorite";
+
+// Lazy-loaded modal components to reduce initial bundle size and improve LCP/TBT
+const GameDetailModal = lazy(() =>
+  import("./components/GameDetailModal").then((m) => ({ default: m.GameDetailModal }))
+);
+const AddGameForm = lazy(() =>
+  import("./components/AddGameForm").then((m) => ({ default: m.AddGameForm }))
+);
+const LibraryStatsPanel = lazy(() =>
+  import("./components/LibraryStatsPanel").then((m) => ({ default: m.LibraryStatsPanel }))
+);
+const SettingsModal = lazy(() =>
+  import("./components/SettingsModal").then((m) => ({ default: m.SettingsModal }))
+);
+const AuthModal = lazy(() =>
+  import("./components/AuthModal").then((m) => ({ default: m.AuthModal }))
+);
+const AvatarModal = lazy(() =>
+  import("./components/AvatarModal").then((m) => ({ default: m.AvatarModal }))
+);
+const FriendsModal = lazy(() =>
+  import("./components/FriendsModal").then((m) => ({ default: m.FriendsModal }))
+);
 
 export default function App() {
   // App Settings state (theme, language, username, avatarUrl)
@@ -823,6 +839,7 @@ export default function App() {
           {activeFriend ? (
             <button
               onClick={handleBackToMyLibrary}
+              aria-label={t.backToMyLibrary || "Volver a mi biblioteca"}
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
               id="sidebar-back-my-library"
             >
@@ -832,6 +849,7 @@ export default function App() {
           ) : (
             <button
               onClick={() => setIsAddOpen(true)}
+              aria-label={t.addGame || "Añadir Juego"}
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
               id="sidebar-add-game"
             >
@@ -844,6 +862,7 @@ export default function App() {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={toggleTheme}
+              aria-label={settings.theme === "dark" ? (t.themeLight || "Cambiar a tema claro") : (t.themeDark || "Cambiar a tema oscuro")}
               className="flex items-center justify-center gap-1.5 p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-semibold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
               title={settings.theme === "dark" ? t.themeLight : t.themeDark}
             >
@@ -853,6 +872,7 @@ export default function App() {
 
             <button
               onClick={() => setIsSettingsOpen(true)}
+              aria-label={t.settings || "Ajustes"}
               className="flex items-center justify-center gap-1.5 p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-semibold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
               title={t.settings}
             >
@@ -866,6 +886,7 @@ export default function App() {
             {user ? (
               <button
                 onClick={handleLogout}
+                aria-label={t.logoutBtn || "Cerrar Sesión"}
                 className="w-full flex items-center justify-center gap-2 p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
               >
                 <Icons.LogOut size={14} />
@@ -874,6 +895,7 @@ export default function App() {
             ) : (
               <button
                 onClick={() => setIsAuthOpen(true)}
+                aria-label={t.loginBtn || "Iniciar Sesión / Registro"}
                 className="w-full flex items-center justify-center gap-2 p-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
               >
                 <Icons.LogIn size={14} />
@@ -901,6 +923,7 @@ export default function App() {
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
+                  aria-label={`${tab.label} (${tab.count})`}
                   className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-none border transition-all cursor-pointer shrink-0 ${isSelected
                     ? "bg-indigo-600 text-white border-indigo-500 dark:bg-white dark:text-black dark:border-white shadow-md"
                     : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-400 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-900 dark:hover:text-white"
@@ -928,6 +951,7 @@ export default function App() {
                   className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-none border border-indigo-500 shadow-sm transition-all cursor-pointer"
                   id="btn-mobile-status-filter"
                   title={t.filterByStatus || "Filtrar por estado"}
+                  aria-label={t.filterByStatus || "Filtrar por estado"}
                 >
                   <div className="flex items-center gap-2 truncate">
                     <Icons.Filter className="w-3.5 h-3.5 shrink-0 text-indigo-200" />
@@ -974,6 +998,7 @@ export default function App() {
                                 setStatusFilter(tab.id);
                                 setIsMobileStatusFilterOpen(false);
                               }}
+                              aria-label={`${tab.label} (${tab.count})`}
                               className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold transition-colors cursor-pointer text-left border-b last:border-b-0 border-neutral-100 dark:border-white/5 ${isSelected
                                 ? "bg-indigo-600 text-white font-extrabold"
                                 : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5"
@@ -1002,6 +1027,7 @@ export default function App() {
           <div className="hidden sm:flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowStats(!showStats)}
+              aria-label={t.statistics || "Estadísticas"}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-none border transition-all cursor-pointer ${showStats
                 ? "bg-indigo-600 text-white border-indigo-500"
                 : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10"
@@ -1052,7 +1078,9 @@ export default function App() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <LibraryStatsPanel games={currentDisplayGames} language={settings.language} />
+              <Suspense fallback={<div className="p-4 text-center text-xs text-neutral-400">Cargando estadísticas...</div>}>
+                <LibraryStatsPanel games={currentDisplayGames} language={settings.language} />
+              </Suspense>
             </motion.div>
           )}
 
@@ -1067,12 +1095,14 @@ export default function App() {
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label={t.searchPlaceholder || "Buscar juegos por título o género"}
                 className="w-full pl-9 pr-8 py-2 text-xs bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-medium"
                 id="search-input"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
+                  aria-label="Limpiar búsqueda"
                   className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white cursor-pointer"
                 >
                   <Icons.X className="w-3.5 h-3.5" />
@@ -1092,6 +1122,7 @@ export default function App() {
                 <select
                   value={platformFilter}
                   onChange={(e) => setPlatformFilter(e.target.value)}
+                  aria-label={t.consoleLabel || "Filtrar por consola"}
                   className="bg-transparent text-xs font-bold text-neutral-900 dark:text-white focus:outline-none cursor-pointer max-w-[180px] truncate"
                   id="filter-platform"
                 >
@@ -1113,6 +1144,7 @@ export default function App() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
+                  aria-label={t.sortByLabel || "Ordenar juegos"}
                   className="bg-transparent text-xs font-bold text-neutral-900 dark:text-white focus:outline-none cursor-pointer"
                   id="sort-select"
                 >
@@ -1160,6 +1192,7 @@ export default function App() {
                       setPlatformFilter("All");
                       setSortBy("acquisitionDate");
                     }}
+                    aria-label={t.resetFilters || "Restablecer filtros"}
                     className="text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-none hover:bg-indigo-500/10 transition-all cursor-pointer"
                   >
                     {t.resetFilters}
@@ -1167,6 +1200,7 @@ export default function App() {
                   {activeFriend ? (
                     <button
                       onClick={handleBackToMyLibrary}
+                      aria-label={t.backToMyLibrary || "Volver a mi biblioteca"}
                       className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow flex items-center gap-1.5"
                     >
                       <Icons.ArrowLeft size={14} />
@@ -1175,6 +1209,7 @@ export default function App() {
                   ) : (
                     <button
                       onClick={() => setIsAddOpen(true)}
+                      aria-label={t.addGame || "Añadir juego"}
                       className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow"
                     >
                       + {t.addGame}
@@ -1218,84 +1253,96 @@ export default function App() {
       {/* FRIENDS MODAL OVERLAY */}
       <AnimatePresence>
         {isFriendsModalOpen && (
-          <FriendsModal
-            isOpen={isFriendsModalOpen}
-            onClose={() => {
-              setIsFriendsModalOpen(false);
-              if (user) {
-                refreshFriendRequestsCount(user.id);
-              }
-            }}
-            currentUserId={user?.id || null}
-            currentUsername={settings.username || (user?.email ? user.email.split("@")[0] : "Gamer")}
-            language={settings.language}
-            onViewFriendLibrary={(friend) => {
-              setIsFriendsModalOpen(false);
-              handleViewFriendLibrary(friend);
-            }}
-          />
+          <Suspense fallback={null}>
+            <FriendsModal
+              isOpen={isFriendsModalOpen}
+              onClose={() => {
+                setIsFriendsModalOpen(false);
+                if (user) {
+                  refreshFriendRequestsCount(user.id);
+                }
+              }}
+              currentUserId={user?.id || null}
+              currentUsername={settings.username || (user?.email ? user.email.split("@")[0] : "Gamer")}
+              language={settings.language}
+              onViewFriendLibrary={(friend) => {
+                setIsFriendsModalOpen(false);
+                handleViewFriendLibrary(friend);
+              }}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* SETTINGS MODAL OVERLAY */}
       <AnimatePresence>
         {isSettingsOpen && (
-          <SettingsModal
-            settings={settings}
-            onSaveSettings={handleSaveSettings}
-            onClose={() => setIsSettingsOpen(false)}
-            onEnlargeAvatar={() => setIsAvatarModalOpen(true)}
-          />
+          <Suspense fallback={null}>
+            <SettingsModal
+              settings={settings}
+              onSaveSettings={handleSaveSettings}
+              onClose={() => setIsSettingsOpen(false)}
+              onEnlargeAvatar={() => setIsAvatarModalOpen(true)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* AVATAR LARGE VIEW MODAL OVERLAY */}
       <AnimatePresence>
         {isAvatarModalOpen && (
-          <AvatarModal
-            isOpen={isAvatarModalOpen}
-            onClose={() => setIsAvatarModalOpen(false)}
-            avatarUrl={settings.avatarUrl}
-            username={settings.username}
-            language={settings.language}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-          />
+          <Suspense fallback={null}>
+            <AvatarModal
+              isOpen={isAvatarModalOpen}
+              onClose={() => setIsAvatarModalOpen(false)}
+              avatarUrl={settings.avatarUrl}
+              username={settings.username}
+              language={settings.language}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* AUTH MODAL OVERLAY */}
       <AnimatePresence>
         {isAuthOpen && (
-          <AuthModal
-            language={settings.language}
-            onClose={() => setIsAuthOpen(false)}
-            onSuccess={handleAuthSuccess}
-          />
+          <Suspense fallback={null}>
+            <AuthModal
+              language={settings.language}
+              onClose={() => setIsAuthOpen(false)}
+              onSuccess={handleAuthSuccess}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* DETAIL MODAL OVERLAY */}
       <AnimatePresence>
         {selectedGame && (
-          <GameDetailModal
-            game={selectedGame}
-            language={settings.language}
-            readOnly={Boolean(activeFriend)}
-            onClose={() => setSelectedGameId(null)}
-            onUpdate={handleUpdateGame}
-            onDelete={handleDeleteGame}
-          />
+          <Suspense fallback={null}>
+            <GameDetailModal
+              game={selectedGame}
+              language={settings.language}
+              readOnly={Boolean(activeFriend)}
+              onClose={() => setSelectedGameId(null)}
+              onUpdate={handleUpdateGame}
+              onDelete={handleDeleteGame}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* ADD GAME FORM OVERLAY */}
       <AnimatePresence>
         {isAddOpen && (
-          <AddGameForm
-            language={settings.language}
-            onClose={() => setIsAddOpen(false)}
-            onAdd={handleAddGame}
-          />
+          <Suspense fallback={null}>
+            <AddGameForm
+              language={settings.language}
+              onClose={() => setIsAddOpen(false)}
+              onAdd={handleAddGame}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
