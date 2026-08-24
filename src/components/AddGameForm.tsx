@@ -279,7 +279,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   type="text"
                   value={releaseDate}
                   onChange={(e) => setReleaseDate(e.target.value)}
-                  placeholder="dd/mm/yyyy"
+                  placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -321,7 +321,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   step="0.5"
                   value={playTime || ""}
                   onChange={(e) => setPlayTime(parseFloat(e.target.value) || 0)}
-                  placeholder="0"
+                  placeholder={t.zeroPlaceholder || "0"}
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -482,7 +482,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   type="text"
                   value={acquisitionDate}
                   onChange={(e) => setAcquisitionDate(e.target.value)}
-                  placeholder="dd/mm/yyyy"
+                  placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>

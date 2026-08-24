@@ -922,7 +922,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editReleaseDate}
                         onChange={(e) => setEditReleaseDate(e.target.value)}
-                        placeholder="dd/mm/yyyy"
+                        placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -964,7 +964,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         step="0.5"
                         value={editPlayTime || ""}
                         onChange={(e) => setEditPlayTime(parseFloat(e.target.value) || 0)}
-                        placeholder="0"
+                        placeholder={t.zeroPlaceholder || "0"}
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -1096,7 +1096,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editBarcode}
                         onChange={(e) => setEditBarcode(e.target.value)}
-                        placeholder="EAN / UPC / ISBN (ej. 0045496598518)"
+                        placeholder={t.barcodePlaceholder || "EAN / UPC (ej. 0045496598518)"}
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono"
                       />
 
@@ -1125,7 +1125,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editAcquisitionDate}
                         onChange={(e) => setEditAcquisitionDate(e.target.value)}
-                        placeholder="dd/mm/yyyy"
+                        placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                       />
                     </div>

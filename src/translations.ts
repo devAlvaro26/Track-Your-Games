@@ -1217,6 +1217,70 @@ export const translationTable = {
     es: "Integrado con la API oficial de IGDB.",
     en: "Integrated with official IGDB API.",
   },
+  gameDeletedMsg: {
+    es: "Juego eliminado de la biblioteca.",
+    en: "Game deleted from library.",
+  },
+  gameStatusUpdatedMsg: {
+    es: "Estado del juego actualizado.",
+    en: "Game status updated.",
+  },
+  gameFavoriteUpdatedMsg: {
+    es: "Favorito actualizado.",
+    en: "Favorite status updated.",
+  },
+  gameRatingUpdatedMsg: {
+    es: "Calificación actualizada.",
+    en: "Rating updated.",
+  },
+  gamePlayTimeUpdatedMsg: {
+    es: "Horas de juego actualizadas.",
+    en: "Play time updated.",
+  },
+  gameUpdatedMsg: {
+    es: "¡Juego actualizado correctamente!",
+    en: "Game updated successfully!",
+  },
+  gameAddedMsg: {
+    es: "¡Juego añadido a la biblioteca con éxito!",
+    en: "Game added to library successfully!",
+  },
+  deleteGameAria: {
+    es: "Eliminar de la biblioteca",
+    en: "Delete from library",
+  },
+  removeConsoleAria: {
+    es: "Eliminar consola",
+    en: "Remove console",
+  },
+  openConsolePickerAria: {
+    es: "Abrir selector de consolas",
+    en: "Open console picker",
+  },
+  dateFormatPlaceholder: {
+    es: "dd/mm/yyyy",
+    en: "dd/mm/yyyy",
+  },
+  applyUrlBtn: {
+    es: "OK",
+    en: "OK",
+  },
+  clickToCopyBarcode: {
+    es: "Hacer clic para copiar el código de barras",
+    en: "Click to copy barcode",
+  },
+  zeroPlaceholder: {
+    es: "0",
+    en: "0",
+  },
+  urlPlaceholder: {
+    es: "Ej. https://...",
+    en: "E.g. https://...",
+  },
+  notesPurchasePlaceholder: {
+    es: "Notas de compra, recuerdos, estado...",
+    en: "Purchase notes, memories, condition...",
+  },
 
   // --- FRIENDS & COMMUNITY ---
   friends: {

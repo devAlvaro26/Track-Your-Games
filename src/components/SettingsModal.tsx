@@ -207,7 +207,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() => setShowUrlField(!showUrlField)}
                     className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 underline transition-colors cursor-pointer"
                   >
-                    {showUrlField ? "Ocultar URL" : t.avatarUrlPlaceholder}
+                    {showUrlField ? t.hideUrl : t.avatarUrlPlaceholder}
                   </button>
 
                   {avatarUrl && (
@@ -236,7 +236,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       onClick={handleApplyUrl}
                       className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-none cursor-pointer"
                     >
-                      OK
+                      {t.applyUrlBtn || "OK"}
                     </button>
                   </div>
                 )}
