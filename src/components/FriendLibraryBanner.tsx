@@ -1,7 +1,7 @@
 import React from "react";
 import { FriendProfile, Language } from "../types";
 import { getTranslation } from "../translations";
-import * as Icons from "lucide-react";
+import { Gamepad2, Trophy, Clock, ArrowLeft } from "lucide-react";
 
 interface FriendLibraryBannerProps {
   friend: FriendProfile;
@@ -74,20 +74,20 @@ export const FriendLibraryBanner: React.FC<FriendLibraryBannerProps> = ({
           {/* Quick stats pills */}
           <div className="flex items-center gap-2 text-xs">
             <div className="px-3 py-1.5 bg-black/30 border border-white/10 rounded-none flex items-center gap-1.5">
-              <Icons.Gamepad2 className="w-3.5 h-3.5 text-indigo-300" />
+              <Gamepad2 className="w-3.5 h-3.5 text-indigo-300" />
               <span className="font-bold">{totalGames}</span>
               <span className="text-white/60 text-[11px]">{t.gamesInLibrary || "juegos"}</span>
             </div>
 
             <div className="px-3 py-1.5 bg-black/30 border border-white/10 rounded-none flex items-center gap-1.5">
-              <Icons.Trophy className="w-3.5 h-3.5 text-amber-300" />
+              <Trophy className="w-3.5 h-3.5 text-amber-300" />
               <span className="font-bold">{completedGames}</span>
               <span className="text-white/60 text-[11px]">{t.statusCompletedTag || "Completados"}</span>
             </div>
 
             {totalHours > 0 && (
               <div className="hidden sm:flex px-3 py-1.5 bg-black/30 border border-white/10 rounded-none items-center gap-1.5">
-                <Icons.Clock className="w-3.5 h-3.5 text-emerald-300" />
+                <Clock className="w-3.5 h-3.5 text-emerald-300" />
                 <span className="font-bold">{totalHours}h</span>
               </div>
             )}
@@ -100,7 +100,7 @@ export const FriendLibraryBanner: React.FC<FriendLibraryBannerProps> = ({
             aria-label={t.backToMyLibrary || "Volver a mi biblioteca"}
             className="min-h-[44px] px-4 py-2.5 bg-white text-indigo-950 hover:bg-neutral-100 font-extrabold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer rounded-none active:scale-95 shrink-0"
           >
-            <Icons.ArrowLeft className="w-4 h-4 text-indigo-900" />
+            <ArrowLeft className="w-4 h-4 text-indigo-900" />
             <span>{t.backToMyLibrary}</span>
           </button>
         </div>

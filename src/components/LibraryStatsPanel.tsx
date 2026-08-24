@@ -2,7 +2,7 @@ import React from "react";
 import { Game, Language } from "../types";
 import { getTranslation } from "../translations";
 import { isFavoriteGame } from "../lib/gameFavorite";
-import * as Icons from "lucide-react";
+import { Gamepad2, CheckCircle2, Hourglass, Trophy } from "lucide-react";
 
 interface LibraryStatsPanelProps {
   games: Game[];
@@ -42,7 +42,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       {/* Total Games Metric */}
       <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
         <div className="p-2.5 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-none border border-indigo-500/20">
-          <Icons.Gamepad2 className="w-5 h-5" />
+          <Gamepad2 className="w-5 h-5" />
         </div>
         <div>
           <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
@@ -60,7 +60,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       {/* Completion Rate Metric */}
       <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
         <div className="p-2.5 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-none border border-emerald-500/20">
-          <Icons.CheckCircle2 className="w-5 h-5" />
+          <CheckCircle2 className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
@@ -78,7 +78,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       {/* Total Hours Metric */}
       <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
         <div className="p-2.5 bg-violet-500/10 text-violet-500 dark:text-violet-400 rounded-none border border-violet-500/20">
-          <Icons.Hourglass className="w-5 h-5" />
+          <Hourglass className="w-5 h-5" />
         </div>
         <div>
           <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
@@ -96,7 +96,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
       {/* Achievements unlocked Metric */}
       <div className="p-3.5 bg-white dark:bg-[#121214] rounded-none border border-neutral-300 dark:border-white/10 flex items-center gap-3.5 transition-all hover:border-neutral-400 dark:hover:border-white/20">
         <div className="p-2.5 bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-none border border-rose-500/20">
-          <Icons.Trophy className="w-5 h-5" />
+          <Trophy className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">

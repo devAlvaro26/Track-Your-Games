@@ -1,5 +1,30 @@
 import React from "react";
-import * as Icons from "lucide-react";
+import {
+  Gamepad2,
+  Sword,
+  Shield,
+  Crown,
+  Ghost,
+  Trophy,
+  Compass,
+  Flame,
+  Music,
+  Skull,
+  Heart,
+  Star,
+  Rocket,
+  Target,
+  Wrench,
+  Car,
+  Zap,
+  Sparkles,
+  BookOpen,
+  Calendar,
+  Barcode,
+  User,
+  Clock,
+  LucideIcon,
+} from "lucide-react";
 import { translateSymbolLabel } from "../translations";
 import { Language } from "../types";
 
@@ -9,46 +34,41 @@ interface GameIconProps {
   size?: number;
 }
 
+// Custom dictionary mapping simple strings to specific Lucide components
+const iconMap: Record<string, LucideIcon> = {
+  sword: Sword,
+  shield: Shield,
+  gamepad: Gamepad2,
+  gamepad2: Gamepad2,
+  crown: Crown,
+  ghost: Ghost,
+  trophy: Trophy,
+  compass: Compass,
+  flame: Flame,
+  music: Music,
+  skull: Skull,
+  heart: Heart,
+  star: Star,
+  rocket: Rocket,
+  target: Target,
+  wrench: Wrench,
+  car: Car,
+  bolt: Zap,
+  zap: Zap,
+  sparkles: Sparkles,
+  book: BookOpen,
+  calendar: Calendar,
+  barcode: Barcode,
+  user: User,
+  clock: Clock,
+};
+
 export const GameIcon: React.FC<GameIconProps> = ({ name, className = "", size = 24 }) => {
-  // Normalize the name to match standard Lucide component names (CamelCase)
+  // Normalize the name to match standard Lucide component names
   const normalizedName = name.trim().toLowerCase();
+  const IconComponent = iconMap[normalizedName] || Gamepad2;
 
-  // Custom dictionary mapping simple strings to Lucide components
-  const iconMap: Record<string, keyof typeof Icons> = {
-    sword: "Sword",
-    shield: "Shield",
-    gamepad: "Gamepad2",
-    gamepad2: "Gamepad2",
-    crown: "Crown",
-    ghost: "Ghost",
-    trophy: "Trophy",
-    compass: "Compass",
-    flame: "Flame",
-    music: "Music",
-    skull: "Skull",
-    heart: "Heart",
-    star: "Star",
-    rocket: "Rocket",
-    target: "Target",
-    wrench: "Wrench",
-    car: "Car",
-    bolt: "Bolt",
-    sparkles: "Sparkles",
-    book: "BookOpen",
-    calendar: "Calendar",
-    barcode: "Barcode",
-    user: "User",
-    clock: "Clock",
-  };
-
-  const lucideKey = iconMap[normalizedName] || "Gamepad2";
-  const LucideIcon = Icons[lucideKey] as React.ComponentType<any>;
-
-  if (!LucideIcon) {
-    return <Icons.Gamepad2 className={className} size={size} id="default-game-icon" />;
-  }
-
-  return <LucideIcon className={className} size={size} id={`game-icon-${normalizedName}`} />;
+  return <IconComponent className={className} size={size} id={`game-icon-${normalizedName}`} />;
 };
 
 // Available icon symbol metadata for cover selection

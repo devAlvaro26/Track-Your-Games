@@ -1,5 +1,5 @@
 import React from "react";
-import * as Icons from "lucide-react";
+import { Library } from "lucide-react";
 import { Language } from "../types";
 import { getTranslation } from "../translations";
 
@@ -96,7 +96,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       title={titleText}
       id="profile-avatar-default-container"
     >
-      <Icons.Library className={iconSizes[size]} />
+      <Library className={iconSizes[size]} />
     </div>
   );
 };

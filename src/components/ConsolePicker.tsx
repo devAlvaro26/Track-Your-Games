@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CONSOLES_LIST, CONSOLE_CATEGORIES } from "../consoles";
 import { useTranslation } from "../translations";
 import { Language } from "../types";
-import * as Icons from "lucide-react";
+import { CheckSquare, X, Search, Plus, Check } from "lucide-react";
 
 interface ConsolePickerProps {
   selectedPlatforms: string[];
@@ -60,7 +60,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
       {/* Selected Consoles Badges */}
       <div className="flex flex-wrap gap-1.5 items-center min-h-[32px] p-2 bg-neutral-100 dark:bg-[#161616] rounded-none border border-neutral-300 dark:border-white/10">
         <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-gray-400 mr-1 flex items-center gap-1">
-          <Icons.CheckSquare className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+          <CheckSquare className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
           {t.selectedConsolesLabel} ({selectedPlatforms.length}):
         </span>
 
@@ -81,7 +81,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
                 className="p-0.5 hover:bg-indigo-700 rounded-none transition-colors cursor-pointer"
                 title={t.delete}
               >
-                <Icons.X className="w-3 h-3" />
+                <X className="w-3 h-3" />
               </button>
             </span>
           ))
@@ -93,7 +93,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
         {/* Search input + Custom add */}
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
-            <Icons.Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-neutral-400" />
+            <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-neutral-400" />
             <input
               type="text"
               placeholder={t.searchConsolePlaceholder}
@@ -107,7 +107,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
                 onClick={() => setSearchTerm("")}
                 className="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
               >
-                <Icons.X className="w-3 h-3" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -117,7 +117,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
             onClick={() => setShowCustomInput(!showCustomInput)}
             className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-neutral-700 dark:text-gray-300 bg-neutral-100 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 hover:border-neutral-400 rounded-none transition-colors cursor-pointer whitespace-nowrap"
           >
-            <Icons.Plus className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <Plus className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             {t.addOtherConsole}
           </button>
         </div>
@@ -191,7 +191,7 @@ export const ConsolePicker: React.FC<ConsolePickerProps> = ({
                   }`}
               >
                 <span className="truncate">{c.name}</span>
-                {isSelected && <Icons.Check className="w-3 h-3 ml-1 shrink-0 text-white" />}
+                {isSelected && <Check className="w-3 h-3 ml-1 shrink-0 text-white" />}
               </button>
             );
           })

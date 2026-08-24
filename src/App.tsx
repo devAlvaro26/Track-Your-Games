@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 import { Game, AppSettings, Language, FriendProfile } from "./types";
 import { GameCard } from "./components/GameCard";
 import { ProfileAvatar } from "./components/ProfileAvatar";
@@ -15,7 +15,34 @@ import {
   fetchFriendGames,
   fetchFriendships,
 } from "./lib/database";
-import * as Icons from "lucide-react";
+import {
+  LayoutGrid,
+  PlayCircle,
+  CheckCircle,
+  Bookmark,
+  Heart,
+  CheckCircle2,
+  Star,
+  Menu,
+  Users,
+  ArrowLeft,
+  Plus,
+  X,
+  Home,
+  Sun,
+  Moon,
+  Settings,
+  LogOut,
+  LogIn,
+  Filter,
+  ChevronDown,
+  BarChart2,
+  Loader2,
+  Search,
+  MonitorPlay,
+  ArrowUpDown,
+  Gamepad2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { normalizeGame, isFavoriteGame } from "./lib/gameFavorite";
@@ -206,17 +233,17 @@ export default function App() {
     }
   };
 
-  const refreshFriendRequestsCount = async (userId: string) => {
+  const refreshFriendRequestsCount = useCallback(async (userId: string) => {
     try {
       const data = await fetchFriendships(userId);
       setIncomingFriendRequestsCount(data.incoming.length);
     } catch (e) {
       console.warn("Could not refresh friend requests:", e);
     }
-  };
+  }, []);
 
   // Auth handlers
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     if (db && isDatabaseConfigured) {
       await db.auth.signOut();
     }
@@ -226,9 +253,9 @@ export default function App() {
     setFriendGames([]);
     setIncomingFriendRequestsCount(0);
     localStorage.removeItem("game_library_user");
-  };
+  }, []);
 
-  const handleAuthSuccess = (authUser: any, authUsername?: string) => {
+  const handleAuthSuccess = useCallback((authUser: any, authUsername?: string) => {
     setUser(authUser);
     if (authUsername) {
       setSettings((prev) => {
@@ -240,10 +267,10 @@ export default function App() {
       });
     }
     loadUserData(authUser.id, authUsername);
-  };
+  }, []);
 
   // Friend Library view handlers
-  const handleViewFriendLibrary = async (friend: FriendProfile) => {
+  const handleViewFriendLibrary = useCallback(async (friend: FriendProfile) => {
     setActiveFriend(friend);
     setIsLoadingFriendGames(true);
     setStatusFilter("All");
@@ -258,17 +285,17 @@ export default function App() {
     } finally {
       setIsLoadingFriendGames(false);
     }
-  };
+  }, []);
 
-  const handleBackToMyLibrary = () => {
+  const handleBackToMyLibrary = useCallback(() => {
     setActiveFriend(null);
     setFriendGames([]);
     setStatusFilter("All");
     setPlatformFilter("All");
     setSearchQuery("");
-  };
+  }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setSettings((prev) => {
       const nextSettings: AppSettings = {
         ...prev,
@@ -279,17 +306,17 @@ export default function App() {
       }
       return nextSettings;
     });
-  };
+  }, [user]);
 
-  const handleSaveSettings = async (newSettings: AppSettings) => {
+  const handleSaveSettings = useCallback(async (newSettings: AppSettings) => {
     setSettings(newSettings);
     if (user && isDatabaseConfigured) {
       await saveUserProfile(user.id, newSettings);
     }
-  };
+  }, [user]);
 
   // Game CRUD Handlers
-  const handleAddGame = async (gameData: Omit<Game, "id">) => {
+  const handleAddGame = useCallback(async (gameData: Omit<Game, "id">) => {
     const newGame: Game = {
       ...gameData,
       id: `game-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -305,9 +332,9 @@ export default function App() {
         console.error("Could not sync added game to database:", err);
       }
     }
-  };
+  }, [user]);
 
-  const handleUpdateGame = async (updatedGame: Game) => {
+  const handleUpdateGame = useCallback(async (updatedGame: Game) => {
     setGames((prev) => prev.map((g) => (g.id === updatedGame.id ? updatedGame : g)));
 
     if (user && isDatabaseConfigured) {
@@ -317,9 +344,9 @@ export default function App() {
         console.error("Could not sync updated game to database:", err);
       }
     }
-  };
+  }, [user]);
 
-  const handleDeleteGame = async (id: string) => {
+  const handleDeleteGame = useCallback(async (id: string) => {
     setGames((prev) => prev.filter((g) => g.id !== id));
     setSelectedGameId(null);
 
@@ -330,80 +357,130 @@ export default function App() {
         console.error("Could not delete game from database:", err);
       }
     }
-  };
+  }, [user]);
 
-  const currentDisplayGames = activeFriend ? friendGames : games;
-  const selectedGame = currentDisplayGames.find((g) => g.id === selectedGameId);
+  const currentDisplayGames = useMemo(
+    () => (activeFriend ? friendGames : games),
+    [activeFriend, friendGames, games]
+  );
 
-  // Counts for each collection category
-  const countAll = currentDisplayGames.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar").length;
-  const countPlaying = currentDisplayGames.filter((g) => g.status === "Jugando").length;
-  const countPlayed = currentDisplayGames.filter((g) => g.status === "Jugado").length;
-  const countPending = currentDisplayGames.filter((g) => g.status === "Pendiente").length;
-  const countWishlist = currentDisplayGames.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
-  const countCompleted = currentDisplayGames.filter((g) => g.status === "Completado").length;
-  const countFavorites = currentDisplayGames.filter((g) => isFavoriteGame(g)).length;
+  const selectedGame = useMemo(
+    () => currentDisplayGames.find((g) => g.id === selectedGameId),
+    [currentDisplayGames, selectedGameId]
+  );
+
+  // Counts for each collection category computed in a single pass
+  const {
+    countAll,
+    countPlaying,
+    countPlayed,
+    countPending,
+    countWishlist,
+    countCompleted,
+    countFavorites,
+  } = useMemo(() => {
+    let all = 0;
+    let playing = 0;
+    let played = 0;
+    let pending = 0;
+    let wishlist = 0;
+    let completed = 0;
+    let favorites = 0;
+
+    for (const g of currentDisplayGames) {
+      const isWish = g.status === "Deseados" || g.status === "Quiero Jugar";
+      if (!isWish) all++;
+      if (g.status === "Jugando") playing++;
+      if (g.status === "Jugado") played++;
+      if (g.status === "Pendiente") pending++;
+      if (isWish) wishlist++;
+      if (g.status === "Completado") completed++;
+      if (isFavoriteGame(g)) favorites++;
+    }
+
+    return {
+      countAll: all,
+      countPlaying: playing,
+      countPlayed: played,
+      countPending: pending,
+      countWishlist: wishlist,
+      countCompleted: completed,
+      countFavorites: favorites,
+    };
+  }, [currentDisplayGames]);
 
   // Filter & Sort logic
-  const filteredGames = currentDisplayGames
-    .filter((game) => {
-      const query = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        game.title.toLowerCase().includes(query) ||
-        game.genre.toLowerCase().includes(query) ||
-        translateGenre(game.genre, settings.language).toLowerCase().includes(query) ||
-        game.barcode.includes(query);
+  const filteredGames = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const isAllStatus = statusFilter === "All";
+    const isFavStatus = statusFilter === "Favoritos";
 
-      const matchesStatus =
-        statusFilter === "All"
-          ? (game.status !== "Deseados" && game.status !== "Quiero Jugar")
-          : statusFilter === "Favoritos"
+    return currentDisplayGames
+      .filter((game) => {
+        const matchesSearch =
+          !query ||
+          game.title.toLowerCase().includes(query) ||
+          game.genre.toLowerCase().includes(query) ||
+          translateGenre(game.genre, settings.language).toLowerCase().includes(query) ||
+          game.barcode.includes(query);
+
+        const matchesStatus = isAllStatus
+          ? game.status !== "Deseados" && game.status !== "Quiero Jugar"
+          : isFavStatus
             ? isFavoriteGame(game)
             : game.status === statusFilter ||
               (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
               (statusFilter === "Quiero Jugar" && game.status === "Deseados");
-      const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
 
-      return matchesSearch && matchesStatus && matchesPlatform;
-    })
-    .sort((a, b) => {
-      if (sortBy === "title") {
-        return a.title.localeCompare(b.title);
-      }
-      if (sortBy === "playTime") {
-        return b.playTime - a.playTime;
-      }
-      if (sortBy === "rating") {
-        return b.rating - a.rating;
-      }
-      if (sortBy === "acquisitionDate") {
-        const parseDate = (dateStr: string | undefined): Date => {
-          if (!dateStr) return new Date(0);
-          const parts = dateStr.split('/');
-          if (parts.length === 3) {
-            const [day, month, year] = parts.map(Number);
-            return new Date(year, month - 1, day);
-          }
-          return new Date(0);
-        };
-        return parseDate(b.acquisitionDate).getTime() - parseDate(a.acquisitionDate).getTime();
-      }
-      return 0;
-    });
+        const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
+
+        return matchesSearch && matchesStatus && matchesPlatform;
+      })
+      .sort((a, b) => {
+        if (sortBy === "title") {
+          return a.title.localeCompare(b.title);
+        }
+        if (sortBy === "playTime") {
+          return b.playTime - a.playTime;
+        }
+        if (sortBy === "rating") {
+          return b.rating - a.rating;
+        }
+        if (sortBy === "acquisitionDate") {
+          const parseDate = (dateStr: string | undefined): number => {
+            if (!dateStr) return 0;
+            const parts = dateStr.split("/");
+            if (parts.length === 3) {
+              const [day, month, year] = parts.map(Number);
+              return new Date(year, month - 1, day).getTime();
+            }
+            return 0;
+          };
+          return parseDate(b.acquisitionDate) - parseDate(a.acquisitionDate);
+        }
+        return 0;
+      });
+  }, [currentDisplayGames, searchQuery, statusFilter, platformFilter, sortBy, settings.language]);
 
   // Extract all available platforms in the library
-  const allPlatforms = Array.from(new Set(currentDisplayGames.flatMap((g) => g.platforms))).sort();
+  const allPlatforms = useMemo(
+    () => Array.from(new Set(currentDisplayGames.flatMap((g) => g.platforms))).sort(),
+    [currentDisplayGames]
+  );
 
   // Helper for collection tabs configuration
-  const collectionTabs = [
-    { id: "All", label: t.allStatuses || "Todos los Juegos", icon: Icons.LayoutGrid, count: countAll },
-    { id: "Jugando", label: t.statusPlaying || "Jugando", icon: Icons.PlayCircle, count: countPlaying },
-    { id: "Jugado", label: t.statusPlayed || "Jugados", icon: Icons.CheckCircle, count: countPlayed },
-    { id: "Pendiente", label: t.statusPending || "Pendientes", icon: Icons.Bookmark, count: countPending },
-    { id: "Deseados", label: t.statusWishlist || "Quiero Jugar", icon: Icons.Heart, count: countWishlist },
-    { id: "Completado", label: t.statusCompleted || "Completados", icon: Icons.CheckCircle2, count: countCompleted },
-    { id: "Favoritos", label: t.statusFavorites || "Favoritos", icon: Icons.Star, count: countFavorites },
-  ];
+  const collectionTabs = useMemo(
+    () => [
+      { id: "All", label: t.allStatuses || "Todos los Juegos", icon: LayoutGrid, count: countAll },
+      { id: "Jugando", label: t.statusPlaying || "Jugando", icon: PlayCircle, count: countPlaying },
+      { id: "Jugado", label: t.statusPlayed || "Jugados", icon: CheckCircle, count: countPlayed },
+      { id: "Pendiente", label: t.statusPending || "Pendientes", icon: Bookmark, count: countPending },
+      { id: "Deseados", label: t.statusWishlist || "Quiero Jugar", icon: Heart, count: countWishlist },
+      { id: "Completado", label: t.statusCompleted || "Completados", icon: CheckCircle2, count: countCompleted },
+      { id: "Favoritos", label: t.statusFavorites || "Favoritos", icon: Star, count: countFavorites },
+    ],
+    [t, countAll, countPlaying, countPlayed, countPending, countWishlist, countCompleted, countFavorites]
+  );
 
   return (
     <div className="h-screen w-full bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row overflow-hidden select-none" id="app-root">
@@ -419,7 +496,7 @@ export default function App() {
             title="Abrir menú"
             id="btn-open-mobile-menu"
           >
-            <Icons.Menu className="w-5 h-5 stroke-[2.5]" />
+            <Menu className="w-5 h-5 stroke-[2.5]" />
             {incomingFriendRequestsCount > 0 && (
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
             )}
@@ -457,7 +534,7 @@ export default function App() {
             title={t.friendsTitle}
             id="btn-mobile-friends"
           >
-            <Icons.Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             {incomingFriendRequestsCount > 0 && (
               <span className="absolute -top-1 -right-1 px-1 py-0.2 bg-rose-500 text-white text-[9px] font-black rounded-none">
                 {incomingFriendRequestsCount}
@@ -472,7 +549,7 @@ export default function App() {
               className="min-h-[44px] px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center justify-center gap-1.5"
               title={t.backToMyLibrary}
             >
-              <Icons.ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">{t.homeLibrary}</span>
             </button>
           ) : (
@@ -483,7 +560,7 @@ export default function App() {
               title={t.addGame}
               id="btn-mobile-add-game"
             >
-              <Icons.Plus className="w-4 h-4 stroke-[3]" />
+              <Plus className="w-4 h-4 stroke-[3]" />
               <span className="hidden sm:inline">{t.addGame}</span>
             </button>
           )}
@@ -540,7 +617,7 @@ export default function App() {
                     title={t.close}
                     id="btn-close-mobile-menu"
                   >
-                    <Icons.X className="w-6 h-6 stroke-[2.5]" />
+                    <X className="w-6 h-6 stroke-[2.5]" />
                   </button>
                 </div>
 
@@ -561,7 +638,7 @@ export default function App() {
                         className="w-full flex items-center justify-between px-4 py-3 rounded-none text-sm font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 transition-all cursor-pointer"
                       >
                         <span className="flex items-center gap-2">
-                          <Icons.ArrowLeft className="w-4 h-4" />
+                          <ArrowLeft className="w-4 h-4" />
                           <span>{t.backToMyLibrary}</span>
                         </span>
                       </button>
@@ -578,7 +655,7 @@ export default function App() {
                         }`}
                     >
                       <span className="flex items-center gap-3">
-                        <Icons.Home className="w-5 h-5" />
+                        <Home className="w-5 h-5" />
                         <span>{activeFriend ? t.friendLibraryTitle.replace("{name}", activeFriend.username) : t.homeLibrary}</span>
                       </span>
                       <span className="text-xs font-mono font-bold px-2 py-0.5 bg-black/10 dark:bg-white/10 rounded">
@@ -595,7 +672,7 @@ export default function App() {
                       className="w-full flex items-center justify-between px-4 py-3 rounded-none text-sm font-bold transition-all cursor-pointer border bg-neutral-50 dark:bg-[#1b1b1f] text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/5"
                     >
                       <span className="flex items-center gap-3">
-                        <Icons.Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                         <span>{t.friendsTitle}</span>
                       </span>
                       {incomingFriendRequestsCount > 0 && (
@@ -652,7 +729,7 @@ export default function App() {
                     }}
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
                   >
-                    <Icons.ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+                    <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
                     <span>{t.backToMyLibrary}</span>
                   </button>
                 ) : (
@@ -663,7 +740,7 @@ export default function App() {
                     }}
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
                   >
-                    <Icons.Plus className="w-5 h-5 stroke-[3]" />
+                    <Plus className="w-5 h-5 stroke-[3]" />
                     <span>{t.addGame}</span>
                   </button>
                 )}
@@ -673,7 +750,7 @@ export default function App() {
                     onClick={toggleTheme}
                     className="flex items-center justify-center gap-2 p-3 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-bold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
                   >
-                    {settings.theme === "dark" ? <Icons.Sun size={16} className="text-amber-400" /> : <Icons.Moon size={16} className="text-indigo-600" />}
+                    {settings.theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-indigo-600" />}
                     <span>{settings.theme === "dark" ? t.lightTheme : t.darkTheme}</span>
                   </button>
 
@@ -684,7 +761,7 @@ export default function App() {
                     }}
                     className="flex items-center justify-center gap-2 p-3 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-bold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
                   >
-                    <Icons.Settings size={16} className="text-indigo-600 dark:text-indigo-400" />
+                    <Settings size={16} className="text-indigo-600 dark:text-indigo-400" />
                     <span>{t.settings}</span>
                   </button>
                 </div>
@@ -698,7 +775,7 @@ export default function App() {
                       }}
                       className="w-full flex items-center justify-center gap-2 p-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
                     >
-                      <Icons.LogOut size={16} />
+                      <LogOut size={16} />
                       <span>{t.logoutBtn}</span>
                     </button>
                   ) : (
@@ -709,7 +786,7 @@ export default function App() {
                       }}
                       className="w-full flex items-center justify-center gap-2 p-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
                     >
-                      <Icons.LogIn size={16} />
+                      <LogIn size={16} />
                       <span>{t.loginBtn}</span>
                     </button>
                   )}
@@ -766,7 +843,7 @@ export default function App() {
                   className="w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600/20 transition-all cursor-pointer mb-1"
                 >
                   <span className="flex items-center gap-2">
-                    <Icons.ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-4 h-4" />
                     <span>{t.backToMyLibrary}</span>
                   </span>
                 </button>
@@ -782,7 +859,7 @@ export default function App() {
                   }`}
               >
                 <span className="flex items-center gap-2">
-                  <Icons.Home className="w-4 h-4" />
+                  <Home className="w-4 h-4" />
                   <span>{activeFriend ? t.friendLibraryTitle.replace("{name}", activeFriend.username) : t.homeLibrary}</span>
                 </span>
                 <span className="text-[10px] font-mono opacity-80">{countAll}</span>
@@ -795,7 +872,7 @@ export default function App() {
                 id="sidebar-friends-btn"
               >
                 <span className="flex items-center gap-2">
-                  <Icons.Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>{t.friendsTitle}</span>
                 </span>
                 {incomingFriendRequestsCount > 0 && (
@@ -848,7 +925,7 @@ export default function App() {
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
               id="sidebar-back-my-library"
             >
-              <Icons.ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+              <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
               <span>{t.backToMyLibrary}</span>
             </button>
           ) : (
@@ -858,7 +935,7 @@ export default function App() {
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-none border border-indigo-400/30 transition-all cursor-pointer shadow"
               id="sidebar-add-game"
             >
-              <Icons.Plus className="w-4 h-4 stroke-[3]" />
+              <Plus className="w-4 h-4 stroke-[3]" />
               <span>{t.addGame}</span>
             </button>
           )}
@@ -871,7 +948,7 @@ export default function App() {
               className="flex items-center justify-center gap-1.5 p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-semibold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
               title={settings.theme === "dark" ? t.themeLight : t.themeDark}
             >
-              {settings.theme === "dark" ? <Icons.Sun size={14} className="text-amber-400" /> : <Icons.Moon size={14} className="text-indigo-600" />}
+              {settings.theme === "dark" ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-indigo-600" />}
               <span>{settings.theme === "dark" ? t.lightTheme : t.darkTheme}</span>
             </button>
 
@@ -881,7 +958,7 @@ export default function App() {
               className="flex items-center justify-center gap-1.5 p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-[#25252a] text-neutral-800 dark:text-neutral-300 text-xs font-semibold rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer"
               title={t.settings}
             >
-              <Icons.Settings size={14} className="text-indigo-600 dark:text-indigo-400" />
+              <Settings size={14} className="text-indigo-600 dark:text-indigo-400" />
               <span>{t.settings}</span>
             </button>
           </div>
@@ -894,7 +971,7 @@ export default function App() {
                 aria-label={t.logoutBtn || "Cerrar Sesión"}
                 className="w-full flex items-center justify-center gap-2 p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-none border border-red-500/20 transition-all cursor-pointer"
               >
-                <Icons.LogOut size={14} />
+                <LogOut size={14} />
                 <span>{t.logoutBtn}</span>
               </button>
             ) : (
@@ -903,7 +980,7 @@ export default function App() {
                 aria-label={t.loginBtn || "Iniciar Sesión / Registro"}
                 className="w-full flex items-center justify-center gap-2 p-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-none border border-indigo-500/20 transition-all cursor-pointer"
               >
-                <Icons.LogIn size={14} />
+                <LogIn size={14} />
                 <span>{t.loginBtn}</span>
               </button>
             )}
@@ -959,7 +1036,7 @@ export default function App() {
                   aria-label={t.filterByStatus || "Filtrar por estado"}
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Icons.Filter className="w-3.5 h-3.5 shrink-0 text-indigo-200" />
+                    <Filter className="w-3.5 h-3.5 shrink-0 text-indigo-200" />
                     <span className="truncate flex items-center gap-1.5">
                       <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
                       <span className="truncate">{activeTab.label}</span>
@@ -969,7 +1046,7 @@ export default function App() {
                     <span className="px-1.5 py-0.5 text-[10px] font-mono bg-black/25 text-white font-extrabold rounded">
                       {activeTab.count}
                     </span>
-                    <Icons.ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMobileStatusFilterOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMobileStatusFilterOpen ? "rotate-180" : ""}`} />
                   </div>
                 </button>
 
@@ -1038,7 +1115,7 @@ export default function App() {
                 : "bg-neutral-100 dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10"
                 }`}
             >
-              <Icons.BarChart2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <BarChart2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>{t.statistics}</span>
             </button>
           </div>
@@ -1063,7 +1140,7 @@ export default function App() {
           {/* Sync indicator */}
           {syncLoading && (
             <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-none text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
-              <Icons.Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               <span>{t.syncingData}</span>
             </div>
           )}
@@ -1071,7 +1148,7 @@ export default function App() {
           {/* Loading Friend Games Indicator */}
           {isLoadingFriendGames && (
             <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-none text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
-              <Icons.Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               <span>{t.loadingFriendLibrary}</span>
             </div>
           )}
@@ -1094,7 +1171,7 @@ export default function App() {
 
             {/* Search Input */}
             <div className="relative w-full md:w-80">
-              <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
               <input
                 type="text"
                 placeholder={t.searchPlaceholder}
@@ -1110,7 +1187,7 @@ export default function App() {
                   aria-label="Limpiar búsqueda"
                   className="absolute right-0 top-0 bottom-0 w-9 flex items-center justify-center text-neutral-400 hover:text-neutral-800 dark:hover:text-white cursor-pointer"
                 >
-                  <Icons.X className="w-4 h-4" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -1121,7 +1198,7 @@ export default function App() {
               {/* Console Filter */}
               <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <Icons.MonitorPlay className="w-3.5 h-3.5 text-neutral-400" />
+                  <MonitorPlay className="w-3.5 h-3.5 text-neutral-400" />
                   <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.consoleLabel}:</span>
                 </div>
                 <select
@@ -1143,7 +1220,7 @@ export default function App() {
               {/* Sorting */}
               <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 px-3 py-1.5 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <Icons.ArrowUpDown className="w-3.5 h-3.5 text-neutral-400" />
+                  <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400" />
                   <span className="text-neutral-500 dark:text-neutral-400 font-semibold uppercase text-[10px] mr-1">{t.sortByLabel}:</span>
                 </div>
                 <select
@@ -1177,7 +1254,7 @@ export default function App() {
                 id="empty-state-view"
               >
                 <div className="w-16 h-16 bg-neutral-100 dark:bg-[#1b1b1f] rounded-none border border-neutral-200 dark:border-white/10 flex items-center justify-center mx-auto text-neutral-500">
-                  <Icons.Gamepad2 size={36} />
+                  <Gamepad2 size={36} />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-neutral-900 dark:text-white">
@@ -1208,7 +1285,7 @@ export default function App() {
                       aria-label={t.backToMyLibrary || "Volver a mi biblioteca"}
                       className="text-xs font-bold text-white bg-indigo-600 px-4 py-2 rounded-none hover:bg-indigo-500 transition-all cursor-pointer shadow flex items-center gap-1.5"
                     >
-                      <Icons.ArrowLeft size={14} />
+                      <ArrowLeft size={14} />
                       {t.backToMyLibrary}
                     </button>
                   ) : (

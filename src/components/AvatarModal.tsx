@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import * as Icons from "lucide-react";
+import { X, Library, Edit3 } from "lucide-react";
 import { Language } from "../types";
 import { getTranslation } from "../translations";
 
@@ -48,7 +48,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
             title={t.close}
             id="btn-close-avatar-modal"
           >
-            <Icons.X className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
 
           {/* User Name Header */}
@@ -71,7 +71,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
               />
             ) : (
               <div className="flex flex-col items-center gap-3 text-indigo-400">
-                <Icons.Library className="w-24 h-24 stroke-[1.5]" />
+                <Library className="w-24 h-24 stroke-[1.5]" />
                 <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">
                   {t.noCustomPhoto || "Sin foto personalizada"}
                 </span>
@@ -91,7 +91,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
                 className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md"
                 id="btn-edit-avatar-from-modal"
               >
-                <Icons.Edit3 className="w-4 h-4" />
+                <Edit3 className="w-4 h-4" />
                 <span>{t.changeAvatar}</span>
               </button>
             )}
