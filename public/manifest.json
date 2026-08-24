@@ -1,0 +1,17 @@
+{
+  "short_name": "TYG",
+  "name": "Track Your Games",
+  "description": "Tu biblioteca digital y organizador de videojuegos personal. Registra tus juegos, horas, estados, plataformas y logros.",
+  "icons": [
+    {
+      "src": "/tyg_logo.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#141417",
+  "theme_color": "#141417",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -11,9 +11,10 @@ interface GameCardProps {
   game: Game;
   onClick: () => void;
   language?: Language;
+  priority?: boolean;
 }
 
-export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "en" }) => {
+export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "en", priority = false }) => {
   const t = getTranslation(language);
 
   // Take only the FIRST platform for the top console banner as requested
@@ -81,9 +82,12 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick, language = "e
           <img
             src={game.coverImage}
             alt={game.title}
+            width={300}
+            height={450}
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
             decoding="async"
+            fetchPriority={priority ? "high" : "auto"}
             referrerPolicy="no-referrer"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";

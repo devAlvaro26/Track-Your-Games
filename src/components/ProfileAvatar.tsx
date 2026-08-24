@@ -34,7 +34,13 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     lg: "w-9 h-9",
   };
 
-  const containerClass = `relative shrink-0 overflow-hidden ${sizeClasses[size]} ${onClick ? "cursor-pointer hover:opacity-90 active:scale-95 transition-all" : ""
+  const pixelSizes = {
+    sm: 32,
+    md: 40,
+    lg: 80,
+  };
+
+  const containerClass = `relative shrink-0 overflow-hidden ${sizeClasses[size]} ${onClick ? "cursor-pointer hover:opacity-90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" : ""
     } ${className}`;
 
   const titleText = username
@@ -46,12 +52,24 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       <div
         className={`${containerClass} bg-indigo-600 border-2 border-indigo-500/60 shadow-md flex items-center justify-center`}
         onClick={onClick}
+        onKeyDown={(e) => {
+          if (onClick && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={titleText}
         title={titleText}
         id="profile-avatar-img-container"
       >
         <img
           src={avatarUrl}
           alt={username || "Avatar"}
+          width={pixelSizes[size]}
+          height={pixelSizes[size]}
+          decoding="async"
           className="w-full h-full object-cover"
           onError={(e) => {
             // Fallback if image fails to load
@@ -66,6 +84,15 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     <div
       className={`${containerClass} bg-indigo-600 text-white shadow-md flex items-center justify-center font-black`}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={titleText}
       title={titleText}
       id="profile-avatar-default-container"
     >

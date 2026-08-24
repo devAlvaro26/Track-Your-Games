@@ -409,12 +409,13 @@ export default function App() {
     <div className="h-screen w-full bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row overflow-hidden select-none" id="app-root">
 
       {/* MOBILE TOP NAVIGATION BAR (Visible only on mobile < md) */}
-      <header className="md:hidden bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm" id="mobile-top-bar">
-        <div className="flex items-center gap-2.5">
+      <header className="md:hidden bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-3 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-sm" id="mobile-top-bar">
+        <div className="flex items-center gap-2">
           {/* Hamburger Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center relative"
+            aria-label="Abrir menú de navegación"
+            className="min-w-[44px] min-h-[44px] p-2.5 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center relative"
             title="Abrir menú"
             id="btn-open-mobile-menu"
           >
@@ -424,7 +425,7 @@ export default function App() {
             )}
           </button>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <ProfileAvatar
               avatarUrl={settings.avatarUrl}
               username={settings.username}
@@ -451,7 +452,8 @@ export default function App() {
           {/* Friends button on mobile top bar */}
           <button
             onClick={() => setIsFriendsModalOpen(true)}
-            className="p-2 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer relative"
+            aria-label={t.friendsTitle || "Amigos"}
+            className="min-w-[44px] min-h-[44px] p-2.5 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center relative"
             title={t.friendsTitle}
             id="btn-mobile-friends"
           >
@@ -466,7 +468,8 @@ export default function App() {
           {activeFriend ? (
             <button
               onClick={handleBackToMyLibrary}
-              className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center gap-1"
+              aria-label={t.backToMyLibrary || "Volver a mi biblioteca"}
+              className="min-h-[44px] px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center justify-center gap-1.5"
               title={t.backToMyLibrary}
             >
               <Icons.ArrowLeft className="w-4 h-4" />
@@ -475,7 +478,8 @@ export default function App() {
           ) : (
             <button
               onClick={() => setIsAddOpen(true)}
-              className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center gap-1"
+              aria-label={t.addGame || "Añadir Juego"}
+              className="min-h-[44px] px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-none shadow transition-colors cursor-pointer flex items-center justify-center gap-1.5"
               title={t.addGame}
               id="btn-mobile-add-game"
             >
@@ -531,7 +535,8 @@ export default function App() {
 
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-300 dark:border-white/10 rounded-none transition-colors cursor-pointer"
+                    aria-label={t.close || "Cerrar menú"}
+                    className="min-w-[44px] min-h-[44px] p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-300 dark:border-white/10 rounded-none transition-colors cursor-pointer flex items-center justify-center"
                     title={t.close}
                     id="btn-close-mobile-menu"
                   >
@@ -1103,9 +1108,9 @@ export default function App() {
                 <button
                   onClick={() => setSearchQuery("")}
                   aria-label="Limpiar búsqueda"
-                  className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white cursor-pointer"
+                  className="absolute right-0 top-0 bottom-0 w-9 flex items-center justify-center text-neutral-400 hover:text-neutral-800 dark:hover:text-white cursor-pointer"
                 >
-                  <Icons.X className="w-3.5 h-3.5" />
+                  <Icons.X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -1228,11 +1233,12 @@ export default function App() {
                 id="games-grid"
               >
                 <AnimatePresence mode="popLayout">
-                  {filteredGames.map((game) => (
+                  {filteredGames.map((game, index) => (
                     <GameCard
                       key={game.id}
                       game={game}
                       language={settings.language}
+                      priority={index < 4}
                       onClick={() => setSelectedGameId(game.id)}
                     />
                   ))}

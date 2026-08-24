@@ -97,7 +97,8 @@ export const FriendLibraryBanner: React.FC<FriendLibraryBannerProps> = ({
           <button
             onClick={onBackToMyLibrary}
             id="btn-back-to-my-library"
-            className="px-4 py-2 bg-white text-indigo-950 hover:bg-neutral-100 font-extrabold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl cursor-pointer rounded-none active:scale-95 shrink-0"
+            aria-label={t.backToMyLibrary || "Volver a mi biblioteca"}
+            className="min-h-[44px] px-4 py-2.5 bg-white text-indigo-950 hover:bg-neutral-100 font-extrabold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer rounded-none active:scale-95 shrink-0"
           >
             <Icons.ArrowLeft className="w-4 h-4 text-indigo-900" />
             <span>{t.backToMyLibrary}</span>
