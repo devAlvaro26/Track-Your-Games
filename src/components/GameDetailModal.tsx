@@ -748,21 +748,6 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                                   >
                                     {ach.name}
                                   </h4>
-                                  <span
-                                    className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-none shrink-0 ${
-                                      ach.difficulty === "Fácil"
-                                        ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-200 dark:border-emerald-800/40"
-                                        : ach.difficulty === "Medio"
-                                        ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-200 dark:border-amber-800/40"
-                                        : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200 dark:border-rose-800/40"
-                                    }`}
-                                  >
-                                    {ach.difficulty === "Fácil"
-                                      ? t.difficultyEasy
-                                      : ach.difficulty === "Medio"
-                                      ? t.difficultyMedium
-                                      : t.difficultyHard}
-                                  </span>
                                 </div>
                                 <p className="text-[11px] text-neutral-500 dark:text-[#CCCCCC] line-clamp-2 leading-snug">
                                   {ach.description}
