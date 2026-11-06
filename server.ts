@@ -337,6 +337,97 @@ app.post("/api/igdb/search", async (req: express.Request, res: express.Response)
   }
 });
 
+// Refresh metadata for games already linked to IGDB
+app.post("/api/igdb/refresh", async (req: express.Request, res: express.Response) => {
+  const lang = req.body?.lang || "en";
+  const isEs = lang === "es";
+  const ids = req.body?.ids;
+
+  if (
+    !Array.isArray(ids) ||
+    ids.length === 0 ||
+    ids.length > 100 ||
+    ids.some((id: unknown) => !Number.isSafeInteger(id) || Number(id) <= 0)
+  ) {
+    return res.status(400).json({
+      error: isEs
+        ? "Se requiere una lista de entre 1 y 100 identificadores válidos de IGDB."
+        : "A list of 1 to 100 valid IGDB IDs is required.",
+    });
+  }
+
+  try {
+    const clientId = (process.env.TWITCH_CLIENT_ID || process.env.IGDB_CLIENT_ID || "").trim();
+    const auth = await getTwitchToken(lang);
+
+    if (!clientId || !auth.token) {
+      return res.status(401).json({
+        games: [],
+        configured: false,
+        error: auth.error || (isEs ? "IGDB no está configurado." : "IGDB is not configured."),
+      });
+    }
+
+    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": clientId,
+        "Authorization": `Bearer ${auth.token}`,
+        "Content-Type": "text/plain",
+      },
+      body: `fields name, summary, storyline, first_release_date, genres.name, platforms.name, cover.url, cover.image_id, total_rating, rating, url; where id = (${ids.join(",")}); limit 100;`,
+    });
+
+    if (!igdbRes.ok) {
+      const responseText = await igdbRes.text();
+      console.warn("IGDB metadata refresh returned status:", igdbRes.status, responseText.slice(0, 150));
+      return res.status(502).json({
+        games: [],
+        error: isEs
+          ? `No se pudieron actualizar los datos desde IGDB (HTTP ${igdbRes.status}).`
+          : `Could not refresh metadata from IGDB (HTTP ${igdbRes.status}).`,
+      });
+    }
+
+    const rawGames = await igdbRes.json();
+    if (!Array.isArray(rawGames)) {
+      return res.status(502).json({
+        games: [],
+        error: isEs ? "IGDB devolvió una respuesta no válida." : "IGDB returned an invalid response.",
+      });
+    }
+
+    const games = rawGames.map((g: any) => ({
+      id: g.id,
+      name: g.name,
+      summary: g.summary || g.storyline || "",
+      firstReleaseDate: g.first_release_date
+        ? (() => {
+            const date = new Date(g.first_release_date * 1000);
+            const day = String(date.getUTCDate()).padStart(2, "0");
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            return `${day}/${month}/${date.getUTCFullYear()}`;
+          })()
+        : "",
+      genres: g.genres ? g.genres.map((genre: any) => genre.name) : [],
+      platforms: g.platforms
+        ? Array.from(new Set(g.platforms.map((platform: any) => normalizePlatformName(platform.name)).filter(Boolean)))
+        : [],
+      coverUrl: formatIgdbCoverUrl(g.cover),
+      rating: g.total_rating || g.rating ? Math.round(g.total_rating || g.rating) : undefined,
+      url: g.url || `https://www.igdb.com/games/${g.id}`,
+    }));
+
+    return res.json({ games, source: "igdb", configured: true });
+  } catch (error: any) {
+    console.error("Error en /api/igdb/refresh:", error);
+    return res.status(500).json({
+      games: [],
+      error: isEs ? "Error interno al actualizar los datos de IGDB." : "Internal error refreshing IGDB metadata.",
+    });
+  }
+});
+
 /**
  * Helper to parse Steam community achievements XML
  */

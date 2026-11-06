@@ -117,4 +117,3 @@ The repository includes a Vercel rewrite that sends `/api/*` requests to `api/in
 ## License
 
 This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
-

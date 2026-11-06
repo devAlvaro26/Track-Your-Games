@@ -9,6 +9,7 @@ import {
   isDatabaseConfigured,
   fetchUserGamesFromDb,
   saveGameToDb,
+  updateGameMetadataInDb,
   deleteGameFromDb,
   fetchUserProfile,
   saveUserProfile,
@@ -198,6 +199,7 @@ export default function App() {
       const userGames = await fetchUserGamesFromDb(userId);
       if (userGames.length > 0) {
         setGames(userGames);
+        void refreshIgdbMetadata(userGames, userId);
       }
 
       const profile = await fetchUserProfile(userId);
@@ -230,6 +232,89 @@ export default function App() {
     } finally {
       setSyncLoading(false);
       setAuthLoading(false);
+    }
+  };
+
+  const refreshIgdbMetadata = async (library: Game[], userId: string) => {
+    const linkedGames = library.filter((game) => Number.isSafeInteger(game.igdbId) && Number(game.igdbId) > 0);
+    const batches: Game[][] = [];
+    for (let index = 0; index < linkedGames.length; index += 100) {
+      batches.push(linkedGames.slice(index, index + 100));
+    }
+
+    for (const batch of batches) {
+      try {
+        const response = await fetch("/api/igdb/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: batch.map((game) => game.igdbId),
+            lang: settings.language,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.warn("Could not refresh IGDB game metadata:", errorData.error || response.statusText);
+          continue;
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data.games)) {
+          console.warn("Could not refresh IGDB game metadata: invalid response.");
+          continue;
+        }
+
+        const refreshedById = new Map<number, (typeof data.games)[number]>(
+          data.games.map((game: { id: number }) => [Number(game.id), game])
+        );
+        const updates: Array<{
+          game: Game;
+          metadata: Partial<Pick<Game, "description" | "genre" | "platforms" | "releaseDate" | "coverImage" | "igdbRating" | "igdbUrl">>;
+        }> = [];
+
+        for (const game of batch) {
+          const refreshed = refreshedById.get(Number(game.igdbId));
+          if (!refreshed) continue;
+
+          const metadata: Partial<Pick<Game, "description" | "genre" | "platforms" | "releaseDate" | "coverImage" | "igdbRating" | "igdbUrl">> = {};
+          if (refreshed.summary) metadata.description = refreshed.summary;
+          if (Array.isArray(refreshed.genres) && refreshed.genres.length > 0) metadata.genre = refreshed.genres.join(", ");
+          if (Array.isArray(refreshed.platforms) && refreshed.platforms.length > 0) metadata.platforms = refreshed.platforms;
+          if (refreshed.firstReleaseDate) metadata.releaseDate = refreshed.firstReleaseDate;
+          if (refreshed.coverUrl && (!game.coverImage || game.coverImage.includes("images.igdb.com/"))) {
+            metadata.coverImage = refreshed.coverUrl;
+          }
+          if (typeof refreshed.rating === "number") metadata.igdbRating = refreshed.rating;
+          if (refreshed.url) metadata.igdbUrl = refreshed.url;
+
+          updates.push({ game, metadata });
+        }
+
+        setGames((currentGames) => currentGames.map((currentGame) => {
+          const update = updates.find(({ game }) => game.id === currentGame.id);
+          if (!update) return currentGame;
+          const metadata = { ...update.metadata };
+          if (
+            metadata.coverImage &&
+            currentGame.coverImage &&
+            !currentGame.coverImage.includes("images.igdb.com/")
+          ) {
+            delete metadata.coverImage;
+          }
+          return { ...currentGame, ...metadata };
+        }));
+
+        for (let index = 0; index < updates.length; index += 10) {
+          await Promise.all(
+            updates.slice(index, index + 10).map(({ game, metadata }) =>
+              updateGameMetadataInDb(game.id, userId, metadata)
+            )
+          );
+        }
+      } catch (error) {
+        console.warn("Could not refresh IGDB game metadata:", error);
+      }
     }
   };
 
