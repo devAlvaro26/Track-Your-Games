@@ -143,42 +143,6 @@ export async function saveGameToDb(game: Game, userId: string): Promise<void> {
 }
 
 /**
- * Update only externally sourced IGDB metadata, preserving user-owned game data.
- */
-export async function updateGameMetadataInDb(
-  gameId: string,
-  userId: string,
-  metadata: Partial<Pick<Game, "description" | "genre" | "platforms" | "releaseDate" | "coverImage" | "igdbRating" | "igdbUrl">>
-): Promise<void> {
-  if (!db) return;
-
-  const payload: Record<string, unknown> = {};
-  if (metadata.description !== undefined) payload.description = metadata.description;
-  if (metadata.genre !== undefined) payload.genre = metadata.genre;
-  if (metadata.platforms !== undefined) payload.platforms = metadata.platforms;
-  if (metadata.releaseDate !== undefined) payload.release_date = metadata.releaseDate;
-  if (metadata.coverImage !== undefined) payload.cover_image = metadata.coverImage;
-  if (metadata.igdbRating !== undefined) payload.igdb_rating = metadata.igdbRating;
-  if (metadata.igdbUrl !== undefined) payload.igdb_url = metadata.igdbUrl;
-  if (Object.keys(payload).length === 0) return;
-  payload.updated_at = new Date().toISOString();
-
-  try {
-    const { error } = await db
-      .from("games")
-      .update(payload)
-      .eq("id", gameId)
-      .eq("user_id", userId);
-
-    if (error) {
-      console.warn("Error updating IGDB metadata in database:", error.message);
-    }
-  } catch (err: any) {
-    console.warn("Network error updating IGDB metadata:", err?.message || err);
-  }
-}
-
-/**
  * Delete a game from the database
  */
 export async function deleteGameFromDb(gameId: string, userId: string): Promise<void> {
