@@ -82,14 +82,19 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     };
   }
 
-  // 3. NINTENDO (short tokens such as "nes" / "ds" must be whole words: "Genesis" contains "nes")
+  // 3. NINTENDO
   if (
     p.includes("nintendo") ||
     p.includes("switch") ||
     p.includes("wii") ||
     p.includes("gamecube") ||
     p.includes("n64") ||
-    /\b(snes|nes|nds|ds|dsi|3ds|2ds|gba|gbc)\b/.test(p) ||
+    p.includes("snes") ||
+    p.includes("nes") ||
+    p.includes("3ds") ||
+    p.includes("ds") ||
+    p.includes("gba") ||
+    p.includes("gbc") ||
     p.includes("game boy")
   ) {
     let name = "NINTENDO";
@@ -98,8 +103,8 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
     else if (p.includes("wii")) name = "WII";
     else if (p.includes("gamecube")) name = "GAMECUBE";
     else if (p.includes("n64")) name = "NINTENDO 64";
-    else if (/\bsnes\b/.test(p)) name = "SNES";
-    else if (/\bnes\b/.test(p)) name = "NES";
+    else if (p.includes("snes")) name = "SNES";
+    else if (p.includes("nes")) name = "NES";
     else if (p.includes("3ds")) name = "NINTENDO 3DS";
     else if (p.includes("gba") || p.includes("game boy advance")) name = "GBA";
 
@@ -119,7 +124,7 @@ export function getConsoleBrandStyle(platformName?: string): ConsoleBrandStyle {
 
   // 4. PC & STEAM
   if (
-    (/\bpc\b/.test(p) && !/pc engine|turbografx/.test(p)) ||
+    p.includes("pc") ||
     p.includes("steam") ||
     p.includes("deck") ||
     p.includes("mac") ||
