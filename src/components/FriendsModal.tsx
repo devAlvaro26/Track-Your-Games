@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FriendProfile, Friendship, Language } from "../types";
 import { getTranslation } from "../translations";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useModalA11y } from "../lib/useModalA11y";
 import {
   fetchFriendships,
   searchProfiles,
@@ -15,8 +17,8 @@ import * as Icons from "lucide-react";
 interface FriendsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentUserId?: string;
-  currentUsername?: string;
+  currentUserId: string;
+  currentUsername: string;
   onViewFriendLibrary: (friend: FriendProfile) => void;
   language?: Language;
   onFriendshipsUpdated?: (incomingCount: number) => void;
@@ -27,14 +29,16 @@ type TabType = "friends" | "requests" | "add";
 export const FriendsModal: React.FC<FriendsModalProps> = ({
   isOpen,
   onClose,
-  currentUserId = "current-user",
-  currentUsername = "Gamer",
+  currentUserId,
+  currentUsername,
   onViewFriendLibrary,
   language = "en",
   onFriendshipsUpdated,
 }) => {
   const t = getTranslation(language);
-
+  const dialogRef = useModalA11y(onClose, isOpen);
+  const latestSearchRef = useRef(0);
+  const [pendingRemoval, setPendingRemoval] = useState<{ id: string; name: string } | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("friends");
   const [requestsSubTab, setRequestsSubTab] = useState<"incoming" | "outgoing">("incoming");
 
@@ -93,13 +97,14 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
 
     setIsSearching(true);
     setHasSearched(true);
+    const requestId = ++latestSearchRef.current;
     try {
       const results = await searchProfiles(trimmed, currentUserId);
-      setSearchResults(results);
+      if (requestId === latestSearchRef.current) setSearchResults(results);
     } catch (err) {
       console.warn("Search error:", err);
     } finally {
-      setIsSearching(false);
+      if (requestId === latestSearchRef.current) setIsSearching(false);
     }
   };
 
@@ -144,7 +149,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
   const handleSendRequest = async (targetUser: FriendProfile) => {
     setActionLoadingId(targetUser.id);
     try {
-      const res = await sendFriendRequest(currentUserId, targetUser.id, targetUser);
+      const res = await sendFriendRequest(currentUserId, targetUser.id);
       if (res.success) {
         showToast("success", t.friendRequestSentSuccess);
         await loadFriendships();
@@ -156,11 +161,13 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
             ? t.alreadyFriends
             : res.error === "requestPending"
             ? t.friendRequestSent
+            : res.error === "userNotFound"
+            ? t.friendUserNotFound
             : res.error || "Error";
         showToast("error", errorMsg);
       }
     } catch (err: any) {
-      showToast("error", err?.message || "Error al enviar solicitud");
+      showToast("error", err?.message || t.genericError);
     } finally {
       setActionLoadingId(null);
     }
@@ -177,7 +184,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
         showToast("error", res.error || "Error");
       }
     } catch (err: any) {
-      showToast("error", err?.message || "Error al aceptar solicitud");
+      showToast("error", err?.message || t.genericError);
     } finally {
       setActionLoadingId(null);
     }
@@ -200,7 +207,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
   };
 
   const handleRemoveFriend = async (friendshipId: string, friendName: string) => {
-    if (!confirm(t.confirmRemoveFriend)) return;
+    setPendingRemoval(null);
 
     setActionLoadingId(friendshipId);
     try {
@@ -243,6 +250,10 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
       }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.friendsTitle}
         className="bg-[#fcfcfd] dark:bg-[#141416] text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-white/10 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col rounded-none overflow-hidden"
         id="friends-modal-content"
       >
@@ -262,10 +273,12 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             id="close-friends-modal"
             className="p-2 rounded-none hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 transition-colors cursor-pointer"
             title={t.close}
+            aria-label={t.close}
           >
             <Icons.X className="w-5 h-5" />
           </button>
@@ -441,9 +454,10 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                           </button>
 
                           <button
-                            onClick={() => handleRemoveFriend(f.id, profile.username)}
+                            onClick={() => setPendingRemoval({ id: f.id, name: profile.username })}
                             disabled={isBusy}
                             id={`btn-remove-friend-${profile.id}`}
+                            aria-label={t.removeFriend}
                             className="p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors border border-neutral-300 dark:border-white/10 rounded-none cursor-pointer"
                             title={t.removeFriend}
                           >
@@ -821,6 +835,18 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
           </button>
         </div>
       </div>
+
+      {pendingRemoval && (
+        <ConfirmDialog
+          title={t.removeFriend}
+          message={t.confirmRemoveFriend}
+          confirmLabel={t.removeFriend}
+          cancelLabel={t.cancel}
+          destructive
+          onCancel={() => setPendingRemoval(null)}
+          onConfirm={() => handleRemoveFriend(pendingRemoval.id, pendingRemoval.name)}
+        />
+      )}
     </div>
   );
 };

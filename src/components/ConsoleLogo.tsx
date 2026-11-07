@@ -120,11 +120,11 @@ const PLATFORM_TO_SVG: Record<string, string> = {
   "sega 32x": "sega_32x",
 
   // PC & Portable
-  pc: "publisher_steam",
-  "pc (microsoft windows)": "publisher_steam",
-  "pc microsoft windows": "publisher_steam",
-  "microsoft windows": "publisher_steam",
-  windows: "publisher_steam",
+  pc: "windows",
+  "pc (microsoft windows)": "windows",
+  "pc microsoft windows": "windows",
+  "microsoft windows": "windows",
+  windows: "windows",
   steam: "publisher_steam",
   "steam-deck": "publisher_steam",
   "steam deck": "publisher_steam",
@@ -197,33 +197,44 @@ function resolveSvgKey(platformName?: string, brandKey?: string): string | null 
     return keyLookup.get(sanitized)!;
   }
 
-  // 3. Partial match
-  if (sanitized) {
+  // 3. Partial match, only against longer names so short inputs cannot hit unrelated logos
+  if (sanitized.length >= 4) {
     for (const [name, key] of keyLookup.entries()) {
-      if (name.includes(sanitized) || sanitized.includes(name)) {
+      if (name.includes(sanitized)) {
         return key;
       }
     }
   }
 
   // 4. Fallback brand match
-  if (b && b !== "generic") {
-    if (keyLookup.has(b)) return keyLookup.get(b)!;
-    for (const [name, key] of keyLookup.entries()) {
-      if (name.includes(b)) {
-        return key;
-      }
-    }
+  if (b && b !== "generic" && keyLookup.has(b)) {
+    return keyLookup.get(b)!;
   }
 
   return null;
 }
 
+// Several SVGs define ids (gradients, clip paths); inlined together they would collide, so namespace them per file.
+function prefixSvgIds(svg: string, prefix: string): string {
+  const ids = new Set(Array.from(svg.matchAll(/\sid="([^"]+)"/g), (m) => m[1]));
+  let out = svg;
+  for (const id of ids) {
+    const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out
+      .replace(new RegExp(`\\sid="${escaped}"`, "g"), ` id="${prefix}${id}"`)
+      .replace(new RegExp(`url\\(#${escaped}\\)`, "g"), `url(#${prefix}${id})`)
+      .replace(new RegExp(`href="#${escaped}"`, "g"), `href="#${prefix}${id}"`);
+  }
+  return out;
+}
+
 // Clean and adapt raw SVG string to handle fill/stroke currentColor gracefully
-function adaptSvgString(rawSvg: string): string {
+function adaptSvgString(rawSvg: string, key: string): string {
   if (!rawSvg) return "";
 
-  return rawSvg
+  const prefix = `tyg-${key.replace(/^.*\//, "").replace(/[^a-z0-9]/gi, "")}-`;
+
+  return prefixSvgIds(rawSvg, prefix)
     .replace(/fill="(?:#fff|#ffffff|#000|#000000)"/gi, 'fill="currentColor"')
     .replace(/stroke="(?:#fff|#ffffff|#000|#000000)"/gi, 'stroke="currentColor"');
 }
@@ -243,7 +254,7 @@ async function loadSvgContent(key: string): Promise<string | null> {
 
   const promise = loader()
     .then((raw) => {
-      const adapted = adaptSvgString(raw);
+      const adapted = adaptSvgString(raw, key);
       svgCache.set(key, adapted);
       inFlightRequests.delete(key);
       return adapted;
@@ -303,6 +314,7 @@ export const ConsoleLogo: React.FC<ConsoleLogoProps> = ({
         className={`inline-flex items-center justify-center sm:justify-start max-w-full overflow-hidden [&_svg]:h-full [&_svg]:w-auto [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:block [&_path]:fill-current [&_g]:fill-current ${className}`}
         style={{ height: dimHeight, maxHeight: dimHeight }}
         dangerouslySetInnerHTML={{ __html: svgContent }}
+        role="img"
         aria-label={platformName || "Console Logo"}
       />
     );
@@ -315,6 +327,7 @@ export const ConsoleLogo: React.FC<ConsoleLogoProps> = ({
       style={{ height: dimHeight, maxHeight: dimHeight, width: "auto" }}
       fill="currentColor"
       className={`shrink-0 transition-transform max-w-full max-h-full opacity-80 ${className}`}
+      role="img"
       aria-label={platformName || "Gaming Console"}
     >
       <path d="M17 4H7C4.24 4 2 6.24 2 9v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V9c0-2.76-2.24-5-5-5zm-8 7H8v1H7v-1H6v-1h1V9h1v1h1v1zm7.5 1c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm1.5-2c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />

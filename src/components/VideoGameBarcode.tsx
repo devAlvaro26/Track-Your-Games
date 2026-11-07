@@ -194,23 +194,22 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const cleanBarcode = barcode?.trim() || "";
-  const isNumeric = /^[0-9]+$/.test(cleanBarcode);
+  const digitsOnly = cleanBarcode.replace(/[\s-]/g, "");
+  const isNumeric = /^[0-9]+$/.test(digitsOnly);
+  // Only 12 (UPC-A) and 13 (EAN-13) digit codes are drawn as retail barcodes; anything else is a serial.
+  const isRetailCode = isNumeric && (digitsOnly.length === 12 || digitsOnly.length === 13);
 
-  // Normalize barcode string
-  let displayCode = cleanBarcode || "0045496598518";
+  const displayCode = isNumeric ? digitsOnly : cleanBarcode;
   let eanDigits = "0000000000000";
+  let checksumValid = true;
 
-  if (isNumeric) {
-    if (displayCode.length === 12) {
-      // Convert UPC-A to EAN-13 by adding leading zero
-      eanDigits = "0" + displayCode;
-    } else if (displayCode.length === 13) {
-      eanDigits = displayCode;
-    } else {
-      // Pad or trim to 13 digits
-      eanDigits = displayCode.padEnd(13, "0").substring(0, 13);
-    }
+  if (isRetailCode) {
+    // UPC-A is EAN-13 with a leading zero
+    eanDigits = digitsOnly.length === 12 ? "0" + digitsOnly : digitsOnly;
+    checksumValid = calculateEan13Checksum(eanDigits.substring(0, 12)) === Number(eanDigits[12]);
   }
+
+  const formatLabel = isRetailCode ? (digitsOnly.length === 12 ? "UPC-A" : "EAN-13") : "SERIAL";
 
   // Generate EAN-13 modules
   const generateEan13Modules = (code13: string) => {
@@ -266,7 +265,7 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
 
   // Generate Code39 modules for non-numeric barcodes
   const generateCode39Modules = (str: string) => {
-    const upper = ("*" + str.toUpperCase().replace(/[^A-Z0-9\-\.\s]/g, "") + "*").substring(0, 14);
+    const upper = ("*" + str.toUpperCase().replace(/[^A-Z0-9\-\.\s]/g, "").substring(0, 12) + "*");
     const modules: Array<{ bit: boolean; isGuard: boolean }> = [];
 
     for (let i = 0; i < upper.length; i++) {
@@ -281,9 +280,9 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
     return modules;
   };
 
-  const handleCopy = (e: React.MouseEvent) => {
+  const handleCopy = (e: React.SyntheticEvent) => {
     e.stopPropagation();
-    if (displayCode) {
+    if (displayCode && navigator.clipboard) {
       navigator.clipboard.writeText(displayCode);
       setCopied(true);
       if (onCopy) onCopy(displayCode);
@@ -314,6 +313,8 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
           viewBox="-12 0 118 32"
           className="w-full h-auto overflow-visible"
           preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label={`${formatLabel} ${displayCode}`}
         >
           {/* Barcode Bars */}
           <g fill="currentColor">
@@ -372,6 +373,8 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
           viewBox={`-2 0 ${svgWidth + 4} 28`}
           className="w-full h-auto overflow-visible"
           preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label={`${formatLabel} ${displayCode}`}
         >
           <g fill="currentColor">
             {modules.map((m, idx) => {
@@ -418,24 +421,47 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
     variantStyle = "bg-neutral-900 text-amber-400 border border-amber-500/20 shadow-sm";
   }
 
+  if (!cleanBarcode) {
+    return (
+      <div className={`text-center text-[10px] italic font-mono text-neutral-500 ${className}`}>
+        {t.noBarcodeText}
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={handleCopy}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleCopy(e);
+        }
+      }}
+      role={showCopyButton ? "button" : undefined}
+      tabIndex={showCopyButton ? 0 : undefined}
+      aria-label={showCopyButton ? `${t.clickToCopyBarcode}: ${displayCode}` : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`${containerBaseClass} ${variantStyle}`}
-      title={showCopyButton ? "Hacer clic para copiar el código de barras" : undefined}
+      className={`${containerBaseClass} ${variantStyle} focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+      title={showCopyButton ? t.clickToCopyBarcode : undefined}
     >
       {/* Main Barcode Vector Graphic */}
       <div className="relative w-full py-0.5">
-        {isNumeric ? renderEan13SVG() : renderCode39SVG()}
+        {isRetailCode ? renderEan13SVG() : renderCode39SVG()}
       </div>
+
+      {isRetailCode && !checksumValid && (
+        <p role="alert" className="mt-0.5 text-[8px] font-bold text-amber-600 dark:text-amber-400 text-center">
+          {t.barcodeChecksumWarning}
+        </p>
+      )}
 
       {/* Bottom Footer: Copy Status / Format Tag */}
       {showCopyButton && (
         <div className="mt-0.5 flex items-center justify-between text-[7.5px] font-mono opacity-80 pt-0.5 border-t border-black/5 dark:border-white/5">
           <span className="text-neutral-500 dark:text-neutral-400 truncate">
-            {isNumeric ? "EAN-13" : "SERIAL"}
+            {formatLabel}
           </span>
           <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold shrink-0">
             {copied ? (
@@ -446,7 +472,7 @@ export const VideoGameBarcode: React.FC<VideoGameBarcodeProps> = ({
             ) : (
               <>
                 <Copy className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100" />
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity">{t.copyBarcode || "COPIAR"}</span>
+                <span className="opacity-70 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">{t.copyBarcode}</span>
               </>
             )}
           </div>

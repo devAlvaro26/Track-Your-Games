@@ -7,6 +7,8 @@ import { GameIcon, AVAILABLE_SYMBOLS } from "./GameIcon";
 import { getTranslation, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
 import { normalizePlatformName } from "../consoles";
+import { normalizeDate, todayDate } from "../lib/dates";
+import { useModalA11y } from "../lib/useModalA11y";
 import * as Icons from "lucide-react";
 
 interface AddGameFormProps {
@@ -35,7 +37,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
   onAdd,
 }) => {
   const t = getTranslation(language);
-
+  const dialogRef = useModalA11y(onClose);
   // Modal controls
   const [showIgdbModal, setShowIgdbModal] = useState(false);
 
@@ -46,16 +48,10 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
   const [platforms, setPlatforms] = useState<string[]>([]);
   const [releaseDate, setReleaseDate] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [acquisitionDate, setAcquisitionDate] = useState(() => {
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const year = today.getFullYear();
-    return `${day}/${month}/${year}`;
-  });
+  const [acquisitionDate, setAcquisitionDate] = useState(todayDate);
   const [rating, setRating] = useState<number>(0);
   const [playTime, setPlayTime] = useState<number>(0);
-  const [status, setStatus] = useState<GameStatus>("Pendiente");
+  const [status, setStatus] = useState<GameStatus>("pending");
   const [favorite, setFavorite] = useState(false);
   const [coverColor, setCoverColor] = useState(COLOR_PRESETS[0]);
   const [coverSymbol, setCoverSymbol] = useState("gamepad");
@@ -108,15 +104,9 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
       description: description.trim(),
       genre: genre.trim(),
       platforms: cleanPlatforms.length > 0 ? cleanPlatforms : ["PC"],
-      releaseDate: releaseDate.trim(),
+      releaseDate: normalizeDate(releaseDate),
       barcode: barcode.trim(),
-      acquisitionDate: acquisitionDate || (() => {
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        return `${day}/${month}/${year}`;
-      })(),
+      acquisitionDate: normalizeDate(acquisitionDate) || todayDate(),
       rating: Number(rating) || 0,
       playTime: Number(playTime) || 0,
       status,
@@ -141,6 +131,10 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
         id="add-game-modal-overlay"
       >
         <motion.div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.addGame}
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -164,7 +158,10 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
             </div>
 
             <button
+              type="button"
               onClick={onClose}
+              aria-label={t.close}
+              title={t.close}
               className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
             >
               <Icons.X className="w-4 h-4" />
@@ -226,11 +223,11 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   onChange={(e) => setStatus(e.target.value as GameStatus)}
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
-                  <option value="Pendiente">{t.statusPending || "Pending"}</option>
-                  <option value="Deseados">{t.wishlistOption || "Quiero Jugar (Lista de Deseos)"}</option>
-                  <option value="Jugando">{t.statusPlaying || "Playing"}</option>
-                  <option value="Jugado">{t.statusPlayed || "Played"}</option>
-                  <option value="Completado">{t.statusCompleted || "Completed"}</option>
+                  <option value="pending">{t.statusPending}</option>
+                  <option value="wishlist">{t.wishlistOption}</option>
+                  <option value="playing">{t.statusPlaying}</option>
+                  <option value="played">{t.statusPlayed}</option>
+                  <option value="completed">{t.statusCompleted}</option>
                 </select>
                 <label className="mt-2 flex items-center gap-2 text-[11px] font-bold uppercase text-neutral-600 dark:text-gray-300 cursor-pointer">
                   <input
@@ -279,7 +276,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   type="text"
                   value={releaseDate}
                   onChange={(e) => setReleaseDate(e.target.value)}
-                  placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
+                  placeholder="dd/mm/yyyy o yyyy"
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -297,6 +294,8 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                       key={star}
                       type="button"
                       onClick={() => setRating(rating === star ? 0 : star)}
+                      aria-label={`${star}/5`}
+                      aria-pressed={star <= rating}
                       className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
                     >
                       <Icons.Star
@@ -466,6 +465,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                     <VideoGameBarcode
                       barcode={barcode}
                       platform={platforms[0]}
+                      language={language}
                       variant="retail-sticker"
                       size="sm"
                       className="mx-auto"
@@ -482,7 +482,7 @@ export const AddGameForm: React.FC<AddGameFormProps> = ({
                   type="text"
                   value={acquisitionDate}
                   onChange={(e) => setAcquisitionDate(e.target.value)}
-                  placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
+                  placeholder="dd/mm/yyyy"
                   className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>

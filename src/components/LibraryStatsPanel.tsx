@@ -2,6 +2,7 @@ import React from "react";
 import { Game, Language } from "../types";
 import { getTranslation } from "../translations";
 import { isFavoriteGame } from "../lib/gameFavorite";
+import { isWishlist } from "../lib/gameStatus";
 import { Gamepad2, CheckCircle2, Hourglass, Trophy } from "lucide-react";
 
 interface LibraryStatsPanelProps {
@@ -13,14 +14,14 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
   const t = getTranslation((language as Language) || "en");
 
   // Compute stats on the fly (excluding wishlist games from library total)
-  const ownedGames = games.filter((g) => g.status !== "Deseados" && g.status !== "Quiero Jugar");
+  const ownedGames = games.filter((g) => !isWishlist(g.status));
   const totalGames = ownedGames.length;
 
-  const completedGames = games.filter((g) => g.status === "Completado").length;
+  const completedGames = games.filter((g) => g.status === "completed").length;
   const favoritesGames = games.filter((g) => isFavoriteGame(g)).length;
-  const playingGames = games.filter((g) => g.status === "Jugando").length;
-  const pendingGames = games.filter((g) => g.status === "Pendiente").length;
-  const wishlistGames = games.filter((g) => g.status === "Deseados" || g.status === "Quiero Jugar").length;
+  const playingGames = games.filter((g) => g.status === "playing").length;
+  const pendingGames = games.filter((g) => g.status === "pending").length;
+  const wishlistGames = games.filter((g) => isWishlist(g.status)).length;
 
   const totalHours = ownedGames.reduce((acc, g) => acc + (g.playTime || 0), 0);
 
@@ -45,7 +46,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
           <Gamepad2 className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-600 dark:text-gray-400 tracking-wider">
             {t.totalLibrary}
           </p>
           <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
@@ -63,7 +64,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
           <CheckCircle2 className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-600 dark:text-gray-400 tracking-wider">
             {t.completionRate}
           </p>
           <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
@@ -81,7 +82,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
           <Hourglass className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-600 dark:text-gray-400 tracking-wider">
             {t.playTime}
           </p>
           <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
@@ -99,7 +100,7 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
           <Trophy className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase font-bold text-neutral-400 dark:text-gray-400 tracking-wider">
+          <p className="text-[10px] uppercase font-bold text-neutral-600 dark:text-gray-400 tracking-wider">
             {t.achievementsUnlocked}
           </p>
           <p className="text-xl font-black text-neutral-800 dark:text-white leading-none mt-1">
@@ -107,7 +108,15 @@ export const LibraryStatsPanel: React.FC<LibraryStatsPanelProps> = ({ games, lan
           </p>
           <div className="mt-1 flex items-center gap-2">
             <div className="flex-1 bg-neutral-200 dark:bg-[#1A1A1A] h-1 rounded-none overflow-hidden">
-              <div className="bg-rose-500 h-full rounded-none" style={{ width: `${achievementsRate}%` }} />
+              <div
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={achievementsRate}
+                aria-label={t.achievementsUnlocked}
+                className="bg-rose-500 h-full rounded-none transition-[width] duration-500"
+                style={{ width: `${achievementsRate}%` }}
+              />
             </div>
             <span className="text-[9px] font-bold text-neutral-400 dark:text-gray-500">{achievementsRate}%</span>
           </div>

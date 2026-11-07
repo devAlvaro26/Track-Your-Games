@@ -1,20 +1,23 @@
-import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
 import { Game, AppSettings, Language, FriendProfile } from "./types";
 import { GameCard } from "./components/GameCard";
 import { ProfileAvatar } from "./components/ProfileAvatar";
 import { FriendLibraryBanner } from "./components/FriendLibraryBanner";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { getTranslation, translateGenre } from "./translations";
 import {
   db,
   isDatabaseConfigured,
   fetchUserGamesFromDb,
-  saveGameToDb,
-  deleteGameFromDb,
   fetchUserProfile,
   saveUserProfile,
   fetchFriendGames,
   fetchFriendships,
 } from "./lib/database";
+import { useGameSync, readPendingOps, applyPendingOps } from "./lib/useGameSync";
+import { isWishlist } from "./lib/gameStatus";
+import { dateToTimestamp } from "./lib/dates";
+import { useModalA11y } from "./lib/useModalA11y";
 import {
   LayoutGrid,
   PlayCircle,
@@ -42,6 +45,8 @@ import {
   MonitorPlay,
   ArrowUpDown,
   Gamepad2,
+  RefreshCw,
+  CloudOff,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -70,6 +75,13 @@ const FriendsModal = lazy(() =>
   import("./components/FriendsModal").then((m) => ({ default: m.FriendsModal }))
 );
 
+const GUEST_IMPORT_DISMISSED_KEY = "tyg_guest_import_dismissed";
+
+function createGameId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `game-${crypto.randomUUID()}`;
+  return `game-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export default function App() {
   // App Settings state (theme, language, username, avatarUrl)
   const [settings, setSettings] = useState<AppSettings>(() => {
@@ -81,7 +93,7 @@ export default function App() {
     return {
       theme: savedTheme || "dark",
       language: savedLang || "es",
-      username: savedUser || "Gamer",
+      username: savedUser && savedUser !== "Gamer" ? savedUser : "",
       avatarUrl: savedAvatar || undefined,
     };
   });
@@ -92,6 +104,15 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [guestImportCandidates, setGuestImportCandidates] = useState<Game[]>([]);
+
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  const loadedUserIdRef = useRef<string | null>(null);
+  const loadingUserIdRef = useRef<string | null>(null);
+
+  const { enqueueUpsert, enqueueDelete, retryNow, pendingCount, syncError } = useGameSync(user?.id ?? null);
 
   // Games list
   const [games, setGames] = useState<Game[]>(() => {
@@ -116,12 +137,17 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileStatusFilterOpen, setIsMobileStatusFilterOpen] = useState(false);
+  const mobileMenuRef = useModalA11y(() => setIsMobileMenuOpen(false), isMobileMenuOpen);
 
   // Friend library viewing state
   const [activeFriend, setActiveFriend] = useState<FriendProfile | null>(null);
   const [friendGames, setFriendGames] = useState<Game[]>([]);
   const [isLoadingFriendGames, setIsLoadingFriendGames] = useState(false);
   const [incomingFriendRequestsCount, setIncomingFriendRequestsCount] = useState(0);
+
+  useEffect(() => {
+    localStorage.removeItem("game_library_local_friendships");
+  }, []);
 
   // Search, filter and sorting state
   const [searchQuery, setSearchQuery] = useState("");
@@ -165,7 +191,7 @@ export default function App() {
       const currentUser = data?.session?.user || null;
       setUser(currentUser);
       if (currentUser) {
-        loadUserData(currentUser.id, currentUser.user_metadata?.username);
+        void loadUserData(currentUser.id, currentUser.user_metadata?.username);
       } else {
         setAuthLoading(false);
       }
@@ -174,12 +200,17 @@ export default function App() {
       setAuthLoading(false);
     });
 
-    const { data: authListener } = db.auth.onAuthStateChange(async (event, session) => {
+    const { data: authListener } = db.auth.onAuthStateChange((event, session) => {
       const currentUser = session?.user || null;
       setUser(currentUser);
       if (event === "SIGNED_IN" && currentUser) {
-        loadUserData(currentUser.id, currentUser.user_metadata?.username);
+        // Supabase calls must not run inside this callback; defer to avoid a deadlock.
+        setTimeout(() => {
+          void loadUserData(currentUser.id, currentUser.user_metadata?.username);
+        }, 0);
       } else if (event === "SIGNED_OUT") {
+        loadedUserIdRef.current = null;
+        loadingUserIdRef.current = null;
         setGames([]);
         localStorage.removeItem("game_library_user");
         setAuthLoading(false);
@@ -191,48 +222,6 @@ export default function App() {
     };
   }, []);
 
-  // Load user data from database
-  const loadUserData = async (userId: string, defaultUsername?: string) => {
-    setSyncLoading(true);
-    try {
-      const userGames = await fetchUserGamesFromDb(userId);
-      if (userGames.length > 0) {
-        setGames(userGames);
-      }
-
-      const profile = await fetchUserProfile(userId);
-      const fallbackName = defaultUsername || (user?.email ? user.email.split("@")[0] : "");
-
-      if (profile && profile.username && profile.username.trim()) {
-        setSettings((prev) => ({
-          ...prev,
-          username: profile.username || prev.username,
-          language: (profile.language as Language) || prev.language,
-          theme: (profile.theme as "light" | "dark") || prev.theme,
-          avatarUrl: profile.avatar_url || prev.avatarUrl,
-        }));
-      } else {
-        const resolvedName = fallbackName || settings.username || "Gamer";
-        setSettings((prev) => ({ ...prev, username: resolvedName }));
-        if (isDatabaseConfigured) {
-          saveUserProfile(userId, {
-            username: resolvedName,
-            language: settings.language,
-            theme: settings.theme,
-          });
-        }
-      }
-
-      // Refresh friend requests count
-      refreshFriendRequestsCount(userId);
-    } catch (err: any) {
-      console.warn("Could not load user data from database:", err?.message || err);
-    } finally {
-      setSyncLoading(false);
-      setAuthLoading(false);
-    }
-  };
-
   const refreshFriendRequestsCount = useCallback(async (userId: string) => {
     try {
       const data = await fetchFriendships(userId);
@@ -242,13 +231,113 @@ export default function App() {
     }
   }, []);
 
+  const readGuestGames = (): Game[] => {
+    try {
+      const raw = localStorage.getItem("game_library_user");
+      if (raw) return (JSON.parse(raw) as any[]).map((game) => normalizeGame(game) as Game);
+    } catch (e) {
+      console.warn("Could not read guest games:", e);
+    }
+    return [];
+  };
+
+  // Offer to upload games created while signed out, skipping ones already in the account.
+  const offerGuestImport = (cloudGames: Game[]) => {
+    const guestGames = readGuestGames();
+    if (guestGames.length === 0) return;
+
+    const isSameGame = (a: Game, b: Game) =>
+      (a.igdbId !== undefined && a.igdbId === b.igdbId) ||
+      (a.title.trim().toLowerCase() === b.title.trim().toLowerCase() &&
+        a.platforms.some((p) => b.platforms.includes(p)));
+
+    const importable = guestGames.filter((g) => !cloudGames.some((c) => isSameGame(c, g)));
+    if (importable.length === 0) {
+      localStorage.removeItem("game_library_user");
+      return;
+    }
+    if (sessionStorage.getItem(GUEST_IMPORT_DISMISSED_KEY)) return;
+    setGuestImportCandidates(importable);
+  };
+
+  // Load user data from database. Safe to call repeatedly: one load per signed-in user.
+  const loadUserData = useCallback(async (userId: string, defaultUsername?: string) => {
+    if (loadedUserIdRef.current === userId || loadingUserIdRef.current === userId) return;
+    loadingUserIdRef.current = userId;
+    setSyncLoading(true);
+    setLoadError(false);
+
+    try {
+      const pending = readPendingOps(userId);
+      try {
+        const cloudGames = await fetchUserGamesFromDb(userId);
+        const merged = applyPendingOps(cloudGames, pending);
+        setGames(merged);
+        offerGuestImport(merged);
+        loadedUserIdRef.current = userId;
+      } catch (err: any) {
+        console.warn("Could not load games from database:", err?.message || err);
+        setGames(applyPendingOps([], pending));
+        setLoadError(true);
+      }
+
+      const profile = await fetchUserProfile(userId);
+      const fallbackName = defaultUsername?.trim() || "";
+
+      if (profile) {
+        setSettings((prev) => ({
+          ...prev,
+          username: profile.username?.trim() || fallbackName,
+          language: (profile.language as Language) || prev.language,
+          theme: (profile.theme as "light" | "dark") || prev.theme,
+          avatarUrl: profile.avatar_url || prev.avatarUrl,
+        }));
+      } else if (fallbackName) {
+        setSettings((prev) => ({ ...prev, username: fallbackName }));
+        await saveUserProfile(userId, { username: fallbackName });
+      } else {
+        setSettings((prev) => ({ ...prev, username: "" }));
+      }
+
+      refreshFriendRequestsCount(userId);
+    } catch (err: any) {
+      console.warn("Could not load user data from database:", err?.message || err);
+    } finally {
+      loadingUserIdRef.current = null;
+      setSyncLoading(false);
+      setAuthLoading(false);
+    }
+  }, [refreshFriendRequestsCount]);
+
+  const handleRetryLoad = useCallback(() => {
+    if (user) void loadUserData(user.id, user.user_metadata?.username);
+  }, [user, loadUserData]);
+
+  const handleImportGuestGames = useCallback(() => {
+    const toImport = guestImportCandidates;
+    setGuestImportCandidates([]);
+    setGames((prev) => [...toImport, ...prev]);
+    toImport.forEach(enqueueUpsert);
+    localStorage.removeItem("game_library_user");
+  }, [guestImportCandidates, enqueueUpsert]);
+
+  const handleDismissGuestImport = useCallback(() => {
+    sessionStorage.setItem(GUEST_IMPORT_DISMISSED_KEY, "1");
+    setGuestImportCandidates([]);
+  }, []);
+
   // Auth handlers
   const handleLogout = useCallback(async () => {
     if (db && isDatabaseConfigured) {
       await db.auth.signOut();
     }
+    loadedUserIdRef.current = null;
+    loadingUserIdRef.current = null;
+    sessionStorage.removeItem(GUEST_IMPORT_DISMISSED_KEY);
     setUser(null);
     setGames([]);
+    setGuestImportCandidates([]);
+    setLoadError(false);
     setActiveFriend(null);
     setFriendGames([]);
     setIncomingFriendRequestsCount(0);
@@ -258,16 +347,14 @@ export default function App() {
   const handleAuthSuccess = useCallback((authUser: any, authUsername?: string) => {
     setUser(authUser);
     if (authUsername) {
-      setSettings((prev) => {
-        const nextSettings = { ...prev, username: authUsername };
-        if (isDatabaseConfigured) {
-          saveUserProfile(authUser.id, nextSettings);
-        }
-        return nextSettings;
-      });
+      const nextSettings = { ...settingsRef.current, username: authUsername };
+      setSettings(nextSettings);
+      if (isDatabaseConfigured) {
+        saveUserProfile(authUser.id, nextSettings);
+      }
     }
-    loadUserData(authUser.id, authUsername);
-  }, []);
+    void loadUserData(authUser.id, authUsername);
+  }, [loadUserData]);
 
   // Friend Library view handlers
   const handleViewFriendLibrary = useCallback(async (friend: FriendProfile) => {
@@ -296,16 +383,14 @@ export default function App() {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setSettings((prev) => {
-      const nextSettings: AppSettings = {
-        ...prev,
-        theme: prev.theme === "dark" ? "light" : "dark",
-      };
-      if (user && isDatabaseConfigured) {
-        saveUserProfile(user.id, nextSettings);
-      }
-      return nextSettings;
-    });
+    const nextSettings: AppSettings = {
+      ...settingsRef.current,
+      theme: settingsRef.current.theme === "dark" ? "light" : "dark",
+    };
+    setSettings(nextSettings);
+    if (user && isDatabaseConfigured) {
+      saveUserProfile(user.id, nextSettings);
+    }
   }, [user]);
 
   const handleSaveSettings = useCallback(async (newSettings: AppSettings) => {
@@ -315,49 +400,31 @@ export default function App() {
     }
   }, [user]);
 
-  // Game CRUD Handlers
-  const handleAddGame = useCallback(async (gameData: Omit<Game, "id">) => {
+  // Game CRUD handlers: the UI updates immediately and writes go through the retrying sync queue.
+  const handleAddGame = useCallback((gameData: Omit<Game, "id">) => {
     const newGame: Game = {
       ...gameData,
-      id: `game-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: createGameId(),
     };
 
     setGames((prev) => [newGame, ...prev]);
     setIsAddOpen(false);
 
-    if (user && isDatabaseConfigured) {
-      try {
-        await saveGameToDb(newGame, user.id);
-      } catch (err) {
-        console.error("Could not sync added game to database:", err);
-      }
-    }
-  }, [user]);
+    if (user && isDatabaseConfigured) enqueueUpsert(newGame);
+  }, [user, enqueueUpsert]);
 
-  const handleUpdateGame = useCallback(async (updatedGame: Game) => {
+  const handleUpdateGame = useCallback((updatedGame: Game) => {
     setGames((prev) => prev.map((g) => (g.id === updatedGame.id ? updatedGame : g)));
 
-    if (user && isDatabaseConfigured) {
-      try {
-        await saveGameToDb(updatedGame, user.id);
-      } catch (err) {
-        console.error("Could not sync updated game to database:", err);
-      }
-    }
-  }, [user]);
+    if (user && isDatabaseConfigured) enqueueUpsert(updatedGame);
+  }, [user, enqueueUpsert]);
 
-  const handleDeleteGame = useCallback(async (id: string) => {
+  const handleDeleteGame = useCallback((id: string) => {
     setGames((prev) => prev.filter((g) => g.id !== id));
     setSelectedGameId(null);
 
-    if (user && isDatabaseConfigured) {
-      try {
-        await deleteGameFromDb(id, user.id);
-      } catch (err) {
-        console.error("Could not delete game from database:", err);
-      }
-    }
-  }, [user]);
+    if (user && isDatabaseConfigured) enqueueDelete(id);
+  }, [user, enqueueDelete]);
 
   const currentDisplayGames = useMemo(
     () => (activeFriend ? friendGames : games),
@@ -388,13 +455,13 @@ export default function App() {
     let favorites = 0;
 
     for (const g of currentDisplayGames) {
-      const isWish = g.status === "Deseados" || g.status === "Quiero Jugar";
+      const isWish = isWishlist(g.status);
       if (!isWish) all++;
-      if (g.status === "Jugando") playing++;
-      if (g.status === "Jugado") played++;
-      if (g.status === "Pendiente") pending++;
+      if (g.status === "playing") playing++;
+      if (g.status === "played") played++;
+      if (g.status === "pending") pending++;
       if (isWish) wishlist++;
-      if (g.status === "Completado") completed++;
+      if (g.status === "completed") completed++;
       if (isFavoriteGame(g)) favorites++;
     }
 
@@ -413,7 +480,7 @@ export default function App() {
   const filteredGames = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     const isAllStatus = statusFilter === "All";
-    const isFavStatus = statusFilter === "Favoritos";
+    const isFavStatus = statusFilter === "favorites";
 
     return currentDisplayGames
       .filter((game) => {
@@ -425,12 +492,10 @@ export default function App() {
           game.barcode.includes(query);
 
         const matchesStatus = isAllStatus
-          ? game.status !== "Deseados" && game.status !== "Quiero Jugar"
+          ? !isWishlist(game.status)
           : isFavStatus
             ? isFavoriteGame(game)
-            : game.status === statusFilter ||
-              (statusFilter === "Deseados" && game.status === "Quiero Jugar") ||
-              (statusFilter === "Quiero Jugar" && game.status === "Deseados");
+            : game.status === statusFilter;
 
         const matchesPlatform = platformFilter === "All" || game.platforms.includes(platformFilter);
 
@@ -447,16 +512,7 @@ export default function App() {
           return b.rating - a.rating;
         }
         if (sortBy === "acquisitionDate") {
-          const parseDate = (dateStr: string | undefined): number => {
-            if (!dateStr) return 0;
-            const parts = dateStr.split("/");
-            if (parts.length === 3) {
-              const [day, month, year] = parts.map(Number);
-              return new Date(year, month - 1, day).getTime();
-            }
-            return 0;
-          };
-          return parseDate(b.acquisitionDate) - parseDate(a.acquisitionDate);
+          return dateToTimestamp(b.acquisitionDate) - dateToTimestamp(a.acquisitionDate);
         }
         return 0;
       });
@@ -471,19 +527,19 @@ export default function App() {
   // Helper for collection tabs configuration
   const collectionTabs = useMemo(
     () => [
-      { id: "All", label: t.allStatuses || "Todos los Juegos", icon: LayoutGrid, count: countAll },
-      { id: "Jugando", label: t.statusPlaying || "Jugando", icon: PlayCircle, count: countPlaying },
-      { id: "Jugado", label: t.statusPlayed || "Jugados", icon: CheckCircle, count: countPlayed },
-      { id: "Pendiente", label: t.statusPending || "Pendientes", icon: Bookmark, count: countPending },
-      { id: "Deseados", label: t.statusWishlist || "Quiero Jugar", icon: Heart, count: countWishlist },
-      { id: "Completado", label: t.statusCompleted || "Completados", icon: CheckCircle2, count: countCompleted },
-      { id: "Favoritos", label: t.statusFavorites || "Favoritos", icon: Star, count: countFavorites },
+      { id: "All", label: t.allStatuses, icon: LayoutGrid, count: countAll },
+      { id: "playing", label: t.statusPlaying, icon: PlayCircle, count: countPlaying },
+      { id: "played", label: t.statusPlayed, icon: CheckCircle, count: countPlayed },
+      { id: "pending", label: t.statusPending, icon: Bookmark, count: countPending },
+      { id: "wishlist", label: t.statusWishlist, icon: Heart, count: countWishlist },
+      { id: "completed", label: t.statusCompleted, icon: CheckCircle2, count: countCompleted },
+      { id: "favorites", label: t.statusFavorites, icon: Star, count: countFavorites },
     ],
     [t, countAll, countPlaying, countPlayed, countPending, countWishlist, countCompleted, countFavorites]
   );
 
   return (
-    <div className="h-screen w-full bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row overflow-hidden select-none" id="app-root">
+    <div className="h-dvh w-full bg-neutral-100 dark:bg-[#0d0d0f] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col md:flex-row overflow-hidden" id="app-root">
 
       {/* MOBILE TOP NAVIGATION BAR (Visible only on mobile < md) */}
       <header className="md:hidden bg-white dark:bg-[#141417] border-b border-neutral-200 dark:border-white/10 px-3 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-sm" id="mobile-top-bar">
@@ -491,9 +547,9 @@ export default function App() {
           {/* Hamburger Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            aria-label="Abrir menú de navegación"
+            aria-label={t.navigation}
             className="min-w-[44px] min-h-[44px] p-2.5 bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 transition-colors cursor-pointer flex items-center justify-center relative"
-            title="Abrir menú"
+            title={t.navigation}
             id="btn-open-mobile-menu"
           >
             <Menu className="w-5 h-5 stroke-[2.5]" />
@@ -526,7 +582,23 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Friends button on mobile top bar */}
+          {/* Stats toggle: the desktop header button is hidden below sm */}
+          <button
+            onClick={() => setShowStats((prev) => !prev)}
+            aria-label={t.statistics}
+            aria-pressed={showStats}
+            className={`sm:hidden min-w-[44px] min-h-[44px] p-2.5 rounded-none border transition-colors cursor-pointer flex items-center justify-center ${showStats
+              ? "bg-indigo-600 text-white border-indigo-500"
+              : "bg-neutral-100 dark:bg-[#1b1b1f] hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-white/10"
+              }`}
+            title={t.statistics}
+            id="btn-mobile-stats"
+          >
+            <BarChart2 className="w-4 h-4" />
+          </button>
+
+          {/* Friends are available only for authenticated accounts backed by Supabase. */}
+          {user && isDatabaseConfigured && (
           <button
             onClick={() => setIsFriendsModalOpen(true)}
             aria-label={t.friendsTitle || "Amigos"}
@@ -541,6 +613,7 @@ export default function App() {
               </span>
             )}
           </button>
+          )}
 
           {activeFriend ? (
             <button
@@ -570,13 +643,20 @@ export default function App() {
       {/* MOBILE FULLSCREEN SIDEBAR MENU OVERLAY */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden flex flex-col bg-white dark:bg-[#141417] text-neutral-900 dark:text-white overflow-y-auto" id="mobile-fullscreen-sidebar">
+          <div
+            ref={mobileMenuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.navigation}
+            className="fixed inset-0 z-50 md:hidden flex flex-col text-neutral-900 dark:text-white overflow-y-auto"
+            id="mobile-fullscreen-sidebar"
+          >
             <motion.div
               initial={{ opacity: 0, x: "-100%" }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              className="flex flex-col min-h-full p-5 justify-between space-y-6"
+              className="flex flex-col min-h-full p-5 justify-between space-y-6 bg-white dark:bg-[#141417]"
             >
               {/* Header inside mobile menu */}
               <div className="space-y-6">
@@ -664,6 +744,7 @@ export default function App() {
                     </button>
 
                     {/* Friends Button in Mobile Menu */}
+                    {user && isDatabaseConfigured && (
                     <button
                       onClick={() => {
                         setIsFriendsModalOpen(true);
@@ -681,6 +762,7 @@ export default function App() {
                         </span>
                       )}
                     </button>
+                    )}
                   </div>
 
                   {/* COLLECTIONS LIST */}
@@ -866,6 +948,7 @@ export default function App() {
               </button>
 
               {/* Friends button in Desktop Sidebar */}
+              {user && isDatabaseConfigured && (
               <button
                 onClick={() => setIsFriendsModalOpen(true)}
                 className="w-full flex items-center justify-between px-3 py-2 rounded-none text-xs font-bold transition-all cursor-pointer border bg-transparent text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white"
@@ -881,6 +964,7 @@ export default function App() {
                   </span>
                 )}
               </button>
+              )}
             </div>
 
             {/* COLLECTIONS LIST */}
@@ -1132,7 +1216,7 @@ export default function App() {
               language={settings.language}
               onBackToMyLibrary={handleBackToMyLibrary}
               totalGames={friendGames.length}
-              completedGames={friendGames.filter((g) => g.status === "Completado").length}
+              completedGames={friendGames.filter((g) => g.status === "completed").length}
               totalHours={friendGames.reduce((acc, g) => acc + (g.playTime || 0), 0)}
             />
           )}
@@ -1145,6 +1229,23 @@ export default function App() {
             </div>
           )}
 
+          {/* Cloud library could not be loaded */}
+          {user && loadError && !syncLoading && (
+            <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-none text-red-700 dark:text-red-400 text-xs flex flex-wrap items-center justify-center gap-3 font-bold">
+              <span className="flex items-center gap-2">
+                <CloudOff className="w-4 h-4" />
+                {t.loadLibraryError}
+              </span>
+              <button
+                type="button"
+                onClick={handleRetryLoad}
+                className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white cursor-pointer"
+              >
+                {t.retry}
+              </button>
+            </div>
+          )}
+
           {/* Loading Friend Games Indicator */}
           {isLoadingFriendGames && (
             <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-none text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center gap-2 font-bold animate-pulse">
@@ -1154,17 +1255,21 @@ export default function App() {
           )}
 
           {/* Collapsible Stats Board */}
-          {showStats && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <Suspense fallback={<div className="p-4 text-center text-xs text-neutral-400">Cargando estadísticas...</div>}>
-                <LibraryStatsPanel games={currentDisplayGames} language={settings.language} />
-              </Suspense>
-            </motion.div>
-          )}
+          <AnimatePresence initial={false}>
+            {showStats && (
+              <motion.div
+                key="stats-board"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <Suspense fallback={<div className="p-4 text-center text-xs text-neutral-500">{t.loadingStats}</div>}>
+                  <LibraryStatsPanel games={currentDisplayGames} language={settings.language} />
+                </Suspense>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* TOOLBAR CONTROLS BAR: SEARCH, CONSOLE FILTER, SORTING */}
           <div className="p-3 sm:p-4 bg-white dark:bg-[#141417] border border-neutral-200 dark:border-white/10 flex flex-col md:flex-row gap-3 items-center justify-between" id="controls-section">
@@ -1184,7 +1289,7 @@ export default function App() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  aria-label="Limpiar búsqueda"
+                  aria-label={t.clearSearch}
                   className="absolute right-0 top-0 bottom-0 w-9 flex items-center justify-center text-neutral-400 hover:text-neutral-800 dark:hover:text-white cursor-pointer"
                 >
                   <X className="w-4 h-4" />
@@ -1335,7 +1440,7 @@ export default function App() {
 
       {/* FRIENDS MODAL OVERLAY */}
       <AnimatePresence>
-        {isFriendsModalOpen && (
+        {isFriendsModalOpen && user && isDatabaseConfigured && (
           <Suspense fallback={null}>
             <FriendsModal
               isOpen={isFriendsModalOpen}
@@ -1345,8 +1450,8 @@ export default function App() {
                   refreshFriendRequestsCount(user.id);
                 }
               }}
-              currentUserId={user?.id || null}
-              currentUsername={settings.username || (user?.email ? user.email.split("@")[0] : "Gamer")}
+              currentUserId={user.id}
+              currentUsername={settings.username}
               language={settings.language}
               onViewFriendLibrary={(friend) => {
                 setIsFriendsModalOpen(false);
@@ -1428,6 +1533,46 @@ export default function App() {
           </Suspense>
         )}
       </AnimatePresence>
+
+      {/* PENDING / FAILED CLOUD WRITES */}
+      {user && (syncError || pendingCount > 0) && (
+        <div
+          role="status"
+          className={`fixed bottom-3 left-1/2 -translate-x-1/2 z-40 max-w-[92vw] flex items-center gap-3 px-3 py-2 text-xs font-bold border shadow-xl ${syncError
+            ? "bg-red-600 text-white border-red-400"
+            : "bg-white dark:bg-[#1b1b1f] text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-white/10"
+            }`}
+        >
+          {syncError ? <CloudOff className="w-4 h-4 shrink-0" /> : <Loader2 className="w-4 h-4 shrink-0 animate-spin" />}
+          <span>
+            {syncError
+              ? (typeof navigator !== "undefined" && !navigator.onLine ? t.syncOffline : t.syncFailed).replace("{count}", String(pendingCount))
+              : t.syncPending.replace("{count}", String(pendingCount))}
+          </span>
+          {syncError && (
+            <button
+              type="button"
+              onClick={retryNow}
+              className="flex items-center gap-1 px-2 py-1 bg-white/20 hover:bg-white/30 cursor-pointer shrink-0"
+            >
+              <RefreshCw className="w-3 h-3" />
+              {t.retry}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* IMPORT GAMES CREATED WHILE SIGNED OUT */}
+      {guestImportCandidates.length > 0 && (
+        <ConfirmDialog
+          title={t.importLocalGamesTitle}
+          message={t.importLocalGamesMessage.replace("{count}", String(guestImportCandidates.length))}
+          confirmLabel={t.importLocalGamesConfirm}
+          cancelLabel={t.notNow}
+          onConfirm={handleImportGuestGames}
+          onCancel={handleDismissGuestImport}
+        />
+      )}
 
       {/* VERCEL WEB ANALYTICS */}
       <Analytics />

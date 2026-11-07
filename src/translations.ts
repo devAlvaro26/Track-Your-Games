@@ -1331,6 +1331,10 @@ export const translationTable = {
     es: "Ya sois amigos",
     en: "Already friends",
   },
+  friendUserNotFound: {
+    es: "No se encontró un perfil real para ese usuario.",
+    en: "No registered user profile was found.",
+  },
   requestPending: {
     es: "Pendiente",
     en: "Pending",
@@ -1454,6 +1458,72 @@ export const translationTable = {
   friendSearchPrompt: {
     es: "Escribe al menos 2 caracteres para buscar usuarios registrados...",
     en: "Type at least 2 characters to search registered users...",
+  },
+
+  // --- SYNC, IMPORT & MISC FEEDBACK ---
+  loadingStats: {
+    es: "Cargando estadísticas...",
+    en: "Loading statistics...",
+  },
+  clearSearch: {
+    es: "Limpiar búsqueda",
+    en: "Clear search",
+  },
+  retry: {
+    es: "Reintentar",
+    en: "Retry",
+  },
+  genericError: {
+    es: "Se ha producido un error. Inténtalo de nuevo.",
+    en: "Something went wrong. Please try again.",
+  },
+  loadLibraryError: {
+    es: "No se pudo cargar tu biblioteca de la nube.",
+    en: "Your cloud library could not be loaded.",
+  },
+  syncPending: {
+    es: "Sincronizando {count} cambio(s)...",
+    en: "Syncing {count} change(s)...",
+  },
+  syncFailed: {
+    es: "No se pudieron sincronizar {count} cambio(s). Se reintentará automáticamente.",
+    en: "{count} change(s) could not be synced. Retrying automatically.",
+  },
+  syncOffline: {
+    es: "Sin conexión: {count} cambio(s) pendientes de sincronizar.",
+    en: "Offline: {count} change(s) waiting to sync.",
+  },
+  importLocalGamesTitle: {
+    es: "Importar juegos locales",
+    en: "Import local games",
+  },
+  importLocalGamesMessage: {
+    es: "Tienes {count} juego(s) creados sin cuenta en este navegador. ¿Quieres añadirlos a tu cuenta? Si no los importas se perderán al cerrar sesión.",
+    en: "This browser has {count} game(s) created without an account. Add them to your account? If you don't import them they will be lost when you sign out.",
+  },
+  importLocalGamesConfirm: {
+    es: "Importar",
+    en: "Import",
+  },
+  notNow: {
+    es: "Ahora no",
+    en: "Not now",
+  },
+  avatarInvalidFile: {
+    es: "Usa una imagen (máx. 10 MB) o una URL que empiece por http(s)://",
+    en: "Use an image (max 10 MB) or a URL starting with http(s)://",
+  },
+  emailPlaceholder: {
+    es: "ejemplo@correo.com",
+    en: "example@email.com",
+  },
+  signupConfirmEmailMsg: {
+    es: "Cuenta creada. Revisa tu correo y confirma tu dirección para iniciar sesión.",
+    en: "Account created. Check your email and confirm your address to sign in.",
+  },
+  barcodeChecksumWarning: {
+    es: "El dígito de control no es válido: revisa el código.",
+    en: "Invalid check digit: please double-check the code.",
   },
 } as const;
 

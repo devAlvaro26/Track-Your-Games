@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Library, Edit3 } from "lucide-react";
 import { Language } from "../types";
 import { getTranslation } from "../translations";
+import { useModalA11y } from "../lib/useModalA11y";
 
 interface AvatarModalProps {
   isOpen: boolean;
@@ -22,7 +23,9 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
   onOpenSettings,
 }) => {
   const t = getTranslation(language);
-
+  const dialogRef = useModalA11y(onClose, isOpen);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const showImage = Boolean(avatarUrl) && failedAvatarUrl !== avatarUrl;
   if (!isOpen) return null;
 
   return (
@@ -33,6 +36,10 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
         id="avatar-modal-backdrop"
       >
         <motion.div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={username || t.avatarLabel}
           initial={{ opacity: 0, scale: 0.85, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.85, y: 15 }}
@@ -43,9 +50,11 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
         >
           {/* Close button */}
           <button
+            type="button"
             onClick={onClose}
             className="absolute top-3 right-3 p-2 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
             title={t.close}
+            aria-label={t.close}
             id="btn-close-avatar-modal"
           >
             <X className="w-5 h-5" />
@@ -63,10 +72,12 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
 
           {/* Large Image Container */}
           <div className="relative w-64 h-64 sm:w-72 sm:h-72 bg-indigo-950/40 border-2 border-indigo-500/60 shadow-2xl flex items-center justify-center overflow-hidden group">
-            {avatarUrl ? (
+            {showImage ? (
               <img
                 src={avatarUrl}
                 alt={username}
+                referrerPolicy="no-referrer"
+                onError={() => setFailedAvatarUrl(avatarUrl ?? null)}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (

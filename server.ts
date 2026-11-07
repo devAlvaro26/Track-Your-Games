@@ -154,7 +154,38 @@ function normalizePlatformName(name: string): string {
 export const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Needed so req.ip reflects the client behind Vercel / reverse proxies.
+app.set("trust proxy", 1);
+app.use(express.json({ limit: "10kb" }));
+
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 40;
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+// Per-instance fixed-window limiter; protects the shared Twitch/IGDB/Steam quotas from abuse.
+app.use("/api", (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const now = Date.now();
+  const key = req.ip || "unknown";
+  let bucket = rateBuckets.get(key);
+
+  if (!bucket || bucket.resetAt <= now) {
+    bucket = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
+    rateBuckets.set(key, bucket);
+    if (rateBuckets.size > 5000) {
+      for (const [k, b] of rateBuckets) if (b.resetAt <= now) rateBuckets.delete(k);
+    }
+  }
+
+  bucket.count += 1;
+  if (bucket.count > RATE_LIMIT_MAX_REQUESTS) {
+    res.setHeader("Retry-After", String(Math.ceil((bucket.resetAt - now) / 1000)));
+    const isEs = req.body?.lang === "es" || req.query?.lang === "es";
+    return res.status(429).json({
+      error: isEs ? "Demasiadas solicitudes. Inténtalo de nuevo en un minuto." : "Too many requests. Please try again in a minute.",
+    });
+  }
+  next();
+});
 
 // Check IGDB configuration status
 app.get("/api/igdb/status", async (req: express.Request, res: express.Response) => {
@@ -190,14 +221,16 @@ app.get("/api/igdb/status", async (req: express.Request, res: express.Response) 
 
 // Search games in IGDB API v4
 app.post("/api/igdb/search", async (req: express.Request, res: express.Response) => {
-  const lang = req.body?.lang || "en";
+  const lang = req.body?.lang === "es" ? "es" : "en";
   const isEs = lang === "es";
   try {
-    const { query, limit = 10 } = req.body;
+    const { query } = req.body ?? {};
+    // Clamp to a safe integer: this value is interpolated into the IGDB query language.
+    const limit = Math.min(Math.max(Math.trunc(Number(req.body?.limit)) || 10, 1), 20);
 
-    if (!query || typeof query !== "string" || !query.trim()) {
+    if (!query || typeof query !== "string" || !query.trim() || query.length > 100) {
       return res.status(400).json({
-        error: isEs ? "El término de búsqueda es requerido." : "Search term is required.",
+        error: isEs ? "El término de búsqueda es requerido (máximo 100 caracteres)." : "Search term is required (max 100 characters).",
       });
     }
 
@@ -213,7 +246,7 @@ app.post("/api/igdb/search", async (req: express.Request, res: express.Response)
     }
 
     // Direct IGDB v4 Search
-    const sanitizedQuery = query.trim().replace(/"/g, '\\"');
+    const sanitizedQuery = query.trim().replace(/[\\"]/g, "\\$&").replace(/[\r\n;]+/g, " ");
     const igdbBody = `search "${sanitizedQuery}"; fields name, summary, storyline, first_release_date, genres.name, platforms.name, cover.url, cover.image_id, total_rating, rating, url; limit ${limit};`;
 
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
@@ -296,12 +329,9 @@ app.post("/api/igdb/search", async (req: express.Request, res: express.Response)
       summary: g.summary || g.storyline || "",
       firstReleaseDate: g.first_release_date
         ? (() => {
-            const date = new Date(g.first_release_date * 1000);
-            const day = String(date.getUTCDate()).padStart(2, '0');
-            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-            const year = date.getUTCFullYear();
-            return `${day}/${month}/${year}`;
-          })()
+          const date = new Date(g.first_release_date * 1000);
+          return `${String(date.getUTCDate()).padStart(2, "0")}/${String(date.getUTCMonth() + 1).padStart(2, "0")}/${date.getUTCFullYear()}`;
+        })()
         : "",
       genres: g.genres ? g.genres.map((gen: any) => gen.name) : [],
       platforms: g.platforms
@@ -365,7 +395,7 @@ function parseSteamAchievementsXml(xmlText: string) {
         id: apiname || name || `ach_${i}`,
         name: name || apiname,
         description: description,
-        difficulty: "Medio" as const,
+        difficulty: "medium" as const,
         unlocked: false,
         icon: iconOpen || undefined,
         iconLocked: iconClosed || undefined,
@@ -379,11 +409,11 @@ function parseSteamAchievementsXml(xmlText: string) {
 
 // Search Steam store for App ID
 app.post("/api/steam/search", async (req: express.Request, res: express.Response) => {
-  const lang = req.body?.lang || "en";
+  const lang = req.body?.lang === "es" ? "es" : "en";
   const isEs = lang === "es";
   const query = req.body?.query;
 
-  if (!query || typeof query !== "string" || !query.trim()) {
+  if (!query || typeof query !== "string" || !query.trim() || query.length > 100) {
     return res.status(400).json({ error: isEs ? "Se requiere el término de búsqueda." : "Search query required." });
   }
 
@@ -415,10 +445,11 @@ app.post("/api/steam/search", async (req: express.Request, res: express.Response
 
 // Fetch Steam game achievements
 app.post("/api/steam/achievements", async (req: express.Request, res: express.Response) => {
-  const lang = req.body?.lang || "en";
+  const lang = req.body?.lang === "es" ? "es" : "en";
   const isEs = lang === "es";
-  let appId = req.body?.appId ? Number(req.body.appId) : undefined;
-  const title = req.body?.title;
+  const rawAppId = Number(req.body?.appId);
+  let appId: number | undefined = Number.isSafeInteger(rawAppId) && rawAppId > 0 ? rawAppId : undefined;
+  const title = typeof req.body?.title === "string" ? req.body.title.slice(0, 100) : undefined;
 
   try {
     // 1. If appId is not explicitly provided, search Steam store by title first
@@ -461,7 +492,7 @@ app.post("/api/steam/achievements", async (req: express.Request, res: express.Re
               id: ach.name,
               name: ach.displayName || ach.name,
               description: ach.description || "",
-              difficulty: "Medio" as const,
+              difficulty: "medium" as const,
               unlocked: false,
               icon: ach.icon || undefined,
               iconLocked: ach.icongray || undefined,
@@ -520,7 +551,10 @@ app.post("/api/steam/achievements", async (req: express.Request, res: express.Re
 async function startServer() {
   if (process.env.VERCEL) return;
 
-  if (process.env.NODE_ENV !== "production") {
+  // `npm start` runs the esbuild bundle (dist/server.cjs), which has no NODE_ENV set by default.
+  const isBundledBuild = typeof __filename !== "undefined" && __filename.endsWith("server.cjs");
+
+  if (process.env.NODE_ENV !== "production" && !isBundledBuild) {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },

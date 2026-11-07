@@ -2,6 +2,7 @@ import { useState, FormEvent } from "react";
 import { Language } from "../types";
 import { getTranslation } from "../translations";
 import { db, isDatabaseConfigured, saveUserProfile } from "../lib/database";
+import { useModalA11y } from "../lib/useModalA11y";
 import * as Icons from "lucide-react";
 import { motion } from "motion/react";
 
@@ -13,7 +14,7 @@ interface AuthModalProps {
 
 export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
   const t = getTranslation(language);
-
+  const dialogRef = useModalA11y(onClose);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +35,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
       return;
     }
 
-    if (!email.trim() || !password.trim()) {
+    if (!email.trim() || !password) {
       setErrorMsg(t.fillEmailPasswordErr);
       return;
     }
@@ -44,21 +45,24 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
       return;
     }
 
+    if (!isLogin && password.length < 6) {
+      setErrorMsg(t.passwordMinLengthErr);
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isLogin) {
         const { data, error } = await db.auth.signInWithPassword({
           email: email.trim(),
-          password: password.trim(),
+          password,
         });
 
         if (error) throw error;
 
         if (data.user) {
-          const resolvedUsername =
-            data.user.user_metadata?.username ||
-            (data.user.email ? data.user.email.split("@")[0] : "");
+          const resolvedUsername = data.user.user_metadata?.username?.trim() || "";
 
           if (resolvedUsername) {
             await saveUserProfile(data.user.id, { username: resolvedUsername });
@@ -74,7 +78,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
         const cleanUsername = username.trim();
         const { data, error } = await db.auth.signUp({
           email: email.trim(),
-          password: password.trim(),
+          password,
           options: {
             data: {
               username: cleanUsername,
@@ -85,6 +89,19 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
         if (error) throw error;
 
         if (data.user) {
+          // With email confirmation enabled an existing address returns a user without identities.
+          if (data.user.identities && data.user.identities.length === 0) {
+            setErrorMsg(t.userAlreadyRegisteredErr);
+            setShowSwitchToLogin(true);
+            return;
+          }
+
+          // No session yet: the user must confirm the email first. The profile is created by the database trigger.
+          if (!data.session) {
+            setSuccessMsg(t.signupConfirmEmailMsg);
+            return;
+          }
+
           // Immediately persist username to profiles table
           await saveUserProfile(data.user.id, { username: cleanUsername });
 
@@ -131,6 +148,10 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
       id="auth-modal-backdrop"
     >
       <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={isLogin ? t.loginTitle : t.signupTitle}
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -156,10 +177,12 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
             id="btn-close-auth"
             title={t.close}
+            aria-label={t.close}
           >
             <Icons.X className="w-4 h-4" />
           </button>
@@ -275,7 +298,7 @@ export function AuthModal({ language, onClose, onSuccess }: AuthModalProps) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ejemplo@correo.com"
+                  placeholder={t.emailPlaceholder}
                   className="w-full pl-9 pr-3 py-2.5 text-xs bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-medium"
                 />
               </div>

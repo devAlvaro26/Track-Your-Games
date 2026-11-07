@@ -1,16 +1,18 @@
+export type AchievementDifficulty = "easy" | "medium" | "hard";
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
-  difficulty: "Fácil" | "Medio" | "Difícil";
+  difficulty: AchievementDifficulty;
   unlocked: boolean;
-  unlockedAt?: string; // date string
+  unlockedAt?: string; // dd/mm/yyyy
   icon?: string; // Steam achievement unlocked icon URL
   iconLocked?: string; // Steam achievement locked icon URL
   steamApiName?: string;
 }
 
-export type GameStatus = "Pendiente" | "Jugando" | "Jugado" | "Completado" | "Deseados" | "Quiero Jugar";
+export type GameStatus = "pending" | "playing" | "played" | "completed" | "wishlist";
 
 export interface Game {
   id: string;
@@ -18,9 +20,9 @@ export interface Game {
   description: string;
   genre: string;
   platforms: string[];
-  releaseDate: string; // dd/mm/yyyy or year
+  releaseDate: string; // dd/mm/yyyy, or yyyy when only the year is known
   barcode: string; // barcode string
-  acquisitionDate: string; // user acquisition date
+  acquisitionDate: string; // dd/mm/yyyy
   rating: number; // 1-5 stars
   playTime: number; // in hours
   status: GameStatus;
@@ -56,7 +58,7 @@ export interface IgdbSearchResult {
   name: string;
   summary?: string;
   storyline?: string;
-  firstReleaseDate?: string; // dd/mm/yyyy or year
+  firstReleaseDate?: string; // dd/mm/yyyy
   genres: string[];
   platforms: string[];
   coverUrl?: string;

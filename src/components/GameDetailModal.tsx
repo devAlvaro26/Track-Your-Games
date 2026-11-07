@@ -9,6 +9,9 @@ import { SteamSearchModal } from "./SteamSearchModal";
 import { getTranslation, translateGenre, translateSymbolLabel } from "../translations";
 import { VideoGameBarcode } from "./VideoGameBarcode";
 import { normalizePlatformName } from "../consoles";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useModalA11y } from "../lib/useModalA11y";
+import { formatDisplayDate, normalizeDate, todayDate } from "../lib/dates";
 import * as Icons from "lucide-react";
 
 interface GameDetailModalProps {
@@ -41,17 +44,15 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   const [showIgdbModal, setShowIgdbModal] = useState(false);
   const [editImportNotice, setEditImportNotice] = useState("");
   const [isImageEnlarged, setIsImageEnlarged] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-  // Close enlarged image on ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isImageEnlarged) {
-        setIsImageEnlarged(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isImageEnlarged]);
+  // Escape peels off the innermost layer first: lightbox, then edit mode, then the modal itself.
+  const dialogRef = useModalA11y(() => {
+    if (confirmDeleteOpen) return;
+    if (isImageEnlarged) setIsImageEnlarged(false);
+    else if (isEditing) setIsEditing(false);
+    else onClose();
+  });
 
   // Convert IGDB image URLs to high-res 1080p quality for lightboxes
   const getHighResCoverUrl = (url?: string): string | undefined => {
@@ -82,6 +83,30 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   const [editPlatforms, setEditPlatforms] = useState<string[]>(game.platforms);
   const [editSteamAppId, setEditSteamAppId] = useState<string>(game.steamAppId ? String(game.steamAppId) : "");
 
+  // Quick edits in view mode update `game`, so the form must start from the current values.
+  const startEditing = () => {
+    setEditTitle(game.title);
+    setEditDescription(game.description);
+    setEditGenre(game.genre);
+    setEditBarcode(game.barcode);
+    setEditAcquisitionDate(game.acquisitionDate);
+    setEditReleaseDate(game.releaseDate);
+    setEditRating(game.rating);
+    setEditPlayTime(game.playTime);
+    setEditStatus(game.status);
+    setEditFavorite(isFavoriteGame(game));
+    setEditCoverColor(game.coverColor);
+    setEditCoverSymbol(game.coverSymbol);
+    setEditCoverImage(game.coverImage || "");
+    setEditIgdbId(game.igdbId);
+    setEditIgdbRating(game.igdbRating);
+    setEditIgdbUrl(game.igdbUrl);
+    setEditNotes(game.notes || "");
+    setEditPlatforms(game.platforms);
+    setEditSteamAppId(game.steamAppId ? String(game.steamAppId) : "");
+    setEditImportNotice("");
+    setIsEditing(true);
+  };
   // Steam Achievements state
   const [showSteamModal, setShowSteamModal] = useState(false);
   const [isFetchingSteam, setIsFetchingSteam] = useState(false);
@@ -163,13 +188,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
     const updatedAchievements = game.achievements.map((a) => ({
       ...a,
       unlocked,
-      unlockedAt: unlocked ? (() => {
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        return `${day}/${month}/${year}`;
-      })() : undefined,
+      unlockedAt: unlocked ? todayDate() : undefined,
     }));
 
     onUpdate({
@@ -186,13 +205,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
         return {
           ...ach,
           unlocked: nextUnlocked,
-          unlockedAt: nextUnlocked ? (() => {
-            const today = new Date();
-            const day = String(today.getDate()).padStart(2, '0');
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const year = today.getFullYear();
-            return `${day}/${month}/${year}`;
-          })() : undefined,
+          unlockedAt: nextUnlocked ? todayDate() : undefined,
         };
       }
       return ach;
@@ -223,8 +236,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
       description: editDescription.trim(),
       genre: editGenre.trim(),
       barcode: editBarcode.trim(),
-      acquisitionDate: editAcquisitionDate,
-      releaseDate: editReleaseDate,
+      acquisitionDate: normalizeDate(editAcquisitionDate),
+      releaseDate: normalizeDate(editReleaseDate),
       rating: editRating,
       playTime: Number(editPlayTime),
       status: editStatus,
@@ -269,21 +282,24 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
   const progressPercent = totalAchievements > 0 ? Math.round((unlockedCount / totalAchievements) * 100) : 0;
   const locale = language === "en" ? "en-US" : "es-ES";
 
+  const statusLabels: Record<GameStatus, string> = {
+    pending: t.statusPendingTag,
+    wishlist: t.statusWishlistTag,
+    playing: t.statusPlayingTag,
+    played: t.statusPlayedTag,
+    completed: t.statusCompletedTag,
+  };
+
   return (
     <>
-      {showIgdbModal && (
-        <IgdbSearchModal
-          initialQuery={editTitle}
-          onClose={() => setShowIgdbModal(false)}
-          onSelectGame={handleSelectIgdbGame}
-          language={language}
-        />
-      )}
-
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm overflow-hidden" id="detail-modal-container">
 
         {/* Container */}
         <motion.div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={game.title}
           layoutId={`game-card-${game.id}`}
           className={`relative w-full ${isEditing ? "max-w-3xl" : "max-w-4xl"} bg-white dark:bg-[#141417] text-neutral-900 dark:text-white rounded-none border border-neutral-300 dark:border-white/10 shadow-2xl overflow-hidden max-h-[95vh] flex flex-col my-auto`}
           id="detail-modal"
@@ -338,21 +354,19 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                       ) : (
                         <>
                           <button
-                            onClick={() => setIsEditing(true)}
+                            onClick={startEditing}
                             className="p-1.5 rounded-none bg-black/40 hover:bg-black/60 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
                             title={t.edit}
+                            aria-label={t.edit}
                             id="btn-edit-mode"
                           >
                             <Icons.Edit3 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => {
-                              if (confirm(`${t.confirmDeleteGame}`)) {
-                                onDelete(game.id);
-                              }
-                            }}
+                            onClick={() => setConfirmDeleteOpen(true)}
                             className="p-1.5 rounded-none bg-black/40 hover:bg-rose-600/90 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
                             title={t.delete}
+                            aria-label={t.delete}
                             id="btn-delete-game"
                           >
                             <Icons.Trash className="w-4 h-4" />
@@ -364,6 +378,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         className="p-1.5 rounded-none bg-black/40 hover:bg-black/60 border border-white/25 transition-all cursor-pointer text-white shadow-sm"
                         id="close-detail-modal"
                         title={t.close}
+                        aria-label={t.close}
                       >
                         <Icons.X className="w-4 h-4" />
                       </button>
@@ -375,7 +390,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     {game.coverImage ? (
                       <div
                         onClick={() => setIsImageEnlarged(true)}
-                        className="relative group w-20 h-28 sm:w-28 sm:h-36 md:w-36 md:h-48 shrink-0 rounded-none overflow-hidden shadow-xl border-2 border-white/20 my-1 md:my-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:border-indigo-400 hover:shadow-indigo-500/20"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setIsImageEnlarged(true);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t.enlargedImageTitle}
+                        className="relative group w-20 h-28 sm:w-28 sm:h-36 md:w-36 md:h-48 shrink-0 rounded-none overflow-hidden shadow-xl border-2 border-white/20 my-1 md:my-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:border-indigo-400 hover:shadow-indigo-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                         id="btn-enlarge-cover-image"
                       >
                         <img
@@ -392,7 +416,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     ) : (
                       <div
                         onClick={() => setIsImageEnlarged(true)}
-                        className="relative group p-4 sm:p-6 shrink-0 rounded-none bg-white/15 backdrop-blur-md border border-white/20 shadow-xl mb-0 md:mb-4 cursor-pointer hover:bg-white/25 transition-all duration-300 hover:scale-105"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setIsImageEnlarged(true);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t.enlargedImageTitle}
+                        className="relative group p-4 sm:p-6 shrink-0 rounded-none bg-white/15 backdrop-blur-md border border-white/20 shadow-xl mb-0 md:mb-4 cursor-pointer hover:bg-white/25 transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                         id="btn-enlarge-cover-symbol"
                       >
                         <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)] transition-transform duration-300 group-hover:scale-110" size={40} />
@@ -443,6 +476,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         <VideoGameBarcode
                           barcode={game.barcode}
                           platform={primaryPlatform}
+                          language={language}
                           variant="retail-sticker"
                           size="md"
                           className="mx-auto"
@@ -461,12 +495,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     <div className="flex justify-around items-center text-[11px] sm:text-xs text-white/80">
                       <div className="text-center">
                         <p className="text-[8px] sm:text-[9px] font-bold text-white/40 uppercase">{t.acquiredLabel}</p>
-                        <p className="font-semibold">{game.acquisitionDate || t.noDateText}</p>
+                        <p className="font-semibold">{formatDisplayDate(game.acquisitionDate) || t.noDateText}</p>
                       </div>
                       <div className="w-px h-5 sm:h-6 bg-white/15" />
                       <div className="text-center">
                         <p className="text-[8px] sm:text-[9px] font-bold text-white/40 uppercase">{t.releaseLabel}</p>
-                        <p className="font-semibold">{game.releaseDate || t.noDateText}</p>
+                        <p className="font-semibold">{formatDisplayDate(game.releaseDate) || t.noDateText}</p>
                       </div>
                     </div>
                   </div>
@@ -484,18 +518,18 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         {t.statusLabel}
                       </p>
                       {readOnly ? (
-                        <p className="text-sm font-bold text-neutral-800 dark:text-white py-0.5">{game.status}</p>
+                        <p className="text-sm font-bold text-neutral-800 dark:text-white py-0.5">{statusLabels[game.status]}</p>
                       ) : (
                         <select
                           value={game.status}
                           onChange={(e) => handleSaveQuickEdits("status", e.target.value as GameStatus)}
                           className="bg-transparent text-sm font-bold text-neutral-800 dark:text-white focus:outline-none cursor-pointer w-full"
                         >
-                          <option value="Pendiente">{t.statusPendingTag}</option>
-                          <option value="Deseados">{t.statusWishlistTag || "Quiero Jugar"}</option>
-                          <option value="Jugando">{t.statusPlayingTag}</option>
-                          <option value="Jugado">{t.statusPlayedTag || "Jugado"}</option>
-                          <option value="Completado">{t.statusCompletedTag}</option>
+                          <option value="pending">{t.statusPendingTag}</option>
+                          <option value="wishlist">{t.statusWishlistTag}</option>
+                          <option value="playing">{t.statusPlayingTag}</option>
+                          <option value="played">{t.statusPlayedTag}</option>
+                          <option value="completed">{t.statusCompletedTag}</option>
                         </select>
                       )}
                       <label className={`mt-2 flex items-center gap-2 text-[10px] font-bold uppercase ${readOnly ? "text-neutral-500 cursor-default" : "text-neutral-600 dark:text-gray-300 cursor-pointer"}`}>
@@ -542,6 +576,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             key={star}
                             disabled={readOnly}
                             onClick={() => !readOnly && handleSaveQuickEdits("rating", star)}
+                            aria-label={`${star}/5`}
                             className={`${readOnly ? "cursor-default" : "cursor-pointer hover:scale-110"} transition-transform`}
                           >
                             <Icons.Star
@@ -784,6 +819,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
+                    aria-label={t.close}
+                    title={t.close}
                     className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
                   >
                     <Icons.X className="w-4 h-4" />
@@ -854,11 +891,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         onChange={(e) => setEditStatus(e.target.value as GameStatus)}
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500 cursor-pointer font-bold"
                       >
-                        <option value="Pendiente">{t.statusPending || t.statusPendingTag || "Pendiente"}</option>
-                        <option value="Deseados">{t.statusWishlist || t.statusWishlistTag || "Quiero Jugar"}</option>
-                        <option value="Jugando">{t.statusPlaying || t.statusPlayingTag || "Jugando"}</option>
-                        <option value="Jugado">{t.statusPlayed || t.statusPlayedTag || "Jugado"}</option>
-                        <option value="Completado">{t.statusCompleted || t.statusCompletedTag || "Completado"}</option>
+                        <option value="pending">{t.statusPending}</option>
+                        <option value="wishlist">{t.statusWishlist}</option>
+                        <option value="playing">{t.statusPlaying}</option>
+                        <option value="played">{t.statusPlayed}</option>
+                        <option value="completed">{t.statusCompleted}</option>
                       </select>
                       <label className="mt-2 flex items-center gap-2 text-[11px] font-bold uppercase text-neutral-600 dark:text-gray-300 cursor-pointer">
                         <input
@@ -907,7 +944,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editReleaseDate}
                         onChange={(e) => setEditReleaseDate(e.target.value)}
-                        placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
+                        placeholder="dd/mm/yyyy o yyyy"
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -925,6 +962,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                             key={star}
                             type="button"
                             onClick={() => setEditRating(editRating === star ? 0 : star)}
+                            aria-label={`${star}/5`}
+                            aria-pressed={star <= editRating}
                             className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
                           >
                             <Icons.Star
@@ -1094,6 +1133,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                           <VideoGameBarcode
                             barcode={editBarcode}
                             platform={editPlatforms[0]}
+                            language={language}
                             variant="retail-sticker"
                             size="sm"
                             className="mx-auto"
@@ -1110,7 +1150,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                         type="text"
                         value={editAcquisitionDate}
                         onChange={(e) => setEditAcquisitionDate(e.target.value)}
-                        placeholder={t.dateFormatPlaceholder || "dd/mm/yyyy"}
+                        placeholder="dd/mm/yyyy"
                         className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -1232,10 +1272,28 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
         />
       )}
 
+      {confirmDeleteOpen && (
+        <ConfirmDialog
+          title={t.delete}
+          message={t.confirmDeleteGame}
+          confirmLabel={t.delete}
+          cancelLabel={t.cancel}
+          destructive
+          onCancel={() => setConfirmDeleteOpen(false)}
+          onConfirm={() => {
+            setConfirmDeleteOpen(false);
+            onDelete(game.id);
+          }}
+        />
+      )}
+
       {/* FULL-SIZE IMAGE LIGHTBOX OVERLAY */}
       <AnimatePresence>
         {isImageEnlarged && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.enlargedImageTitle}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1278,6 +1336,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                 )}
                 <button
                   onClick={() => setIsImageEnlarged(false)}
+                  aria-label={t.close}
                   className="p-2 sm:p-2.5 text-white/80 hover:text-white bg-black/80 hover:bg-black/90 backdrop-blur-md rounded-none border border-white/20 transition-all cursor-pointer shadow-lg shrink-0"
                   title={t.close || "Cerrar"}
                   id="close-enlarged-image"

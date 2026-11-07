@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { IgdbSearchResult, Language } from "../types";
 import { getTranslation } from "../translations";
 import { normalizePlatformName } from "../consoles";
+import { useModalA11y } from "../lib/useModalA11y";
 import * as Icons from "lucide-react";
 import { motion } from "motion/react";
 
@@ -19,6 +20,8 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
   language = "en",
 }) => {
   const t = getTranslation(language);
+  const dialogRef = useModalA11y(onClose);
+  const latestSearchRef = useRef(0);
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<IgdbSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +32,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
 
   // Check IGDB API status on mount
   useEffect(() => {
+    let cancelled = false;
     fetch(`/api/igdb/status?lang=${language}`)
       .then(async (res) => {
         const text = await res.text();
@@ -42,6 +46,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         }
       })
       .then((data) => {
+        if (cancelled) return;
         setIsConfigured(Boolean(data.configured));
         if (data.error) {
           setStatusError(data.error);
@@ -50,14 +55,22 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         }
       })
       .catch(() => {
+        if (cancelled) return;
         setIsConfigured(false);
         setStatusError(t.igdbStatusConnectionError);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [language, t.igdbStatusConnectionError]);
 
   const handleSearch = useCallback(async (searchTerm?: string) => {
     const q = (searchTerm !== undefined ? searchTerm : query).trim();
     if (!q) return;
+
+    // Only the most recent request may update the UI.
+    const requestId = ++latestSearchRef.current;
+    const isStale = () => requestId !== latestSearchRef.current;
 
     setIsLoading(true);
     setError("");
@@ -71,6 +84,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
       });
 
       const responseText = await res.text();
+      if (isStale()) return;
       let data: any;
       try {
         data = JSON.parse(responseText);
@@ -116,6 +130,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
         );
       }
     } catch (err: any) {
+      if (isStale()) return;
       console.error("Error searching IGDB:", err);
       let errMsg = err?.message || t.aiConnectionError;
       if (typeof errMsg === "string" && (errMsg.includes("Unexpected token") || errMsg.includes("is not valid JSON"))) {
@@ -124,7 +139,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
       setError(errMsg);
       setResults([]);
     } finally {
-      setIsLoading(false);
+      if (!isStale()) setIsLoading(false);
     }
   }, [query, language, t.igdbDefaultError, t.igdbSearchSuccessNotice, t.igdbSearchZeroNotice, t.aiConnectionError]);
 
@@ -148,6 +163,10 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
       id="igdb-search-modal-backdrop"
     >
       <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.igdbModalTitle}
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -173,7 +192,10 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
+            aria-label={t.close}
+            title={t.close}
             className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white rounded-none hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
             id="close-igdb-search-modal"
           >
@@ -294,7 +316,16 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
                 <div
                   key={item.id}
                   onClick={() => onSelectGame(item)}
-                  className="p-3 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 rounded-none transition-all cursor-pointer flex gap-3 group relative overflow-hidden"
+                  onKeyDown={(e) => {
+                    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      onSelectGame(item);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${t.igdbSelectGame}: ${item.name}`}
+                  className="p-3 bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 hover:border-indigo-500 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-none transition-all cursor-pointer flex gap-3 group relative overflow-hidden"
                 >
                   {/* Thumbnail Cover */}
                   <div className="w-20 h-28 bg-neutral-200 dark:bg-neutral-800 rounded-none overflow-hidden flex-shrink-0 shadow-sm relative border border-neutral-300 dark:border-white/10">
@@ -335,7 +366,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
 
                       {item.firstReleaseDate && (
                         <p className="text-[11px] font-semibold text-neutral-500 dark:text-gray-400 mt-0.5">
-                          {item.firstReleaseDate.substring(0, 4)}
+                          {item.firstReleaseDate.match(/\d{4}/)?.[0]}
                         </p>
                       )}
 
@@ -361,7 +392,7 @@ export const IgdbSearchModal: React.FC<IgdbSearchModalProps> = ({
                         <a
                           href={item.url}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           className="text-neutral-400 hover:text-indigo-500 transition-colors"
                           title={t.viewOnIgdb}

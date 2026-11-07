@@ -1,9 +1,12 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AppSettings, Language } from "../types";
 import { getTranslation } from "../translations";
 import { ProfileAvatar } from "./ProfileAvatar";
+import { useModalA11y } from "../lib/useModalA11y";
 import * as Icons from "lucide-react";
 import { motion } from "motion/react";
+
+const MAX_AVATAR_FILE_BYTES = 10 * 1024 * 1024;
 
 interface SettingsModalProps {
   settings: AppSettings;
@@ -25,9 +28,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [urlInput, setUrlInput] = useState<string>("");
   const [showUrlField, setShowUrlField] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useModalA11y(onClose);
   const t = getTranslation(language);
+
+  // The theme preview changes the page live; undo it if the modal closes without saving.
+  const initialThemeRef = useRef(settings.theme);
+  const committedRef = useRef(false);
+  useEffect(() => {
+    return () => {
+      if (!committedRef.current) {
+        document.documentElement.classList.toggle("dark", initialThemeRef.current === "dark");
+      }
+    };
+  }, []);
 
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
@@ -40,7 +56,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const processFile = (file: File) => {
-    if (!file.type.startsWith("image/")) return;
+    if (!file.type.startsWith("image/") || file.size > MAX_AVATAR_FILE_BYTES) {
+      setAvatarError(true);
+      return;
+    }
+    setAvatarError(false);
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -66,11 +86,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         if (ctx) {
+          // JPEG has no alpha channel; without this, transparent PNGs turn black.
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
           const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
           setAvatarUrl(dataUrl);
         }
       };
+      img.onerror = () => setAvatarError(true);
       img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
@@ -93,19 +117,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleApplyUrl = () => {
     const trimmed = urlInput.trim();
-    if (trimmed) {
-      setAvatarUrl(trimmed);
-      setUrlInput("");
-      setShowUrlField(false);
+    if (!trimmed) return;
+    if (!/^https?:\/\//i.test(trimmed)) {
+      setAvatarError(true);
+      return;
     }
+    setAvatarError(false);
+    setAvatarUrl(trimmed);
+    setUrlInput("");
+    setShowUrlField(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    committedRef.current = true;
     onSaveSettings({
       theme,
       language,
-      username: username.trim() || "Coleccionista",
+      username: username.trim(),
       avatarUrl: avatarUrl || undefined,
     });
     setSavedSuccess(true);
@@ -121,6 +150,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       id="settings-modal-backdrop"
     >
       <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.settingsTitle}
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -145,10 +178,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
             id="btn-close-settings"
             title={t.close}
+            aria-label={t.close}
           >
             <Icons.X className="w-4 h-4" />
           </button>
@@ -189,6 +224,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
                   className="border-2 border-dashed border-neutral-300 dark:border-white/20 p-3 text-center cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors bg-white dark:bg-[#141417]"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -200,6 +243,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     {t.avatarUploadHint}
                   </p>
                 </div>
+
+                {avatarError && (
+                  <p role="alert" className="text-[11px] font-bold text-red-600 dark:text-red-400">
+                    {t.avatarInvalidFile}
+                  </p>
+                )}
 
                 <div className="flex items-center justify-between gap-2 pt-1">
                   <button

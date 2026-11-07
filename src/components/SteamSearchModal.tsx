@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { SteamSearchResult, Language } from "../types";
 import { getTranslation } from "../translations";
+import { useModalA11y } from "../lib/useModalA11y";
 import * as Icons from "lucide-react";
 import { motion } from "motion/react";
 
@@ -18,6 +19,8 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
   language = "en",
 }) => {
   const t = getTranslation(language);
+  const dialogRef = useModalA11y(onClose);
+  const latestSearchRef = useRef(0);
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<SteamSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +29,10 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
   const handleSearch = useCallback(async (searchTerm?: string) => {
     const q = (searchTerm !== undefined ? searchTerm : query).trim();
     if (!q) return;
+
+    // Only the most recent request may update the UI.
+    const requestId = ++latestSearchRef.current;
+    const isStale = () => requestId !== latestSearchRef.current;
 
     setIsLoading(true);
     setError("");
@@ -38,30 +45,38 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
       });
 
       const data = await res.json();
+      if (isStale()) return;
 
       if (!res.ok || data.error) {
-        setError(data.error || t.steamSearchError || "Error al buscar en Steam.");
+        setError(data.error || t.steamSearchError);
         setResults([]);
       } else {
         setResults(data.results || []);
       }
     } catch (err: any) {
-      setError(err.message || t.serverConnError || "Error de conexión con el servidor.");
+      if (isStale()) return;
+      setError(err.message || t.serverConnError);
       setResults([]);
     } finally {
-      setIsLoading(false);
+      if (!isStale()) setIsLoading(false);
     }
-  }, [query, language]);
+  }, [query, language, t.steamSearchError, t.serverConnError]);
 
+  // Run the initial search once; re-running on every keystroke would overwrite what the user is typing.
   useEffect(() => {
     if (initialQuery.trim()) {
       handleSearch(initialQuery);
     }
-  }, [initialQuery, handleSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm">
       <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.steamSearchTitle}
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -84,7 +99,10 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
+            aria-label={t.close}
+            title={t.close}
             className="p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 rounded-none transition-colors cursor-pointer"
           >
             <Icons.X className="w-5 h-5" />
@@ -152,7 +170,15 @@ export const SteamSearchModal: React.FC<SteamSearchModalProps> = ({
               <div
                 key={item.appId}
                 onClick={() => onSelectGame(item)}
-                className="p-3 bg-white dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all cursor-pointer flex items-center gap-3 group"
+                onKeyDown={(e) => {
+                  if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    onSelectGame(item);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                className="p-3 bg-white dark:bg-[#1b1b1f] border border-neutral-200 dark:border-white/10 hover:border-indigo-500 dark:hover:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-all cursor-pointer flex items-center gap-3 group"
               >
                 {item.tinyImage ? (
                   <img

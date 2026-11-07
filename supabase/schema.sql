@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.games (
   acquisition_date TEXT DEFAULT '',
   rating NUMERIC DEFAULT 0,
   play_time NUMERIC DEFAULT 0,
-  status TEXT DEFAULT 'Pendiente',
+  status TEXT DEFAULT 'pending',
   favorite BOOLEAN DEFAULT FALSE,
   cover_color TEXT DEFAULT '#171717',
   cover_symbol TEXT DEFAULT 'gamepad',
@@ -136,6 +136,7 @@ CREATE POLICY "Users can delete their own games"
 DROP POLICY IF EXISTS "Users can view their friendships" ON public.friendships;
 DROP POLICY IF EXISTS "Users can send friend requests" ON public.friendships;
 DROP POLICY IF EXISTS "Users can update their friendships" ON public.friendships;
+DROP POLICY IF EXISTS "Receivers can respond to friend requests" ON public.friendships;
 DROP POLICY IF EXISTS "Users can delete their friendships" ON public.friendships;
 
 CREATE POLICY "Users can view their friendships" 
@@ -143,15 +144,21 @@ CREATE POLICY "Users can view their friendships"
   TO authenticated
   USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
+-- New requests must start as pending, otherwise a sender could insert an already accepted friendship.
 CREATE POLICY "Users can send friend requests" 
   ON public.friendships FOR INSERT 
   TO authenticated
-  WITH CHECK (auth.uid() = sender_id);
+  WITH CHECK (auth.uid() = sender_id AND status = 'pending');
 
-CREATE POLICY "Users can update their friendships" 
+-- Only the receiver can answer a pending request (column grants below limit the update to status/updated_at).
+CREATE POLICY "Receivers can respond to friend requests"
   ON public.friendships FOR UPDATE 
   TO authenticated
-  USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+  USING (auth.uid() = receiver_id AND status = 'pending')
+  WITH CHECK (auth.uid() = receiver_id AND status IN ('accepted', 'rejected'));
+
+REVOKE UPDATE ON public.friendships FROM authenticated;
+GRANT UPDATE (status, updated_at) ON public.friendships TO authenticated;
 
 CREATE POLICY "Users can delete their friendships" 
   ON public.friendships FOR DELETE 
@@ -161,27 +168,15 @@ CREATE POLICY "Users can delete their friendships"
 -- 9. AUTOMATIC PROFILE CREATION TRIGGER ON USER SIGNUP
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  profile_username TEXT := NULLIF(TRIM(NEW.raw_user_meta_data->>'username'), '');
 BEGIN
-  INSERT INTO public.profiles (id, username, avatar_url, created_at, updated_at)
-  VALUES (
-    NEW.id,
-    COALESCE(
-      NULLIF(TRIM(NEW.raw_user_meta_data->>'username'), ''),
-      split_part(NEW.email, '@', 1),
-      'Gamer'
-    ),
-    COALESCE(NEW.raw_user_meta_data->>'avatar_url', ''),
-    NOW(),
-    NOW()
-  )
-  ON CONFLICT (id) DO UPDATE
-  SET 
-    username = COALESCE(
-      NULLIF(TRIM(EXCLUDED.username), ''),
-      NULLIF(TRIM(public.profiles.username), ''),
-      split_part(NEW.email, '@', 1)
-    ),
-    updated_at = NOW();
+  IF profile_username IS NOT NULL THEN
+    INSERT INTO public.profiles (id, username, created_at, updated_at)
+    VALUES (NEW.id, profile_username, NOW(), NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET username = EXCLUDED.username, updated_at = NOW();
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -192,3 +187,55 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- 10. GAMES COUNT PER USER (one round trip instead of one query per friend)
+CREATE OR REPLACE FUNCTION public.get_games_counts(user_ids UUID[])
+RETURNS TABLE (user_id UUID, games_count BIGINT)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT g.user_id, COUNT(*)::BIGINT
+  FROM public.games g
+  WHERE g.user_id = ANY(user_ids)
+  GROUP BY g.user_id;
+$$;
+
+REVOKE ALL ON FUNCTION public.get_games_counts(UUID[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_games_counts(UUID[]) TO authenticated;
+
+-- 11. DATA MIGRATIONS (safe to re-run)
+-- Statuses and achievement difficulty used to be stored as Spanish labels; they are now language-neutral codes.
+UPDATE public.games SET favorite = TRUE WHERE status = 'Favoritos';
+
+UPDATE public.games
+SET status = CASE status
+  WHEN 'Pendiente' THEN 'pending'
+  WHEN 'Jugando' THEN 'playing'
+  WHEN 'Jugado' THEN 'played'
+  WHEN 'Completado' THEN 'completed'
+  WHEN 'Deseados' THEN 'wishlist'
+  WHEN 'Quiero Jugar' THEN 'wishlist'
+  ELSE 'pending'
+END
+WHERE status IS NULL OR status NOT IN ('pending', 'playing', 'played', 'completed', 'wishlist');
+
+ALTER TABLE public.games ALTER COLUMN status SET DEFAULT 'pending';
+ALTER TABLE public.games DROP CONSTRAINT IF EXISTS games_status_check;
+ALTER TABLE public.games
+  ADD CONSTRAINT games_status_check CHECK (status IN ('pending', 'playing', 'played', 'completed', 'wishlist'));
+
+UPDATE public.games g
+SET achievements = (
+  SELECT COALESCE(jsonb_agg(
+    CASE a->>'difficulty'
+      WHEN 'Fácil' THEN jsonb_set(a, '{difficulty}', '"easy"')
+      WHEN 'Medio' THEN jsonb_set(a, '{difficulty}', '"medium"')
+      WHEN 'Difícil' THEN jsonb_set(a, '{difficulty}', '"hard"')
+      ELSE a
+    END
+  ), '[]'::jsonb)
+  FROM jsonb_array_elements(g.achievements) AS a
+)
+WHERE jsonb_typeof(g.achievements) = 'array'
+  AND g.achievements::text ~ '"difficulty": ?"(Fácil|Medio|Difícil)"';

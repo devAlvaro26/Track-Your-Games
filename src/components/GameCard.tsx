@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import { motion } from "motion/react";
 import { Game, Language } from "../types";
 import { GameIcon } from "./GameIcon";
@@ -16,7 +16,8 @@ interface GameCardProps {
 
 const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = "en", priority = false }) => {
   const t = getTranslation(language);
-
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const imageFailed = Boolean(game.coverImage) && failedImageUrl === game.coverImage;
   // Take only the FIRST platform for the top console banner as requested
   const primaryPlatform = game.platforms && game.platforms.length > 0 ? game.platforms[0] : "PC";
 
@@ -31,12 +32,11 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
 
   // Status badge styling
   const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-    Pendiente: { bg: "bg-amber-500/90 text-amber-950", text: "text-amber-200", label: t.statusPendingTag || "Pendiente" },
-    Deseados: { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag || "Quiero Jugar" },
-    "Quiero Jugar": { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag || "Quiero Jugar" },
-    Jugando: { bg: "bg-sky-500/90 text-sky-950", text: "text-sky-200", label: t.statusPlayingTag || "Jugando" },
-    Jugado: { bg: "bg-teal-500/90 text-teal-950", text: "text-teal-200", label: t.statusPlayedTag || "Jugado" },
-    Completado: { bg: "bg-emerald-500/90 text-emerald-950", text: "text-emerald-200", label: t.statusCompletedTag || "Completado" },
+    pending: { bg: "bg-amber-500/90 text-amber-950", text: "text-amber-200", label: t.statusPendingTag },
+    wishlist: { bg: "bg-purple-500/90 text-purple-950", text: "text-purple-200", label: t.statusWishlistTag },
+    playing: { bg: "bg-sky-500/90 text-sky-950", text: "text-sky-200", label: t.statusPlayingTag },
+    played: { bg: "bg-teal-500/90 text-teal-950", text: "text-teal-200", label: t.statusPlayedTag },
+    completed: { bg: "bg-emerald-500/90 text-emerald-950", text: "text-emerald-200", label: t.statusCompletedTag },
   };
 
   const statusStyle = statusConfig[game.status] || { bg: "bg-slate-700 text-white", text: "text-white", label: game.status };
@@ -78,7 +78,7 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
         style={{ backgroundColor: game.coverColor || "#171717" }}
       >
         {/* Full cover image if present */}
-        {game.coverImage && (
+        {game.coverImage && !imageFailed && (
           <img
             src={game.coverImage}
             alt={game.title}
@@ -91,6 +91,7 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
             referrerPolicy="no-referrer"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";
+              setFailedImageUrl(game.coverImage ?? null);
             }}
           />
         )}
@@ -99,7 +100,7 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/20 pointer-events-none" />
 
         {/* Fallback symbol cover art if no image */}
-        {!game.coverImage && (
+        {(!game.coverImage || imageFailed) && (
           <div className="z-10 my-auto flex flex-col items-center justify-center py-2 sm:py-4">
             <div className="p-2.5 sm:p-3.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300">
               <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]" size={30} />

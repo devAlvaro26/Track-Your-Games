@@ -23,7 +23,7 @@ Track Your Games is a React application for organizing a personal video game lib
 - Browse a console picker with categorized platforms, console logos, manufacturer colors, and dynamic banners.
 - Review library statistics such as total games, play time, average rating, platform and genre breakdowns, and completion rate.
 - Create a profile with a username and avatar, switch between English and Spanish, and use light or dark theme.
-- Add friends, manage incoming and outgoing requests, and view an accepted friend's library.
+- Add friends, manage incoming and outgoing requests, and view an accepted friend's library. These features require Supabase and only show accounts with a registered profile.
 - Use the app without an account through `localStorage`, or sign in to sync games and profiles through Supabase with Row Level Security.
 
 ## Tech Stack
@@ -68,7 +68,7 @@ cd track-your-games
 npm install
 ```
 
-Create a `.env` file in the project root only if you want external integrations or cloud accounts. No `.env.example` file is currently included.
+Copy [`.env.example`](.env.example) to `.env` and fill in only the integrations you need (IGDB, Steam, Supabase).
 
 ```env
 # Required for IGDB search. IGDB uses Twitch OAuth client credentials.
@@ -96,10 +96,10 @@ The app and API are available at `http://localhost:3000` by default. Set `PORT` 
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Starts Express with Vite middleware and the API routes. |
-| `npm run build` | Creates the Vite production build in `dist/`. |
+| `npm run build` | Builds the frontend with Vite and bundles the server into `dist/server.cjs`. |
 | `npm run lint` | Runs TypeScript checking without emitting files. |
-| `npm run start` | Starts the production server using `dist/server.cjs` when that artifact is provided by the deployment workflow. |
-| `npm run clean` | Removes `dist` and `server.js` on environments that support `rm -rf`. |
+| `npm run start` | Starts the production server from `dist/server.cjs` (run `npm run build` first). |
+| `npm run clean` | Removes the `dist` folder. |
 
 ## Supabase Setup (Optional)
 
