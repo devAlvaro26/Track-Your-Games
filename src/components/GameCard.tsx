@@ -18,8 +18,9 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
   const t = getTranslation(language);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const imageFailed = Boolean(game.coverImage) && failedImageUrl === game.coverImage;
-  // Take only the FIRST platform for the top console banner as requested
-  const primaryPlatform = game.platforms && game.platforms.length > 0 ? game.platforms[0] : "PC";
+  const platforms = game.platforms?.filter((platform) => platform.trim()) ?? [];
+  const cardPlatforms = platforms.length > 0 ? platforms : ["PC"];
+  const primaryPlatform = cardPlatforms[0];
 
   // Achievements calculation
   const totalAchievements = game.achievements.length;
@@ -62,13 +63,14 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
       }}
       role="button"
       tabIndex={0}
-      aria-label={`${game.title} - ${primaryPlatform} (${statusStyle.label})`}
+      aria-label={`${game.title} - ${cardPlatforms.join(", ")} (${statusStyle.label})`}
       className="group relative flex flex-col w-full rounded-none sm:rounded-sm overflow-hidden bg-white dark:bg-[#161618] border border-slate-300 dark:border-white/10 shadow-md hover:shadow-2xl hover:border-indigo-500 cursor-pointer transition-all select-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
       id={`card-${game.id}`}
     >
-      {/* 1. TOP CONSOLE INTEGRATED HEADER BANNER (SOLO LOGO DE CONSOLA) */}
+      {/* 1. TOP CONSOLE INTEGRATED HEADER BANNER */}
       <ConsoleBanner
         platformName={primaryPlatform}
+        platforms={cardPlatforms}
         size="sm"
       />
 
