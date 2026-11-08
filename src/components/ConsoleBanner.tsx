@@ -19,6 +19,24 @@ export const ConsoleBanner: React.FC<ConsoleBannerProps> = ({
     new Set((platforms?.length ? platforms : [platformName]).filter((name): name is string => Boolean(name?.trim())))
   );
   const brand = getConsoleBrandStyle(platformList[0]);
+  const brandColors: Record<string, string> = {
+    xbox: "#107C41",
+    playstation: "#00439C",
+    nintendo: "#E60012",
+    pc: "#1b2838",
+    sega: "#004B99",
+    retro: "#92400E",
+    generic: "#171717",
+  };
+  const bannerGradient = platformList.length > 1
+    ? `linear-gradient(90deg, ${platformList.flatMap((name, index) => {
+        const color = brandColors[getConsoleBrandStyle(name).brandKey];
+        if (index === 0) return [`${color} 0%`];
+        const boundary = (index / platformList.length) * 100;
+        const transition = Math.min(4, 50 / (platformList.length - 1));
+        return [`${brandColors[getConsoleBrandStyle(platformList[index - 1]).brandKey]} ${boundary - transition / 2}%`, `${color} ${boundary + transition / 2}%`];
+      }).join(", ")}, ${brandColors[getConsoleBrandStyle(platformList[platformList.length - 1]).brandKey]} 100%)`
+    : undefined;
 
   const logoSize = size === "sm" ? 18 : size === "lg" ? 32 : 24;
   const multiLogoSize = size === "sm" ? 15 : size === "lg" ? 24 : 19;
@@ -32,13 +50,14 @@ export const ConsoleBanner: React.FC<ConsoleBannerProps> = ({
 
   return (
     <div
-      className={`w-full flex items-center justify-center sm:justify-start ${brand.bannerBg} ${brand.bannerTextColor} ${sizePadding} border-b border-white/10 shadow-sm select-none overflow-hidden shrink-0 ${className}`}
+      className={`relative w-full flex items-center justify-center sm:justify-start ${platformList.length === 1 ? brand.bannerBg : ""} ${brand.bannerTextColor} ${sizePadding} border-b border-white/10 shadow-sm select-none overflow-hidden shrink-0 ${className}`}
       title={platformList.length > 0 ? platformList.join(", ") : brand.displayName}
+      style={bannerGradient ? { backgroundImage: bannerGradient } : undefined}
     >
       {platformList.length > 1 ? (
         <div
-          className="grid w-full max-w-full gap-1"
-          style={{ gridTemplateColumns: `repeat(${platformList.length <= 3 ? platformList.length : 2}, minmax(0, 1fr))` }}
+          className="absolute inset-0 grid w-full"
+          style={{ gridTemplateColumns: `repeat(${platformList.length}, minmax(0, 1fr))` }}
           role="group"
           aria-label={`Platforms: ${platformList.join(", ")}`}
           id="banner-logos-multiple"
@@ -48,7 +67,7 @@ export const ConsoleBanner: React.FC<ConsoleBannerProps> = ({
             return (
               <div
                 key={name}
-                className={`flex min-w-0 items-center justify-center overflow-hidden border border-white/15 ${platformBrand.bannerBg} ${platformBrand.bannerTextColor}`}
+                className={`flex min-w-0 items-center justify-center overflow-hidden border border-white/15 ${platformBrand.bannerTextColor}`}
                 title={platformBrand.displayName}
               >
                 <ConsoleLogo
