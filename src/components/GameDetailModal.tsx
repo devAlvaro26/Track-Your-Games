@@ -795,6 +795,21 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose,
                     )}
                   </div>
 
+                  {!readOnly && game.notes?.trim() && (
+                    <section className="space-y-2" aria-labelledby="personal-notes-title">
+                      <h3
+                        id="personal-notes-title"
+                        className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-gray-200 flex items-center gap-1.5"
+                      >
+                        <Icons.StickyNote className="w-4 h-4 text-indigo-500" />
+                        {t.notesLabel || "Notas Personales"}
+                      </h3>
+                      <p className="whitespace-pre-wrap break-words text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed bg-white dark:bg-[#1b1b1f] p-4 border border-neutral-300 dark:border-white/10 shadow-sm">
+                        {game.notes.trim()}
+                      </p>
+                    </section>
+                  )}
+
                 </div>
               </div>
             ) : (
