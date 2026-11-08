@@ -50,36 +50,39 @@ export const ConsoleBanner: React.FC<ConsoleBannerProps> = ({
 
   return (
     <div
-      className={`relative w-full flex items-center justify-center sm:justify-start ${platformList.length === 1 ? brand.bannerBg : ""} ${brand.bannerTextColor} ${sizePadding} border-b border-white/10 shadow-sm select-none overflow-hidden shrink-0 ${className}`}
+      className={`relative box-border w-full min-w-full flex-none self-stretch flex items-center justify-center sm:justify-start ${platformList.length === 1 ? brand.bannerBg : ""} ${brand.bannerTextColor} ${sizePadding} border-b border-white/10 shadow-sm select-none overflow-hidden ${className}`}
       title={platformList.length > 0 ? platformList.join(", ") : brand.displayName}
       style={bannerGradient ? { backgroundImage: bannerGradient } : undefined}
     >
       {platformList.length > 1 ? (
-        <div
-          className="absolute inset-0 grid w-full"
-          style={{ gridTemplateColumns: `repeat(${platformList.length}, minmax(0, 1fr))` }}
-          role="group"
-          aria-label={`Platforms: ${platformList.join(", ")}`}
-          id="banner-logos-multiple"
-        >
-          {platformList.map((name) => {
-            const platformBrand = getConsoleBrandStyle(name);
-            return (
-              <div
-                key={name}
-                className={`flex min-w-0 items-center justify-center overflow-hidden border border-white/15 ${platformBrand.bannerTextColor}`}
-                title={platformBrand.displayName}
-              >
-                <ConsoleLogo
-                  platformName={name}
-                  brandKey={platformBrand.brandKey}
-                  size={multiLogoSize}
-                  className="drop-shadow-sm"
-                />
-              </div>
-            );
-          })}
-        </div>
+        <>
+          <div aria-hidden="true" className="w-0 shrink-0" style={{ height: logoSize }} />
+          <div
+            className="absolute inset-0 grid w-full"
+            style={{ gridTemplateColumns: `repeat(${platformList.length}, minmax(0, 1fr))` }}
+            role="group"
+            aria-label={`Platforms: ${platformList.join(", ")}`}
+            id="banner-logos-multiple"
+          >
+            {platformList.map((name) => {
+              const platformBrand = getConsoleBrandStyle(name);
+              return (
+                <div
+                  key={name}
+                  className={`flex min-w-0 items-center justify-center overflow-hidden border border-white/15 ${platformBrand.bannerTextColor}`}
+                  title={platformBrand.displayName}
+                >
+                  <ConsoleLogo
+                    platformName={name}
+                    brandKey={platformBrand.brandKey}
+                    size={multiLogoSize}
+                    className="drop-shadow-sm"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <div className="flex items-center justify-center sm:justify-start w-full max-w-full overflow-hidden" id={`banner-logo-${platformList[0] || "default"}`}>
           <ConsoleLogo
