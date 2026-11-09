@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, type CSSProperties } from "react";
 import { Game, AppSettings, Language, FriendProfile } from "./types";
 import { GameCard } from "./components/GameCard";
 import { ProfileAvatar } from "./components/ProfileAvatar";
@@ -89,11 +89,15 @@ export default function App() {
     const savedLang = localStorage.getItem("language") as Language | null;
     const savedUser = localStorage.getItem("username");
     const savedAvatar = localStorage.getItem("avatarUrl");
+    const savedGamesPerRow = Number(localStorage.getItem("gamesPerRow"));
 
     return {
       theme: savedTheme || "dark",
       language: savedLang || "es",
       username: savedUser && savedUser !== "Gamer" ? savedUser : "",
+      gamesPerRow: Number.isInteger(savedGamesPerRow) && savedGamesPerRow >= 5 && savedGamesPerRow <= 10
+        ? savedGamesPerRow
+        : 6,
       avatarUrl: savedAvatar || undefined,
     };
   });
@@ -166,6 +170,7 @@ export default function App() {
     localStorage.setItem("theme", settings.theme);
     localStorage.setItem("language", settings.language);
     localStorage.setItem("username", settings.username);
+    localStorage.setItem("gamesPerRow", String(settings.gamesPerRow));
     if (settings.avatarUrl) {
       localStorage.setItem("avatarUrl", settings.avatarUrl);
     } else {
@@ -1411,7 +1416,8 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-3 min-[480px]:grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-6 gap-1.5 sm:gap-3.5"
+                className="grid gap-1.5 sm:gap-3.5"
+                style={{ "--games-per-row": settings.gamesPerRow } as CSSProperties}
                 id="games-grid"
               >
                 <AnimatePresence mode="popLayout">

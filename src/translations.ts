@@ -227,6 +227,14 @@ export const translationTable = {
     es: "Idioma de la interfaz",
     en: "Interface Language",
   },
+  gamesPerRowLabel: {
+    es: "Juegos por fila",
+    en: "Games per row",
+  },
+  gamesPerRowDescription: {
+    es: "Número de juegos por fila en la biblioteca principal",
+    en: "Number of games per row in the main library",
+  },
   languageEs: {
     es: "Español (Spanish)",
     en: "Spanish (Español)",

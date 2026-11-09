@@ -23,6 +23,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [theme, setTheme] = useState<"light" | "dark">(settings.theme);
   const [language, setLanguage] = useState<Language>(settings.language);
+  const [gamesPerRow, setGamesPerRow] = useState(settings.gamesPerRow);
   const [username, setUsername] = useState<string>(settings.username);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(settings.avatarUrl);
   const [urlInput, setUrlInput] = useState<string>("");
@@ -134,6 +135,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onSaveSettings({
       theme,
       language,
+      gamesPerRow,
       username: username.trim(),
       avatarUrl: avatarUrl || undefined,
     });
@@ -341,6 +343,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {t.themeLight}
               </button>
             </div>
+          </div>
+
+          {/* Games per row setting */}
+          <div className="space-y-2">
+            <label
+              htmlFor="select-games-per-row"
+              className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-2"
+            >
+              <Icons.LayoutGrid className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              {t.gamesPerRowLabel}
+            </label>
+            <select
+              id="select-games-per-row"
+              value={gamesPerRow}
+              onChange={(e) => setGamesPerRow(Number(e.target.value))}
+              aria-describedby="games-per-row-description"
+              className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-[#1b1b1f] border border-neutral-300 dark:border-white/10 rounded-none text-neutral-900 dark:text-white focus:outline-none focus:border-indigo-500"
+            >
+              {[5, 6, 7, 8, 9, 10].map((count) => (
+                <option key={count} value={count} className="bg-white dark:bg-[#1b1b1f] text-neutral-900 dark:text-white">
+                  {count}
+                </option>
+              ))}
+            </select>
+            <p id="games-per-row-description" className="text-[11px] text-neutral-500 dark:text-neutral-400">
+              {t.gamesPerRowDescription}
+            </p>
           </div>
 
           {/* Language setting */}
