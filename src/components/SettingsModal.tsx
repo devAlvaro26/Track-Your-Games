@@ -346,7 +346,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Games per row setting */}
-          <div className="space-y-2">
+          <div className="hidden lg:block space-y-2">
             <label
               htmlFor="select-games-per-row"
               className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-2"

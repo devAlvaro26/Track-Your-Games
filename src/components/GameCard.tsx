@@ -18,9 +18,14 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
   const t = getTranslation(language);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const imageFailed = Boolean(game.coverImage) && failedImageUrl === game.coverImage;
-  const platforms = game.platforms?.filter((platform) => platform.trim()) ?? [];
+  const platforms = Array.from(new Set(game.platforms?.filter((platform) => platform.trim()) ?? []));
   const cardPlatforms = platforms.length > 0 ? platforms : ["PC"];
-  const primaryPlatform = cardPlatforms[0];
+  const [activePlatform, setActivePlatform] = useState(cardPlatforms[0]);
+  const selectedPlatform = cardPlatforms.includes(activePlatform) ? activePlatform : cardPlatforms[0];
+  const orderedPlatforms = [
+    selectedPlatform,
+    ...cardPlatforms.filter((platform) => platform !== selectedPlatform),
+  ];
 
   // Achievements calculation
   const totalAchievements = game.achievements.length;
@@ -56,6 +61,14 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
       }}
       onClick={onClick}
       onKeyDown={(e) => {
+        if (cardPlatforms.length > 1 && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+          e.preventDefault();
+          const currentIndex = orderedPlatforms.indexOf(selectedPlatform);
+          const direction = e.key === "ArrowRight" ? 1 : -1;
+          const nextIndex = (currentIndex + direction + cardPlatforms.length) % cardPlatforms.length;
+          setActivePlatform(orderedPlatforms[nextIndex]);
+          return;
+        }
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();
@@ -63,89 +76,115 @@ const GameCardComponent: React.FC<GameCardProps> = ({ game, onClick, language = 
       }}
       role="button"
       tabIndex={0}
-      aria-label={`${game.title} - ${cardPlatforms.join(", ")} (${statusStyle.label})`}
-      className="group relative flex flex-col w-full rounded-none sm:rounded-sm overflow-hidden bg-white dark:bg-[#161618] border border-slate-300 dark:border-white/10 shadow-md hover:shadow-2xl hover:border-indigo-500 cursor-pointer transition-all select-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      aria-label={`${game.title} - ${selectedPlatform} (${statusStyle.label}). ${
+        cardPlatforms.length > 1
+          ? language === "es"
+            ? "Usa las flechas izquierda y derecha para cambiar de plataforma."
+            : "Use the left and right arrow keys to change platform."
+          : ""
+      }`}
+      className={`group relative w-full cursor-pointer select-none transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${cardPlatforms.length > 1 ? "pt-3" : ""}`}
       id={`card-${game.id}`}
     >
-      {/* 1. TOP CONSOLE INTEGRATED HEADER BANNER */}
-      <ConsoleBanner
-        platformName={primaryPlatform}
-        platforms={cardPlatforms}
-        size="sm"
-      />
+      {orderedPlatforms.map((platformName, index) => {
+        const isFrontCard = index === 0;
+        const cardPosition = isFrontCard
+          ? { position: "relative" as const, zIndex: cardPlatforms.length }
+          : {
+              position: "absolute" as const,
+              top: -Math.min((index - 1) * 3, 6),
+              left: 0,
+              right: 0,
+              zIndex: cardPlatforms.length - index,
+              transform: `translateX(${index % 2 === 1 ? 2 : -2}px)`,
+            };
 
-      {/* 2. MAIN POSTER COVER AREA (Aspect 2/3 independiente para no superponer ni recortar) */}
-      <div
-        className="relative w-full aspect-[2/3] overflow-hidden flex flex-col justify-between p-2 sm:p-3 shrink-0"
-        style={{ backgroundColor: game.coverColor || "#171717" }}
-      >
-        {/* Full cover image if present */}
-        {game.coverImage && !imageFailed && (
-          <img
-            src={game.coverImage}
-            alt={game.title}
-            width={300}
-            height={450}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            fetchPriority={priority ? "high" : "auto"}
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              (e.target as HTMLElement).style.display = "none";
-              setFailedImageUrl(game.coverImage ?? null);
+        return (
+          <div
+            key={platformName}
+            className={`flex w-full flex-col overflow-hidden rounded-none border border-slate-300 bg-white shadow-md dark:border-white/10 dark:bg-[#161618] sm:rounded-sm ${
+              isFrontCard ? "hover:border-indigo-500 hover:shadow-2xl" : "cursor-pointer"
+            }`}
+            style={cardPosition}
+            aria-hidden={isFrontCard ? undefined : true}
+            onClick={(event) => {
+              if (!isFrontCard) {
+                event.stopPropagation();
+                setActivePlatform(platformName);
+              }
             }}
-          />
-        )}
+          >
+            <ConsoleBanner platformName={platformName} size="sm" />
 
-        {/* Poster gradient shadow overlay for contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/20 pointer-events-none" />
+            <div
+              className="relative flex w-full shrink-0 aspect-[2/3] flex-col justify-between overflow-hidden p-2 sm:p-3"
+              style={{ backgroundColor: game.coverColor || "#171717" }}
+            >
+              {game.coverImage && !imageFailed && (
+                <img
+                  src={game.coverImage}
+                  alt={isFrontCard ? game.title : ""}
+                  width={300}
+                  height={450}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading={priority ? "eager" : "lazy"}
+                  decoding="async"
+                  fetchPriority={priority ? "high" : "auto"}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = "none";
+                    setFailedImageUrl(game.coverImage ?? null);
+                  }}
+                />
+              )}
 
-        {/* Fallback symbol cover art if no image */}
-        {(!game.coverImage || imageFailed) && (
-          <div className="z-10 my-auto flex flex-col items-center justify-center py-2 sm:py-4">
-            <div className="p-2.5 sm:p-3.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]" size={30} />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/20" />
+
+              {(!game.coverImage || imageFailed) && (
+                <div className="z-10 my-auto flex flex-col items-center justify-center py-2 sm:py-4">
+                  <div className="rounded-full border border-white/20 bg-white/10 p-2.5 shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:scale-110 sm:p-3.5">
+                    <GameIcon name={game.coverSymbol} className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]" size={30} />
+                  </div>
+                </div>
+              )}
+
+              <div className="z-10 mt-auto space-y-0.5">
+                <p className="truncate text-[9px] font-bold uppercase tracking-widest text-white/70 sm:text-[10px]">
+                  {translateGenre(game.genre, language)}
+                </p>
+                <h3 className="line-clamp-2 text-xs font-black leading-snug tracking-tight text-white drop-shadow-md transition-colors group-hover:text-indigo-300 sm:text-sm">
+                  {game.title}
+                </h3>
+              </div>
+
+              {isFavorite && (
+                <div className="absolute right-2 top-2 z-20 border border-white/20 bg-rose-500/90 p-1.5 shadow-md">
+                  <Star className="h-3.5 w-3.5 fill-amber-200 text-amber-200" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-100 px-2 py-1.5 font-mono text-[9px] text-neutral-800 dark:border-white/10 dark:bg-[#101012] dark:text-neutral-300 sm:px-3 sm:py-2 sm:text-[11px]">
+              <div className="flex items-center gap-1 truncate sm:gap-1.5">
+                <Trophy className="h-3 w-3 shrink-0 text-amber-500 dark:text-amber-400 sm:h-3.5 sm:w-3.5" />
+                {totalAchievements > 0 ? (
+                  <span className="font-semibold text-neutral-800 dark:text-white/90">
+                    {unlockedAchievements}/{totalAchievements}
+                  </span>
+                ) : (
+                  <span className="truncate font-sans text-[8px] uppercase text-neutral-500 dark:text-white/50 sm:text-[10px]">
+                    {t.noAchievementsRecorded || "Sin Logros"}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1 font-bold text-amber-400">
+                <span>{totalAchievements > 0 ? `${achievementProgress}%` : ""}</span>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Bottom Poster Info (Title & Genre) */}
-        <div className="z-10 mt-auto space-y-0.5">
-          <p className="text-[9px] sm:text-[10px] font-bold text-white/70 uppercase tracking-widest truncate">
-            {translateGenre(game.genre, language)}
-          </p>
-          <h3 className="text-xs sm:text-sm font-black text-white leading-snug tracking-tight line-clamp-2 drop-shadow-md group-hover:text-indigo-300 transition-colors">
-            {game.title}
-          </h3>
-        </div>
-
-        {isFavorite && (
-          <div className="absolute right-2 top-2 z-20 rounded-none bg-rose-500/90 p-1.5 shadow-md border border-white/20">
-            <Star className="w-3.5 h-3.5 fill-amber-200 text-amber-200" />
-          </div>
-        )}
-      </div>
-
-      {/* 3. BOTTOM LAUNCHER STATS BAR (e.g. 🏆 0/49  0%) */}
-      <div className="px-2 py-1.5 sm:px-3 sm:py-2 bg-slate-100 dark:bg-[#101012] border-t border-slate-200 dark:border-white/10 text-[9px] sm:text-[11px] font-mono text-neutral-800 dark:text-neutral-300 flex items-center justify-between">
-        <div className="flex items-center gap-1 sm:gap-1.5 truncate">
-          <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-          {totalAchievements > 0 ? (
-            <span className="font-semibold text-neutral-800 dark:text-white/90">
-              {unlockedAchievements}/{totalAchievements}
-            </span>
-          ) : (
-            <span className="text-neutral-500 dark:text-white/50 text-[8px] sm:text-[10px] uppercase font-sans truncate">
-              {t.noAchievementsRecorded || "Sin Logros"}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 font-bold text-amber-400 shrink-0">
-          <span>{totalAchievements > 0 ? `${achievementProgress}%` : ""}</span>
-        </div>
-      </div>
+        );
+      })}
     </motion.div>
   );
 };
